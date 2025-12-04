@@ -28,32 +28,32 @@
         // Скобки — одновременное нажатие соседних клавиш
         combo_lbrace {
             timeout-ms = <50>;
-            key-positions = <16 17>;  // Q + W
+            key-positions = <13 14>;  // Q + W (исправлено!)
             bindings = <&kp LBKT>;    // [
         };
         combo_rbrace {
             timeout-ms = <50>;
-            key-positions = <17 18>;  // W + E
+            key-positions = <14 15>;  // W + E (исправлено!)
             bindings = <&kp RBKT>;    // ]
         };
         combo_lparen {
             timeout-ms = <50>;
-            key-positions = <18 19>;  // E + R
+            key-positions = <15 16>;  // E + R (исправлено!)
             bindings = <&kp LPAR>;    // (
         };
         combo_rparen {
             timeout-ms = <50>;
-            key-positions = <19 20>;  // R + T
+            key-positions = <16 17>;  // R + T (исправлено!)
             bindings = <&kp RPAR>;    // )
         };
         combo_lcurly {
             timeout-ms = <50>;
-            key-positions = <28 29>;  // A + S
+            key-positions = <25 26>;  // A + S (исправлено!)
             bindings = <&kp LBRC>;    // {
         };
         combo_rcurly {
             timeout-ms = <50>;
-            key-positions = <29 30>;  // S + D
+            key-positions = <26 27>;  // S + D (исправлено!)
             bindings = <&kp RBRC>;    // }
         };
         
@@ -61,7 +61,14 @@
         combo_lang_switch {
             timeout-ms = <50>;
             key-positions = <31 32>;  // J + K
-            bindings = <&kp LG(SPACE)>;  // Cmd+Space (macOS) или замени на &kp CAPS для Windows
+            bindings = <&kp LC(SPACE)>;  // Ctrl+Space
+        };
+
+        // Переключение между окнами одного приложения — TAB + Q
+        combo_window_switch {
+            timeout-ms = <50>;
+            key-positions = <12 13>;  // TAB + Q
+            bindings = <&kp LG(GRAVE)>;  // Cmd+`
         };
     };
     macros {
