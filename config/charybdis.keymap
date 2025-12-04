@@ -4,8 +4,6 @@
 #include <dt-bindings/zmk/pointing.h>
 #include <dt-bindings/zmk/rgb.h>
 
-// Hyper = Ctrl + Shift + Alt + GUI
-#define HYPER(key) LC(LS(LA(LG(key))))
 
 &mt {
     tapping-term-ms = <280>;
@@ -102,11 +100,11 @@
 
         QWERTY {
             bindings = <
-&kp ESC         &kp N1  &kp N2   &kp N3            &kp N4        &kp N5          &kp N6      &kp N7     &kp N8     &kp N9   &kp N0    &kp BACKSPACE
+&kp GRAVE       &kp N1  &kp N2   &kp N3            &kp N4        &kp N5          &kp N6      &kp N7     &kp N8     &kp N9   &kp N0    &kp BACKSPACE
 &kp TAB         &kp Q   &kp W    &kp E             &kp R         &kp T           &kp Y       &kp U      &kp I      &kp O    &kp P     &kp BSLH
 &mt LCTRL ESC    &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F  &kp G    &kp H  &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
-&kp LEFT_SHIFT  &lt 4 Z   &lt 3 X    &lt 5 C    &lt 6 V    &lt 2 B    &kp N   &kp M   &kp COMMA  &kp DOT  &kp FSLH  &kp RIGHT_SHIFT
-                                 &kp LEFT_CONTROL  &kp SPACE     &mo 1           &kp DELETE  &kp SPACE
+&kp LEFT_SHIFT  &kp Z   &lt 5 X    &lt 4 C    &lt 3 V    &lt 2 B    &kp N   &kp M   &kp COMMA  &lt 5 DOT  &kp FSLH  &kp RIGHT_SHIFT
+                                 &kp LEFT_CONTROL  &kp SPACE     &mo 1           &lt 6 DELETE  &kp SPACE
                                                    &kp LEFT_WIN  &kp LEFT_ALT    &kp ENTER
             >;
         };
@@ -137,7 +135,7 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans  &msc SCRL_DOWN  &msc SCRL_UP  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
                         &trans  &trans  &trans    &trans  &trans
                                 &trans  &trans    &trans
@@ -167,12 +165,12 @@
         };
         hyper_layer {
             bindings = <
-&trans          &kp HYPER(N1)  &kp HYPER(N2)  &kp HYPER(N3)  &kp HYPER(N4)  &kp HYPER(N5)    &kp HYPER(N6)  &kp HYPER(N7)  &kp HYPER(N8)  &kp HYPER(N9)  &kp HYPER(N0)  &trans
-&trans          &kp HYPER(Q)   &kp HYPER(W)   &kp HYPER(E)   &kp HYPER(R)   &kp HYPER(T)     &kp HYPER(Y)   &kp HYPER(U)   &kp HYPER(I)   &kp HYPER(O)   &kp HYPER(P)   &trans
-&trans          &kp HYPER(A)   &kp HYPER(S)   &kp HYPER(D)   &kp HYPER(F)   &kp HYPER(G)     &kp HYPER(H)   &kp HYPER(J)   &kp HYPER(K)   &kp HYPER(L)   &trans         &trans
-&trans          &kp HYPER(Z)   &kp HYPER(X)   &kp HYPER(C)   &kp HYPER(V)   &kp HYPER(B)     &kp HYPER(N)   &kp HYPER(M)   &trans         &trans         &trans         &trans
-                                              &trans         &trans         &trans           &trans         &trans
-                                                             &trans         &trans           &trans
+&trans  &kp LC(LS(LA(LG(N1))))  &kp LC(LS(LA(LG(N2))))  &kp LC(LS(LA(LG(N3))))  &kp LC(LS(LA(LG(N4))))  &kp LC(LS(LA(LG(N5))))    &kp LC(LS(LA(LG(N6))))  &kp LC(LS(LA(LG(N7))))  &kp LC(LS(LA(LG(N8))))  &kp LC(LS(LA(LG(N9))))  &kp LC(LS(LA(LG(N0))))  &trans
+&trans  &kp LC(LS(LA(LG(Q))))   &kp LC(LS(LA(LG(W))))   &kp LC(LS(LA(LG(E))))   &kp LC(LS(LA(LG(R))))   &kp LC(LS(LA(LG(T))))     &kp LC(LS(LA(LG(Y))))   &kp LC(LS(LA(LG(U))))   &kp LC(LS(LA(LG(I))))   &kp LC(LS(LA(LG(O))))   &kp LC(LS(LA(LG(P))))   &trans
+&trans  &kp LC(LS(LA(LG(A))))   &kp LC(LS(LA(LG(S))))   &kp LC(LS(LA(LG(D))))   &kp LC(LS(LA(LG(F))))   &kp LC(LS(LA(LG(G))))     &kp LC(LS(LA(LG(H))))   &kp LC(LS(LA(LG(J))))   &kp LC(LS(LA(LG(K))))   &kp LC(LS(LA(LG(L))))   &trans                  &trans
+&trans  &kp LC(LS(LA(LG(Z))))   &kp LC(LS(LA(LG(X))))   &kp LC(LS(LA(LG(C))))   &kp LC(LS(LA(LG(V))))   &kp LC(LS(LA(LG(B))))     &kp LC(LS(LA(LG(N))))   &kp LC(LS(LA(LG(M))))   &trans                  &trans                  &trans                  &trans
+                                                        &trans                  &trans                  &trans                    &trans                  &trans
+                                                                                &trans                  &trans                    &trans
             >;
         };
     };
