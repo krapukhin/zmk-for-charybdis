@@ -61,6 +61,7 @@
         zephyr,axis-y = <INPUT_REL_Y>;
         res-cpi = <2400>;
         invert-x;
+        invert-y;
     };
 };
 
