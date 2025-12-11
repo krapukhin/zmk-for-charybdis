@@ -6,6 +6,7 @@
  
 #include "charybdis.dtsi"
 #include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <input/processors.dtsi>
 
 &default_transform {
     col-offset = <6>;
@@ -108,9 +109,21 @@
 
 
 / {
-    trackball_listener {
+    trackball_listener: trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
+
+        /* Scroll режим на слое 3 */
+        scroller {
+            layers = <3>;
+            input-processors = <&zip_xy_to_scroll_mapper>;
+        };
+
+        /* Snipe режим на слое 4 (скорость ÷4) */
+        sniper {
+            layers = <4>;
+            input-processors = <&zip_xy_scaler 1 4>;
+        };
     };
 };
 
