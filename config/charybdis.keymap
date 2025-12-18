@@ -77,7 +77,7 @@
 &kp GRAVE       &kp N1  &kp N2   &kp N3            &kp N4        &kp N5          &kp N6      &kp N7     &kp N8     &kp N9   &kp N0    &kp BACKSPACE
 &kp TAB         &kp Q   &kp W    &kp E             &kp R         &kp T           &kp Y       &kp U      &kp I      &kp O    &kp P     &kp BSLH
 &mt LCTRL ESC    &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F  &kp G    &kp H  &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
-&kp LEFT_SHIFT  &kp Z   &lt 5 X    &lt 3 C    &lt 4 V    &lt 2 B    &kp N   &kp M   &lt 4 COMMA  &lt 5 DOT  &kp FSLH  &kp RIGHT_SHIFT
+&kp LEFT_SHIFT  &kp Z   &lt 5 X    &lt 3 C    &lt 4 V    &lt 2 B    &kp N   &lt 4 M   &lt 3 COMMA  &lt 5 DOT  &kp FSLH  &kp RIGHT_SHIFT
                                  &kp LEFT_CONTROL  &kp SPACE     &mo 1           &lt 6 DELETE  &kp SPACE
                                                    &kp LEFT_WIN  &kp LEFT_ALT    &kp ENTER
             >;
@@ -85,11 +85,11 @@
 
         F_layers {
             bindings = <
-&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6        &kp F7     &kp F8     &kp F9    &kp F10       &kp F11    &kp F12
-&trans  &none   &none   &none   &none   &trans        &none      &none      &none     &kp UP_ARROW  &kp MINUS  &kp EQUAL
-&trans  &none   &none   &none   &none   &trans        &mkp LCLK  &mkp RCLK  &kp LEFT  &kp DOWN      &kp RIGHT  &trans
-&trans  &trans  &trans  &trans  &trans  &none         &none      &none      &trans    &trans        &none      &trans
-                        &trans  &trans  &trans        &mkp LCLK  &mkp RCLK
+&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6        &kp F7     &kp F8     &kp F9    &kp F10  &kp F11    &kp F12
+&trans  &none   &none   &none   &none   &trans        &none      &none      &none     &none    &kp MINUS  &kp EQUAL
+&trans  &none   &none   &none   &none   &trans        &mkp RCLK  &mkp LCLK  &none     &none    &none      &trans
+&trans  &trans  &trans  &trans  &trans  &none         &none      &none      &trans    &trans   &none      &trans
+                        &trans  &trans  &trans        &mkp RCLK  &mkp LCLK
                                 &trans  &trans        &trans
             >;
         };
@@ -109,7 +109,7 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &kp PG_DN  &kp PG_UP  &trans  &trans  &trans
+&trans  &trans  &trans  &kp PG_UP  &kp PG_DN  &trans    &trans  &kp PG_DN  &kp PG_UP  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
                         &trans  &trans  &trans    &trans  &trans
                                 &trans  &trans    &trans
@@ -118,12 +118,12 @@
 
         snipe-layers {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
-                        &trans  &trans  &trans    &mkp RCLK  &mkp LCLK
-                                &trans  &trans    &trans
+&kp C_BRI_DN  &kp C_BRI_UP  &kp F3    &kp F4    &kp C_ILLUM_DN  &kp C_ILLUM_UP    &kp C_PREV  &kp C_PP    &kp C_NEXT  &kp C_MUTE  &kp C_VOL_DN  &kp C_VOL_UP
+&trans        &trans        &trans    &trans    &trans          &trans            &trans      &trans      &trans      &trans      &trans        &trans
+&trans        &trans        &trans    &trans    &trans          &trans            &mkp RCLK   &mkp LCLK   &trans      &trans      &trans        &trans
+&trans        &trans        &trans    &trans    &trans          &trans            &trans      &trans      &trans      &trans      &trans        &trans
+                                      &trans    &trans          &trans            &mkp RCLK   &mkp LCLK
+                                                                &trans            &trans      &trans
             >;
         };
 
