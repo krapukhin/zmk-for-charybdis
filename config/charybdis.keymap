@@ -42,7 +42,7 @@
         combo_backslash {
             timeout-ms = <50>;
             key-positions = <14 15>;  // W + E
-            bindings = <&kp BSLH>;    // \
+            bindings = <&kp BSLH>;    // backslash
         };
         combo_grave {
             timeout-ms = <50>;
