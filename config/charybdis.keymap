@@ -41,22 +41,27 @@
         };
         combo_backslash {
             timeout-ms = <50>;
-            key-positions = <45 46>;  // . + /
+            key-positions = <14 15>;  // W + E
             bindings = <&kp BSLH>;    // \
+        };
+        combo_grave {
+            timeout-ms = <50>;
+            key-positions = <13 14>;  // Q + W
+            bindings = <&kp GRAVE>;    // `
         };
         
         // Переключение языка — J + K одновременно
         combo_lang_switch {
             timeout-ms = <50>;
             key-positions = <31 32>;  // J + K
-            bindings = <&kp LC(SPACE)>;  // Ctrl+Space
+            bindings = <&kp RG(SPACE)>;  // Right Command + Space
         };
-
-        // Переключение между окнами одного приложения — TAB + Q
-        combo_window_switch {
+        
+        // Переключение языка с Shift — D + F одновременно (Right Command + Shift + Space)
+        combo_lang_switch_shift {
             timeout-ms = <50>;
-            key-positions = <12 13>;  // TAB + Q
-            bindings = <&kp LG(GRAVE)>;  // Cmd+`
+            key-positions = <27 28>;  // D + F
+            bindings = <&kp RG(LS(SPACE))>;  // Right Command + Shift + Space
         };
     };
     keymap {
