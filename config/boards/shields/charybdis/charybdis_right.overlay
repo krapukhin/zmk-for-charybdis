@@ -118,7 +118,7 @@
         /* Scroll режим на слое 3 */
         scroller {
             layers = <3>;
-            input-processors = <&zip_xy_scaler 1 32>, <&zip_xy_to_scroll_mapper>, <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
+            input-processors = <&zip_xy_scaler 1 32>, <&zip_xy_to_scroll_mapper>;
         };
 
         /* Snipe режим на слое 4 (скорость ÷4) */
