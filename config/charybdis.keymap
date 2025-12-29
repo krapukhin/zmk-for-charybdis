@@ -24,25 +24,10 @@
         compatible = "zmk,combos";
         
         // Скобки — одновременное нажатие соседних клавиш
-        combo_lbrace {
-            timeout-ms = <50>;
-            key-positions = <13 14>;  // Q + W (исправлено!)
-            bindings = <&kp LBKT>;    // [
-        };
         combo_rbrace {
             timeout-ms = <50>;
-            key-positions = <14 15>;  // W + E (исправлено!)
+            key-positions = <21 22>;  // O + P
             bindings = <&kp RBKT>;    // ]
-        };
-        combo_lparen {
-            timeout-ms = <50>;
-            key-positions = <15 16>;  // E + R (исправлено!)
-            bindings = <&kp LPAR>;    // (
-        };
-        combo_rparen {
-            timeout-ms = <50>;
-            key-positions = <16 17>;  // R + T (исправлено!)
-            bindings = <&kp RPAR>;    // )
         };
         combo_lcurly {
             timeout-ms = <50>;
