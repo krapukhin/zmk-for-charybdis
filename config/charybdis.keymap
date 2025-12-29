@@ -29,15 +29,15 @@
             key-positions = <21 22>;  // O + P
             bindings = <&kp RBKT>;    // ]
         };
-        combo_lcurly {
+        combo_equal {
             timeout-ms = <50>;
-            key-positions = <25 26>;  // A + S (исправлено!)
-            bindings = <&kp LBRC>;    // {
+            key-positions = <20 21>;  // I + O
+            bindings = <&kp EQUAL>;    // =
         };
-        combo_rcurly {
+        combo_minus {
             timeout-ms = <50>;
-            key-positions = <26 27>;  // S + D (исправлено!)
-            bindings = <&kp RBRC>;    // }
+            key-positions = <19 20>;  // U + I
+            bindings = <&kp MINUS>;    // -
         };
         
         // Переключение языка — J + K одновременно
