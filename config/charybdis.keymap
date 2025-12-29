@@ -39,6 +39,11 @@
             key-positions = <19 20>;  // U + I
             bindings = <&kp MINUS>;    // -
         };
+        combo_backslash {
+            timeout-ms = <50>;
+            key-positions = <45 46>;  // . + /
+            bindings = <&kp BSLH>;    // \
+        };
         
         // Переключение языка — J + K одновременно
         combo_lang_switch {
