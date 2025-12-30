@@ -73,7 +73,7 @@
 &kp TAB         &kp Q   &kp W    &kp E             &kp R         &kp T           &kp Y       &kp U      &kp I      &kp O    &kp P     &kp LBKT
 &mt LCTRL ESC    &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F  &kp G    &kp H  &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
 &kp LEFT_SHIFT  &kp Z   &kp X    &lt 3 C    &lt 4 V    &lt 2 B    &kp N   &lt 4 M   &lt 3 COMMA  &kp DOT  &kp FSLH  &kp RIGHT_SHIFT
-                                 &lt 4 LEFT_CONTROL  &kp SPACE     &mo 1           &lt 6 DELETE  &kp SPACE
+                                 &lt 4 LEFT_CONTROL  &kp SPACE     &mo 1           &lt 5 DELETE  &kp SPACE
                                                    &lt 3 LEFT_WIN  &kp LEFT_ALT    &kp ENTER
             >;
         };
@@ -103,7 +103,7 @@
         scroll-layers {
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &kp PG_UP  &kp PG_DN  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans  &&kp PG_DN  &kp PG_UP  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &kp LEFT  &kp DOWN  &kp UP  &kp RIGHT  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
                         &trans  &trans  &trans    &trans  &trans
@@ -134,3 +134,4 @@
         };
     };
 };
+

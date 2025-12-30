@@ -6,7 +6,7 @@
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │  TAB │   Q  │   W  │   E  │   R  │   T  │   0   │   Y  │   U  │   I  │   O  │   P  │   [  │
 │      │      │      │      │      │      │   1   │      │      │      │      │   -  │   =  │
-│      │      │      │      │      │      │   3   │      │ PgUp │ PgDn │      │      │      │
+│      │      │      │      │      │      │   3   │      │ PgDn │ PgUp │      │      │      │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │ C/ESC│ A    │ S    │ D    │ F    │   G  │   0   │   H  │ J    │ K    │ L    │ ;    │   '  │
 │      │ Ctrl │ Alt  │ Shift│ GUI  │      │   0   │      │ GUI  │ Shift│ Alt  │ Ctrl │      │
@@ -15,14 +15,14 @@
 │      │      │      │      │      │      │   4   │ RClk │ LClk │      │      │      │      │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │ SHIFT│   Z  │ X    │ C    │ V    │ B    │   0   │   N  │   M  │ ,    │ .    │   /  │ SHIFT│
-│      │      │      │ scrol│snipe │ BT   │   0   │      │ snipe│scrol │      │      │      │
+│      │      │      │ scrol│ snipe│ BT   │   0   │      │ snipe│ scrol│      │      │      │
 └──────┴──────┴──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┴──────┴──────┴──────┘
- 0 - QWERTY          │snipe │ SPACE│ MO1  │   0   │ DEL  │ SPACE│   Q+W→`    W+E→\   U+I→-   
- 1 - F-KEYS          │ CTRL │      │      │   0   │ hyper│      │   I+O→=    O+P→]             
+ 0 - QWERTY          │ CTRL │ SPACE│ MO1  │   0   │ DEL  │ SPACE│   Q+W→`    W+E→\   U+I→-   
+ 1 - F-KEYS          │ snipe│      │      │   0   │ hyper│      │   I+O→=    O+P→]             
  2 - BLUETOOTH       │      │      │ TO 0 │   1   │ RClk │ LClk │   J+K→⌥⇧⌘Space              
  3 - SCROLL          │      │      │      │   4   │ RClk │ LClk │   D+F→⌘⇧Space               
  4 - SNIPE/MEDIA     ├──────┼──────┼──────┤       ├──────┼──────┤                            
- 6 - HYPER           │      │scrol │  ALT │   0   │ ENTER│      │                           
+ 5 - HYPER           │      │scrol │  ALT │   0   │ ENTER│      │                           
                      │      │ WIN  │      │       │      │      │                           
                      └──────┴──────┴──────┘       └──────┴──────┘                            
 ```
