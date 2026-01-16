@@ -2,8 +2,6 @@
 #include <dt-bindings/zmk/bt.h>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/pointing.h>
-#include <dt-bindings/zmk/rgb.h>
-
 
 &mt {
     tapping-term-ms = <280>;
@@ -22,70 +20,78 @@
 / {
     combos {
         compatible = "zmk,combos";
-        
+
         // Скобки — одновременное нажатие соседних клавиш
+
         combo_rbrace {
             timeout-ms = <50>;
             key-positions = <21 22>;  // O + P
             bindings = <&kp RBKT>;    // ]
         };
+
         combo_equal {
             timeout-ms = <50>;
             key-positions = <20 21>;  // I + O
             bindings = <&kp EQUAL>;    // =
         };
+
         combo_minus {
             timeout-ms = <50>;
             key-positions = <19 20>;  // U + I
             bindings = <&kp MINUS>;    // -
         };
+
         combo_backslash {
             timeout-ms = <50>;
             key-positions = <14 15>;  // W + E
             bindings = <&kp BSLH>;    // backslash
         };
+
         combo_grave {
             timeout-ms = <50>;
             key-positions = <13 14>;  // Q + W
             bindings = <&kp GRAVE>;    // `
         };
-        
+
         // Переключение языка — J + K одновременно
+
         combo_lang_switch {
             timeout-ms = <30>;
             key-positions = <31 32>;  // J + K
             bindings = <&kp LA(LS(LG(SPACE)))>;  // Option + Shift + Command + Space
         };
-        
+
         // Переключение языка с Shift — D + F одновременно (Right Command + Shift + Space)
+
         combo_lang_switch_shift {
             timeout-ms = <30>;
             key-positions = <27 28>;  // D + F
             bindings = <&kp RG(LS(SPACE))>;  // Right Command + Shift + Space
         };
     };
+
     keymap {
         compatible = "zmk,keymap";
 
         QWERTY {
             bindings = <
-&kp GRAVE       &kp N1  &kp N2   &kp N3            &kp N4        &kp N5          &kp N6      &kp N7     &kp N8     &kp N9   &kp N0    &kp BACKSPACE
-&kp TAB         &kp Q   &kp W    &kp E             &kp R         &kp T           &kp Y       &kp U      &kp I      &kp O    &kp P     &kp LBKT
-&mt LCTRL ESC    &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F  &kp G    &kp H  &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
-&kp LEFT_SHIFT  &kp Z   &kp X    &lt 3 C    &lt 4 V    &lt 2 B    &kp N   &lt 4 M   &lt 3 COMMA  &kp DOT  &kp FSLH  &kp RIGHT_SHIFT
-                                 &lt 4 LEFT_CONTROL  &kp SPACE     &mo 1           &lt 5 DELETE  &kp SPACE
-                                                   &lt 3 LEFT_WIN  &kp LEFT_ALT    &kp ENTER
+&kp GRAVE       &kp N1       &kp N2      &kp N3       &kp N4          &kp N5          &kp N6        &kp N7      &kp N8       &kp N9      &kp N0          &kp BACKSPACE
+&kp TAB         &kp Q        &kp W       &kp E        &kp R           &kp T           &kp Y         &kp U       &kp I        &kp O       &kp P           &kp LBKT
+&mt LCTRL ESC   &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F      &kp G           &kp H         &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
+&kp LEFT_SHIFT  &kp Z        &kp X       &lt 3 C      &lt 4 V         &lt 2 B         &kp N         &lt 4 M     &lt 3 COMMA  &kp DOT     &kp FSLH        &kp RIGHT_SHIFT
+                                         &lt 4 SPACE  &kp SPACE       &mo 1           &lt 5 DELETE  &kp SPACE
+                                                      &lt 3 LEFT_WIN  &kp LEFT_ALT    &kp ENTER
             >;
         };
 
         F_layers {
             bindings = <
-&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6        &kp F7     &kp F8     &kp F9    &kp F10  &kp F11    &kp F12
-&trans  &none   &none   &none   &none   &trans        &none      &none      &none     &none    &kp MINUS  &kp EQUAL
-&trans  &none   &none   &none   &none   &trans        &mkp RCLK  &mkp LCLK  &none     &none    &none      &trans
-&trans  &trans  &trans  &trans  &trans  &none         &none      &none      &trans    &trans   &none      &trans
-                        &trans  &trans  &trans        &mkp RCLK  &mkp LCLK
-                                &trans  &trans        &trans
+&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12
+&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans   &trans   &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans   &trans   &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans   &trans   &trans
+                        &trans  &trans  &trans    &trans  &trans
+                                &trans  &trans    &trans
             >;
         };
 
@@ -102,23 +108,23 @@
 
         scroll-layers {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &kp PG_DN  &kp PG_UP  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &kp LEFT  &kp DOWN  &kp UP  &kp RIGHT  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans  &trans
-                        &trans  &trans  &trans    &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans     &trans     &trans     &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans    &kp PG_DN  &kp PG_UP  &trans     &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &kp LEFT  &kp DOWN   &kp UP     &kp RIGHT  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans     &trans     &trans     &trans  &trans
+                        &trans  &trans  &trans    &trans    &trans
                                 &trans  &trans    &trans
             >;
         };
 
         snipe-layers {
             bindings = <
-&kp C_BRI_DN  &kp C_BRI_UP  &kp F3    &kp F4    &kp C_VOL_DN  &kp C_VOL_UP    &kp C_PREV  &kp C_PP    &kp C_NEXT  &kp C_MUTE  &kp C_VOL_DN  &kp C_VOL_UP
-&trans        &trans        &trans    &trans    &trans        &trans          &trans      &trans      &trans      &trans      &trans        &trans
-&trans        &trans        &trans    &trans    &trans        &trans          &mkp RCLK   &mkp LCLK   &trans      &trans      &trans        &trans
-&trans        &trans        &trans    &trans    &trans        &trans          &trans      &trans      &trans      &trans      &trans        &trans
-                                      &trans    &trans        &trans          &mkp RCLK   &mkp LCLK
-                                                              &trans          &trans      &trans
+&kp C_BRI_DN  &kp C_BRI_UP  &kp F3  &kp F4  &kp C_VOL_DN  &kp C_VOL_UP    &kp C_PREV  &kp C_PP   &kp C_NEXT  &kp C_MUTE  &kp C_VOL_DN  &kp C_VOL_UP
+&trans        &trans        &trans  &trans  &trans        &trans          &trans      &trans     &trans      &trans      &trans        &trans
+&trans        &trans        &trans  &trans  &trans        &trans          &mkp RCLK   &mkp LCLK  &trans      &trans      &trans        &trans
+&trans        &trans        &trans  &trans  &trans        &trans          &trans      &trans     &trans      &trans      &trans        &trans
+                                    &trans  &trans        &trans          &mkp RCLK   &mkp LCLK
+                                            &trans        &trans          &trans
             >;
         };
 
@@ -134,4 +140,3 @@
         };
     };
 };
-
