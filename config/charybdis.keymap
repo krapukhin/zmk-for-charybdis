@@ -75,21 +75,21 @@
 
         QWERTY {
             bindings = <
-&kp GRAVE       &kp N1       &kp N2      &kp N3       &kp N4               &kp N5         &kp N6     &kp N7      &kp N8       &kp N9      &kp N0          &kp BACKSPACE
-&kp TAB         &kp Q        &kp W       &kp E        &kp R                &kp T          &kp Y      &kp U       &kp I        &kp O       &kp P           &kp LBKT
-&kt CAPSLOCK    &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F           &kp G          &kp H      &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
-&kp LEFT_SHIFT  &kp Z        &kp X       &lt 2 C      &lt 1 V              &lt 5 B        &kp N      &lt 1 M     &lt 2 COMMA  &kp DOT     &kp FSLH        &kp RIGHT_SHIFT
-                                         &lt 1 SPACE  &mt UP_ARROW K_FIND  &lt 4 RIGHT    &none      &kp SPACE
-                                                      &lt 2 LEFT           &lt 3 RIGHT    &kp ENTER
+&kp GRAVE       &kp N1       &kp N2      &kp N3       &kp N4               &kp N5                 &kp N6             &kp N7      &kp N8       &kp N9      &kp N0          &kp BACKSPACE
+&kp TAB         &kp Q        &kp W       &kp E        &kp R                &kp T                  &kp Y              &kp U       &kp I        &kp O       &kp P           &kp LBKT
+&kt CAPSLOCK    &mt LCTRL A  &mt LALT S  &mt LSHFT D  &mt LGUI F           &kp G                  &kp H              &mt RGUI J  &mt RSHFT K  &mt LALT L  &mt RCTRL SEMI  &kp SQT
+&kp LEFT_SHIFT  &kp Z        &kp X       &kt C        &kt V                &lt 4 B                &kp N              &lt 1 M     &lt 1 COMMA  &lt 2 DOT   &kp FSLH        &kp RIGHT_SHIFT
+                                         &lt 1 SPACE  &mt UP_ARROW K_FIND  &mt RIGHT_ALT RIGHT    &mt RIGHT_ALT DEL  &kp SPACE
+                                                      &lt 2 LEFT           &lt 3 DOWN             &kp ENTER
             >;
         };
 
         snipe-layers {
             bindings = <
-&kp C_BRI_DN  &kp C_BRI_UP  &kp C_AC_DESKTOP_SHOW_ALL_APPLICATIONS  &kp C_AC_SEARCH  &kp C_VOL_DN  &kp C_VOL_UP    &kp C_PREV  &kp C_PP   &kp C_NEXT  &kp C_MUTE  &kp C_VOL_DN  &kp C_VOL_UP
-&trans        &trans        &trans                                  &trans           &trans        &trans          &trans      &trans     &trans      &trans      &trans        &kp RIGHT_BRACKET
-&trans        &trans        &trans                                  &trans           &trans        &trans          &mkp RCLK   &mkp LCLK  &trans      &trans      &trans        &kt BACKSLASH
-&trans        &trans        &trans                                  &trans           &trans        &trans          &trans      &trans     &trans      &trans      &trans        &trans
+&kp C_BRI_DN  &kp C_BRI_UP  &kp C_AC_DESKTOP_SHOW_ALL_APPLICATIONS  &kp C_AC_SEARCH  &kp C_VOL_DN  &kp C_VOL_UP    &kp C_MUTE  &kp C_PREV  &kp C_PP  &kp C_NEXT  &kp MINUS  &kp EQUAL
+&trans        &trans        &trans                                  &trans           &trans        &trans          &trans      &trans      &trans    &trans      &trans     &kp RIGHT_BRACKET
+&trans        &trans        &trans                                  &trans           &trans        &trans          &mkp RCLK   &mkp LCLK   &trans    &trans      &trans     &kt BACKSLASH
+&trans        &trans        &trans                                  &trans           &trans        &trans          &mkp RCLK   &mkp LCLK   &trans    &trans      &trans     &trans
                                                                     &trans           &trans        &trans          &mkp RCLK   &mkp LCLK
                                                                                      &trans        &trans          &trans
             >;
@@ -114,17 +114,6 @@
 &trans  &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans   &trans   &trans
                         &trans  &trans  &trans    &trans  &trans
                                 &trans  &trans    &trans
-            >;
-        };
-
-        hyper_layer {
-            bindings = <
-&trans  &kp LC(LS(LA(LG(N1))))  &kp LC(LS(LA(LG(N2))))  &kp LC(LS(LA(LG(N3))))  &kp LC(LS(LA(LG(N4))))  &kp LC(LS(LA(LG(N5))))    &kp LC(LS(LA(LG(N6))))  &kp LC(LS(LA(LG(N7))))  &kp LC(LS(LA(LG(N8))))  &kp LC(LS(LA(LG(N9))))  &kp LC(LS(LA(LG(N0))))  &trans
-&trans  &kp LC(LS(LA(LG(Q))))   &kp LC(LS(LA(LG(W))))   &kp LC(LS(LA(LG(E))))   &kp LC(LS(LA(LG(R))))   &kp LC(LS(LA(LG(T))))     &kp LC(LS(LA(LG(Y))))   &kp LC(LS(LA(LG(U))))   &kp LC(LS(LA(LG(I))))   &kp LC(LS(LA(LG(O))))   &kp LC(LS(LA(LG(P))))   &trans
-&trans  &kp LC(LS(LA(LG(A))))   &kp LC(LS(LA(LG(S))))   &kp LC(LS(LA(LG(D))))   &kp LC(LS(LA(LG(F))))   &kp LC(LS(LA(LG(G))))     &kp LC(LS(LA(LG(H))))   &kp LC(LS(LA(LG(J))))   &kp LC(LS(LA(LG(K))))   &kp LC(LS(LA(LG(L))))   &trans                  &trans
-&trans  &kp LC(LS(LA(LG(Z))))   &kp LC(LS(LA(LG(X))))   &kp LC(LS(LA(LG(C))))   &kp LC(LS(LA(LG(V))))   &kp LC(LS(LA(LG(B))))     &kp LC(LS(LA(LG(N))))   &kp LC(LS(LA(LG(M))))   &trans                  &trans                  &trans                  &trans
-                                                        &trans                  &trans                  &trans                    &trans                  &trans
-                                                                                &trans                  &trans                    &trans
             >;
         };
 
