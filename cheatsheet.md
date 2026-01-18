@@ -1,28 +1,29 @@
 ```
 ┌──────┬──────┬──────┬──────┬──────┬──────┐       ┌──────┬──────┬──────┬──────┬──────┬──────┐
 │   `  │   1  │   2  │   3  │   4  │   5  │   0   │   6  │   7  │   8  │   9  │   0  │ BKSP │
-│  F1  │  F2  │  F3  │  F4  │  F5  │  F6  │   1   │  F7  │  F8  │  F9  │  F10 │  F11 │  F12 │
-│ Bri- │ Bri+ │  MC  │  LP  │ KBD- │ KBD+ │   4   │ Prev │  P/P │ Next │ Mute │ Vol- │ Vol+ │
+│ Bri- │ Bri+ │ apps │search│ Vol- │ Vol+ │   1   │ Mute │  Prev│ P/P  │ Next │   -  │   =  │
+│      │      │      │      │      │      │   2   │      │      │      │      │   -  │   =  │
+│  F1  │  F2  │  F3  │  F4  │  F5  │  F6  │   3   │  F7  │  F8  │  F9  │  F10 │  F11 │  F12 │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │  TAB │   Q  │   W  │   E  │   R  │   T  │   0   │   Y  │   U  │   I  │   O  │   P  │   [  │
-│      │      │      │      │      │      │   1   │      │      │      │      │   -  │   =  │
-│      │      │      │      │      │      │   3   │      │ PgDn │ PgUp │      │      │      │
+│      │      │      │      │      │      │   1   │      │      │      │      │      │   ]  │
+│      │      │      │      │      │      │   2   │      │ PgDn │ PgUp │      │      │   ]  │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│ C/ESC│ A    │ S    │ D    │ F    │   G  │   0   │   H  │ J    │ K    │ L    │ ;    │   '  │
-│      │ Ctrl │ Alt  │ Shift│ GUI  │      │   0   │      │ GUI  │ Shift│ Alt  │ Ctrl │      │
-│      │      │      │      │      │      │   1   │ RClk │ LClk │      │      │      │      │
-│      │      │      │      │      │      │   3   │  ←   │  ↓   │  ↑   │  →   │      │      │
-│      │      │      │      │      │      │   4   │ RClk │ LClk │      │      │      │      │
+│ CAPS │ A    │ S    │ D    │ F    │   G  │   0   │   H  │ J    │ K    │ L    │ ;    │   '  │
+│      │ Ctrl │ Alt  │ Shift│ GUI  │      │   0H  │      │ GUI  │ Shift│ Alt  │ Ctrl │      │
+│      │      │      │      │      │      │   1   │ RClk │ LClk │      │      │      │   \  │
+│      │      │      │      │      │      │   2   │  ←   │  ↓   │  ↑   │  →   │      │   \  │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │ SHIFT│   Z  │ X    │ C    │ V    │ B    │   0   │   N  │   M  │ ,    │ .    │   /  │ SHIFT│
-│      │      │      │ scrol│ snipe│ BT   │   0   │      │ snipe│ scrol│      │      │      │
+│      │      │      │      │      │ BT   │   0H  │      │snipe │snipe │scrol │      │      │
+│      │      │      │      │      │      │   1   │ RClk │ LClk │      │      │      │      │
+│      │      │      │      │      │      │   2   │ RClk │SCRL_D│SCRL_U│      │      │      │
 └──────┴──────┴──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┴──────┴──────┴──────┘
- 0 - QWERTY          │ CTRL │ SPACE│ MO1  │   0   │ DEL  │ SPACE│   Q+W→`    W+E→\   U+I→-   
- 1 - F-KEYS          │ snipe│      │      │   0   │ hyper│      │   I+O→=    O+P→]             
- 2 - BLUETOOTH       │      │      │ TO 0 │   1   │ RClk │ LClk │   J+K→⌥⇧⌘Space              
- 3 - SCROLL          │      │      │      │   4   │ RClk │ LClk │   D+F→⌘⇧Space               
- 4 - SNIPE/MEDIA     ├──────┼──────┼──────┤       ├──────┼──────┤                            
- 5 - HYPER           │      │scrol │  ALT │   0   │ ENTER│      │                           
-                     │      │ WIN  │      │       │      │      │                           
-                     └──────┴──────┴──────┘       └──────┴──────┘                            
+ 0 - QWERTY          │ SPACE│  UP  │ RIGHT│   0   │ DEL  │ SPACE│   Q+W→`    W+E→\   U+I→-   
+ 1 - SNIPE           │ snipe│K_FIND│      │   0H  │ R_OPT│      │   I+O→=    O+P→]           
+ 2 - SCROLL          │      │      │ TO 0 │   1   │ RClk │ LClk │   J+K→⌥⇧⌘Space             
+ 3 - F-KEYS          └──────┼──────┼──────┤       ├──────┼──────┘   D+F→⌘⇧Space              
+ 4 - BLUETOOTH              │ LEFT │ DOWN │   0   │ ENTER│                                   
+                            │scroll│f-keys│       │      │                                   
+                            └──────┴──────┘       └──────┘                                   
 ```

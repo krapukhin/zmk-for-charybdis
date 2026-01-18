@@ -60,7 +60,7 @@
         motion-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
         zephyr,axis-x = <INPUT_REL_X>;
         zephyr,axis-y = <INPUT_REL_Y>;
-        res-cpi = <1800>;
+        res-cpi = <1600>;
         invert-x;
         invert-y;
     };
@@ -115,18 +115,16 @@
         compatible = "zmk,input-listener";
         device = <&trackball>;
 
-        /* Scroll режим на слое 3 */
+        /* Scroll режим на слое 2 */
         scroller {
-            layers = <3>;
-            input-processors = <&zip_xy_scaler 1 32>, <&zip_xy_to_scroll_mapper>;
+            layers = <2>;
+            input-processors = <&zip_xy_scaler 1 32>, <&zip_xy_to_scroll_mapper>, <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
         };
 
-        /* Snipe режим на слое 4 (скорость ÷4) */
+        /* Snipe режим на слое 1 (скорость ÷4) */
         sniper {
-            layers = <4>;
+            layers = <1>;
             input-processors = <&zip_xy_scaler 1 4>;
         };
     };
 };
-
-
