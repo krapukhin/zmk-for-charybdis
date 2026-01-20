@@ -108,11 +108,11 @@
 
         F_layers {
             bindings = <
-&kp F1     &kp F2         &kp F3         &kp F4               &kp F5            &kp F6    &kp F7  &kp F8  &kp F9  &kp F10  &kp F11  &kp F12
-&trans     &trans         &trans         &trans               &trans            &trans    &trans  &trans  &trans  &trans   &trans   &trans
-&trans     &trans         &trans         &trans               &trans            &trans    &trans  &trans  &trans  &trans   &trans   &trans
-&kp GLOBE  &kp C_AC_ZOOM  &kp C_AC_FIND  &kp C_AC_PROPERTIES  &kp C_AC_ZOOM_IN  &trans    &trans  &trans  &trans  &trans   &trans   &trans
-                                         &trans               &trans            &trans    &trans  &trans
+&kp F1     &kp F2         &kp F3         &kp F4               &kp F5            &kp F6    &kp F7     &kp F8     &kp F9  &kp F10  &kp F11  &kp F12
+&trans     &trans         &trans         &trans               &trans            &trans    &trans     &trans     &trans  &trans   &trans   &trans
+&trans     &trans         &trans         &trans               &trans            &trans    &mkp RCLK  &mkp LCLK  &trans  &trans   &trans   &trans
+&kp GLOBE  &kp C_AC_ZOOM  &kp C_AC_FIND  &kp C_AC_PROPERTIES  &kp C_AC_ZOOM_IN  &trans    &trans     &trans     &trans  &trans   &trans   &trans
+                                         &trans               &trans            &trans    &trans     &trans
                                                               &trans            &trans    &trans
             >;
         };
