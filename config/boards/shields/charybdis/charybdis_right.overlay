@@ -56,13 +56,10 @@
         status = "okay";
         compatible = "pixart,pmw3610";
         reg = <0>;
-        spi-max-frequency = <250000>;
-        motion-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
-        zephyr,axis-x = <INPUT_REL_X>;
-        zephyr,axis-y = <INPUT_REL_Y>;
-        res-cpi = <1200>;
-        invert-x;
-        invert-y;
+        spi-max-frequency = <2000000>;
+        irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        scroll-layers = <2>;
+        snipe-layers = <1>;
     };
 };
 
@@ -114,17 +111,5 @@
     trackball_listener: trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
-
-        /* Scroll режим на слое 2 */
-        scroller {
-            layers = <2>;
-            input-processors = <&zip_xy_scaler 1 64>, <&zip_xy_to_scroll_mapper>, <&zip_scroll_transform INPUT_TRANSFORM_Y_INVERT>;
-        };
-
-        /* Snipe режим на слое 1 (скорость ÷4) */
-        sniper {
-            layers = <1>;
-            input-processors = <&zip_xy_scaler 1 4>;
-        };
     };
 };
