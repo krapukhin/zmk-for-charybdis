@@ -15,7 +15,9 @@
 include:
   - board: nice_nano@2.0.0
     shield: charybdis_left
+    cmake-args: -DZEPHYR_EXTRA_MODULES=${{ github.workspace }}/zmk-pmw3610-driver-main
   - board: nice_nano@2.0.0
     shield: charybdis_right
+    cmake-args: -DZEPHYR_EXTRA_MODULES=${{ github.workspace }}/zmk-pmw3610-driver-main
   - board: nice_nano@2.0.0
     shield: settings_reset

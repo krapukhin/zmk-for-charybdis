@@ -9,9 +9,5 @@ manifest:
       remote: zmkfirmware
       revision: main
       import: app/west.yml
-    - name: zmk-pmw3610-driver
-      remote: DoctorWangWang
-      revision: main
-      
   self:
     path: config
