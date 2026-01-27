@@ -61,34 +61,34 @@
 
         snipe-layers {
             bindings = <
-&kp C_BRI_DN  &kp C_BRI_UP  &kp LS(C_AC_HOME)  &kp C_AC_SEARCH  &kp K_MUTE  &kp C_VOL_DN    &kp C_VOL_UP  &kp C_PREV  &kp C_PP  &kp C_NEXT  &kp MINUS  &kp EQUAL
-&trans        &trans        &trans             &trans           &trans      &trans          &trans        &trans      &trans    &trans      &trans     &kp RIGHT_BRACKET
-&trans        &trans        &trans             &trans           &trans      &trans          &mkp RCLK     &mkp LCLK   &trans    &trans      &trans     &kp BACKSLASH
-&trans        &trans        &trans             &trans           &trans      &trans          &mkp RCLK     &mkp LCLK   &trans    &trans      &trans     &trans
-                                               &trans           &trans      &trans          &mkp RCLK     &mkp LCLK
-                                                                &trans      &trans          &trans
+&kp C_BRI_DN  &kp C_BRI_UP   &kp LS(C_AC_HOME)  &kp C_AC_SEARCH   &kp K_MUTE            &kp C_VOL_DN    &kp C_VOL_UP  &kp C_PREV             &kp C_PP           &kp C_NEXT       &kp MINUS         &kp EQUAL
+&trans        &kp LESS_THAN  &kp LEFT_BRACE     &kp LEFT_BRACKET  &kp LEFT_PARENTHESIS  &kp TAB         &kp DEL       &kp RIGHT_PARENTHESIS  &kp RIGHT_BRACKET  &kp RIGHT_BRACE  &kp GREATER_THAN  &kp RIGHT_BRACKET
+&trans        &trans         &trans             &trans            &trans                &trans          &mkp RCLK     &mkp LCLK              &trans             &trans           &trans            &kp BACKSLASH
+&trans        &trans         &trans             &trans            &trans                &trans          &trans        &trans                 &trans             &trans           &trans            &trans
+                                                &trans            &trans                &trans          &mkp RCLK     &mkp LCLK
+                                                                  &trans                &trans          &trans
             >;
         };
 
         scroll-layers {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans          &trans        &trans     &kp MINUS  &kp EQUAL
-&trans  &trans  &trans  &trans  &trans  &trans    &kp HOME  &kp PG_DN       &kp PG_UP     &kp END    &trans     &kp RBKT
-&trans  &trans  &trans  &trans  &trans  &trans    &kp LEFT  &kp DOWN        &kp UP        &kp RIGHT  &trans     &kp BACKSLASH
-&trans  &trans  &trans  &trans  &trans  &trans    &trans    &msc SCRL_DOWN  &msc SCRL_UP  &trans     &trans     &trans
-                        &trans  &trans  &trans    &trans    &trans
-                                &trans  &trans    &trans
+&trans  &trans  &trans  &trans  &trans          &trans             &trans    &trans         &trans          &trans     &kp MINUS  &kp EQUAL
+&trans  &trans  &trans  &trans  &trans          &trans             &kp HOME  &kp PAGE_UP    &msc SCRL_UP    &trans     &trans     &kp RBKT
+&trans  &trans  &trans  &trans  &trans          &trans             &kp LEFT  &kp DOWN       &kp UP          &kp RIGHT  &trans     &kp BACKSLASH
+&trans  &trans  &trans  &trans  &trans          &trans             &kp END   &kp PAGE_DOWN  &msc SCRL_DOWN  &trans     &trans     &trans
+                        &trans  &kp UP_ARROW    &kp RIGHT_ARROW    &trans    &trans
+                                &kp LEFT_ARROW  &kp DOWN_ARROW     &trans
             >;
         };
 
         F_layers {
             bindings = <
-&kp F1     &kp F2  &kp F3  &kp F4  &kp F5  &kp F6    &kp F7     &kp F8     &kp F9  &kp F10  &kp F11  &kp F12
-&trans     &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans   &trans   &trans
-&trans     &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans   &trans   &trans
-&kp GLOBE  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans   &trans   &trans
-                           &trans  &trans  &trans    &trans     &trans
-                                   &trans  &trans    &trans
+&kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6    &kp F7     &kp F8     &kp F9  &kp F10  &kp F11  &kp F12
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans   &trans   &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans   &trans   &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans   &trans   &trans
+                        &trans  &trans  &trans    &trans     &trans
+                                &trans  &trans    &trans
             >;
         };
 
