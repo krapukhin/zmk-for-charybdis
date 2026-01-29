@@ -4,17 +4,17 @@
 #include <dt-bindings/zmk/pointing.h>
 
 &mt {
-    tapping-term-ms = <200>;
+    tapping-term-ms = <150>;
     quick-tap-ms = <130>;
     flavor = "tap-preferred";
-    require-prior-idle-ms = <80>;  // Предотвращает случайные срабатывания при быстрой печати
+    require-prior-idle-ms = <40>;  // Предотвращает случайные срабатывания при быстрой печати
 };
 
 &lt {
-    tapping-term-ms = <200>;
+    tapping-term-ms = <150>;
     flavor = "tap-preferred";
     quick-tap-ms = <130>;
-    require-prior-idle-ms = <80>;
+    require-prior-idle-ms = <40>;
 };
 
 / {
