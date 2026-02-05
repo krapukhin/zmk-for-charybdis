@@ -55,6 +55,13 @@ config PMW3610_SCROLL_TICK
     help
       Scroll tick value.
 
+config PMW3610_CARET_TICK
+    int "PMW3610's required ticks to produce an arrow key press in caret mode"
+    default 20
+    help
+      Caret tick value. Controls sensitivity of trackball-to-arrow-key conversion.
+      Higher value = less sensitive (more trackball movement needed per arrow key press).
+
 choice
     prompt "Select PMW3610's polling rate"
     default PMW3610_POLLING_RATE_250

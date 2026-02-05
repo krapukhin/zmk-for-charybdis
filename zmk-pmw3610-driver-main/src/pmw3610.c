@@ -14,6 +14,10 @@
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/input/input.h>
 #include <zmk/keymap.h>
+#include <zmk/hid.h>
+#include <zmk/endpoints.h>
+#include <dt-bindings/zmk/hid_usage_pages.h>
+#include <dt-bindings/zmk/hid_usage.h>
 #include "pmw3610.h"
 
 #include <zephyr/logging/log.h>
@@ -574,6 +578,11 @@ static enum pixart_input_mode get_input_mode_for_current_layer(const struct devi
             return SNIPE;
         }
     }
+    for (size_t i = 0; i < config->caret_layers_len; i++) {
+        if (curr_layer == config->caret_layers[i]) {
+            return CARET;
+        }
+    }
     return MOVE;
 }
 
@@ -605,6 +614,14 @@ static int pmw3610_report_data(const struct device *dev) {
     case SNIPE:
         set_cpi_if_needed(dev, CONFIG_PMW3610_SNIPE_CPI);
         dividor = CONFIG_PMW3610_SNIPE_CPI_DIVIDOR;
+        break;
+    case CARET:
+        set_cpi_if_needed(dev, CONFIG_PMW3610_SNIPE_CPI);
+        if (input_mode_changed) {
+            data->caret_delta_x = 0;
+            data->caret_delta_y = 0;
+        }
+        dividor = 1;
         break;
     default:
         return -ENOTSUP;
@@ -688,10 +705,33 @@ static int pmw3610_report_data(const struct device *dev) {
 #endif
 
     if (x != 0 || y != 0) {
-        if (input_mode != SCROLL) {
-            input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
-            input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);
-        } else {
+        if (input_mode == CARET) {
+            data->caret_delta_x += x;
+            data->caret_delta_y += y;
+            if (abs(data->caret_delta_y) > CONFIG_PMW3610_CARET_TICK) {
+                uint32_t usage = ZMK_HID_USAGE(HID_USAGE_KEY,
+                    data->caret_delta_y > 0
+                        ? HID_USAGE_KEY_KEYBOARD_DOWNARROW
+                        : HID_USAGE_KEY_KEYBOARD_UPARROW);
+                zmk_hid_press(usage);
+                zmk_endpoints_send_report(HID_USAGE_KEY);
+                zmk_hid_release(usage);
+                zmk_endpoints_send_report(HID_USAGE_KEY);
+                data->caret_delta_x = 0;
+                data->caret_delta_y = 0;
+            } else if (abs(data->caret_delta_x) > CONFIG_PMW3610_CARET_TICK) {
+                uint32_t usage = ZMK_HID_USAGE(HID_USAGE_KEY,
+                    data->caret_delta_x > 0
+                        ? HID_USAGE_KEY_KEYBOARD_RIGHTARROW
+                        : HID_USAGE_KEY_KEYBOARD_LEFTARROW);
+                zmk_hid_press(usage);
+                zmk_endpoints_send_report(HID_USAGE_KEY);
+                zmk_hid_release(usage);
+                zmk_endpoints_send_report(HID_USAGE_KEY);
+                data->caret_delta_x = 0;
+                data->caret_delta_y = 0;
+            }
+        } else if (input_mode == SCROLL) {
             data->scroll_delta_x += x;
             data->scroll_delta_y += y;
             if (abs(data->scroll_delta_y) > CONFIG_PMW3610_SCROLL_TICK) {
@@ -707,6 +747,9 @@ static int pmw3610_report_data(const struct device *dev) {
                 data->scroll_delta_x = 0;
                 data->scroll_delta_y = 0;
             }
+        } else {
+            input_report_rel(dev, INPUT_REL_X, x, false, K_FOREVER);
+            input_report_rel(dev, INPUT_REL_Y, y, true, K_FOREVER);
         }
     }
 
@@ -815,6 +858,7 @@ static int pmw3610_init(const struct device *dev) {
     static struct pixart_data data##n;                                                             \
     static int32_t scroll_layers##n[] = DT_PROP(DT_DRV_INST(n), scroll_layers);                    \
     static int32_t snipe_layers##n[] = DT_PROP(DT_DRV_INST(n), snipe_layers);                      \
+    static int32_t caret_layers##n[] = DT_PROP(DT_DRV_INST(n), caret_layers);                      \
     static const struct pixart_config config##n = {                                                \
         .irq_gpio = GPIO_DT_SPEC_INST_GET(n, irq_gpios),                                           \
         .bus =                                                                                     \
@@ -833,6 +877,8 @@ static int pmw3610_init(const struct device *dev) {
         .scroll_layers_len = DT_PROP_LEN(DT_DRV_INST(n), scroll_layers),                           \
         .snipe_layers = snipe_layers##n,                                                           \
         .snipe_layers_len = DT_PROP_LEN(DT_DRV_INST(n), snipe_layers),                             \
+        .caret_layers = caret_layers##n,                                                           \
+        .caret_layers_len = DT_PROP_LEN(DT_DRV_INST(n), caret_layers),                             \
     };                                                                                             \
                                                                                                    \
     DEVICE_DT_INST_DEFINE(n, pmw3610_init, NULL, &data##n, &config##n, POST_KERNEL,                \

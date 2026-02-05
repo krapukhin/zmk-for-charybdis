@@ -15,7 +15,7 @@
 extern "C" {
 #endif
 
-enum pixart_input_mode { MOVE = 0, SCROLL, SNIPE };
+enum pixart_input_mode { MOVE = 0, SCROLL, SNIPE, CARET };
 
 /* device data structure */
 struct pixart_data {
@@ -25,6 +25,8 @@ struct pixart_data {
     uint32_t curr_cpi;
     int32_t scroll_delta_x;
     int32_t scroll_delta_y;
+    int32_t caret_delta_x;
+    int32_t caret_delta_y;
 
 #ifdef CONFIG_PMW3610_POLLING_RATE_125_SW
     int64_t last_poll_time;
@@ -59,6 +61,8 @@ struct pixart_config {
     int32_t *scroll_layers;
     size_t snipe_layers_len;
     int32_t *snipe_layers;
+    size_t caret_layers_len;
+    int32_t *caret_layers;
 };
 
 #ifdef __cplusplus
