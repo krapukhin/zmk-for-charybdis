@@ -14,10 +14,8 @@
 #include <zephyr/sys/byteorder.h>
 #include <zephyr/input/input.h>
 #include <zmk/keymap.h>
-#include <zmk/hid.h>
-#include <zmk/endpoints.h>
-#include <dt-bindings/zmk/hid_usage_pages.h>
-#include <dt-bindings/zmk/hid_usage.h>
+#include <zmk/events/keycode_state_changed.h>
+#include <dt-bindings/zmk/keys.h>
 #include "pmw3610.h"
 
 #include <zephyr/logging/log.h>
@@ -618,6 +616,7 @@ static int pmw3610_report_data(const struct device *dev) {
     case CURSOR:
         set_cpi_if_needed(dev, CONFIG_PMW3610_SNIPE_CPI);
         if (input_mode_changed) {
+            LOG_INF("Switched to CURSOR mode");
             data->caret_delta_x = 0;
             data->caret_delta_y = 0;
         }
@@ -708,26 +707,24 @@ static int pmw3610_report_data(const struct device *dev) {
         if (input_mode == CURSOR) {
             data->caret_delta_x += x;
             data->caret_delta_y += y;
+            LOG_DBG("CURSOR mode: x=%d, y=%d, delta_x=%d, delta_y=%d, tick=%d",
+                    x, y, data->caret_delta_x, data->caret_delta_y, CONFIG_PMW3610_CARET_TICK);
             if (abs(data->caret_delta_y) > CONFIG_PMW3610_CARET_TICK) {
-                uint32_t usage = ZMK_HID_USAGE(HID_USAGE_KEY,
-                    data->caret_delta_y > 0
-                        ? HID_USAGE_KEY_KEYBOARD_DOWNARROW
-                        : HID_USAGE_KEY_KEYBOARD_UPARROW);
-                zmk_hid_press(usage);
-                zmk_endpoints_send_report(HID_USAGE_KEY);
-                zmk_hid_release(usage);
-                zmk_endpoints_send_report(HID_USAGE_KEY);
+                uint32_t keycode = data->caret_delta_y > 0 ? DOWN_ARROW : UP_ARROW;
+                LOG_DBG("Sending arrow key: %s (keycode=0x%08x)",
+                        data->caret_delta_y > 0 ? "DOWN" : "UP", keycode);
+                int64_t timestamp = k_uptime_get();
+                raise_zmk_keycode_state_changed_from_encoded(keycode, true, timestamp);
+                raise_zmk_keycode_state_changed_from_encoded(keycode, false, timestamp);
                 data->caret_delta_x = 0;
                 data->caret_delta_y = 0;
             } else if (abs(data->caret_delta_x) > CONFIG_PMW3610_CARET_TICK) {
-                uint32_t usage = ZMK_HID_USAGE(HID_USAGE_KEY,
-                    data->caret_delta_x > 0
-                        ? HID_USAGE_KEY_KEYBOARD_RIGHTARROW
-                        : HID_USAGE_KEY_KEYBOARD_LEFTARROW);
-                zmk_hid_press(usage);
-                zmk_endpoints_send_report(HID_USAGE_KEY);
-                zmk_hid_release(usage);
-                zmk_endpoints_send_report(HID_USAGE_KEY);
+                uint32_t keycode = data->caret_delta_x > 0 ? RIGHT_ARROW : LEFT_ARROW;
+                LOG_DBG("Sending arrow key: %s (keycode=0x%08x)",
+                        data->caret_delta_x > 0 ? "RIGHT" : "LEFT", keycode);
+                int64_t timestamp = k_uptime_get();
+                raise_zmk_keycode_state_changed_from_encoded(keycode, true, timestamp);
+                raise_zmk_keycode_state_changed_from_encoded(keycode, false, timestamp);
                 data->caret_delta_x = 0;
                 data->caret_delta_y = 0;
             }
