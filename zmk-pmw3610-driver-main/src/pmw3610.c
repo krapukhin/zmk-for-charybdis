@@ -580,7 +580,7 @@ static enum pixart_input_mode get_input_mode_for_current_layer(const struct devi
     }
     for (size_t i = 0; i < config->caret_layers_len; i++) {
         if (curr_layer == config->caret_layers[i]) {
-            return CARET;
+            return CURSOR;
         }
     }
     return MOVE;
@@ -615,7 +615,7 @@ static int pmw3610_report_data(const struct device *dev) {
         set_cpi_if_needed(dev, CONFIG_PMW3610_SNIPE_CPI);
         dividor = CONFIG_PMW3610_SNIPE_CPI_DIVIDOR;
         break;
-    case CARET:
+    case CURSOR:
         set_cpi_if_needed(dev, CONFIG_PMW3610_SNIPE_CPI);
         if (input_mode_changed) {
             data->caret_delta_x = 0;
@@ -705,7 +705,7 @@ static int pmw3610_report_data(const struct device *dev) {
 #endif
 
     if (x != 0 || y != 0) {
-        if (input_mode == CARET) {
+        if (input_mode == CURSOR) {
             data->caret_delta_x += x;
             data->caret_delta_y += y;
             if (abs(data->caret_delta_y) > CONFIG_PMW3610_CARET_TICK) {
