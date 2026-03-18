@@ -13,11 +13,11 @@
 #
 ---
 include:
-  - board: nice_nano@2.0.0
+  - board: nice_nano@2.0.0/nrf52840/zmk
     shield: charybdis_left
     cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
-  - board: nice_nano@2.0.0
+  - board: nice_nano@2.0.0/nrf52840/zmk
     shield: charybdis_right
     cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
-  - board: nice_nano@2.0.0
+  - board: nice_nano@2.0.0/nrf52840/zmk
     shield: settings_reset
