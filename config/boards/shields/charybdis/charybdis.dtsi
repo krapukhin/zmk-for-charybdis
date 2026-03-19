@@ -1,11 +1,85 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/led/led.h>
+#include <physical_layouts.dtsi>
 
 / {
     chosen {
         zmk,kscan = &kscan0;
-        zmk,matrix_transform = &default_transform;
+        zmk,physical-layout = &charybdis_physical_layout;
 	zmk,underglow = &led_strip;
+    };
+
+    charybdis_physical_layout: charybdis_physical_layout {
+        compatible = "zmk,physical-layout";
+        display-name = "Charybdis 4x6";
+        transform = <&default_transform>;
+        kscan = <&kscan0>;
+        keys =
+            // Row 0: left (6 keys) + right (6 keys)
+            <&key_physical_attrs 100 100   0   0 0 0 0>  // L0: Grave
+          , <&key_physical_attrs 100 100 100   0 0 0 0>  // L1: N1
+          , <&key_physical_attrs 100 100 200   0 0 0 0>  // L2: N2
+          , <&key_physical_attrs 100 100 300   0 0 0 0>  // L3: N3
+          , <&key_physical_attrs 100 100 400   0 0 0 0>  // L4: N4
+          , <&key_physical_attrs 100 100 500   0 0 0 0>  // L5: N5
+          , <&key_physical_attrs 100 100 900   0 0 0 0>  // R0: N6
+          , <&key_physical_attrs 100 100 1000  0 0 0 0>  // R1: N7
+          , <&key_physical_attrs 100 100 1100  0 0 0 0>  // R2: N8
+          , <&key_physical_attrs 100 100 1200  0 0 0 0>  // R3: N9
+          , <&key_physical_attrs 100 100 1300  0 0 0 0>  // R4: N0
+          , <&key_physical_attrs 100 100 1400  0 0 0 0>  // R5: Backspace
+            // Row 1: left (6 keys) + right (6 keys)
+          , <&key_physical_attrs 100 100   0 100 0 0 0>  // L0: Tab
+          , <&key_physical_attrs 100 100 100 100 0 0 0>  // L1: Q
+          , <&key_physical_attrs 100 100 200 100 0 0 0>  // L2: W
+          , <&key_physical_attrs 100 100 300 100 0 0 0>  // L3: E
+          , <&key_physical_attrs 100 100 400 100 0 0 0>  // L4: R
+          , <&key_physical_attrs 100 100 500 100 0 0 0>  // L5: T
+          , <&key_physical_attrs 100 100 900 100 0 0 0>  // R0: Y
+          , <&key_physical_attrs 100 100 1000 100 0 0 0> // R1: U
+          , <&key_physical_attrs 100 100 1100 100 0 0 0> // R2: I
+          , <&key_physical_attrs 100 100 1200 100 0 0 0> // R3: O
+          , <&key_physical_attrs 100 100 1300 100 0 0 0> // R4: P
+          , <&key_physical_attrs 100 100 1400 100 0 0 0> // R5: LBKT
+            // Row 2: left (6 keys) + right (6 keys)
+          , <&key_physical_attrs 100 100   0 200 0 0 0>  // L0: Caps
+          , <&key_physical_attrs 100 100 100 200 0 0 0>  // L1: A
+          , <&key_physical_attrs 100 100 200 200 0 0 0>  // L2: S
+          , <&key_physical_attrs 100 100 300 200 0 0 0>  // L3: D
+          , <&key_physical_attrs 100 100 400 200 0 0 0>  // L4: F
+          , <&key_physical_attrs 100 100 500 200 0 0 0>  // L5: G
+          , <&key_physical_attrs 100 100 900 200 0 0 0>  // R0: H
+          , <&key_physical_attrs 100 100 1000 200 0 0 0> // R1: J
+          , <&key_physical_attrs 100 100 1100 200 0 0 0> // R2: K
+          , <&key_physical_attrs 100 100 1200 200 0 0 0> // R3: L
+          , <&key_physical_attrs 100 100 1300 200 0 0 0> // R4: ;
+          , <&key_physical_attrs 100 100 1400 200 0 0 0> // R5: '
+            // Row 3: left (6 keys) + right (6 keys)
+          , <&key_physical_attrs 100 100   0 300 0 0 0>  // L0: LShift
+          , <&key_physical_attrs 100 100 100 300 0 0 0>  // L1: Z
+          , <&key_physical_attrs 100 100 200 300 0 0 0>  // L2: X
+          , <&key_physical_attrs 100 100 300 300 0 0 0>  // L3: C
+          , <&key_physical_attrs 100 100 400 300 0 0 0>  // L4: V
+          , <&key_physical_attrs 100 100 500 300 0 0 0>  // L5: B
+          , <&key_physical_attrs 100 100 900 300 0 0 0>  // R0: N
+          , <&key_physical_attrs 100 100 1000 300 0 0 0> // R1: M
+          , <&key_physical_attrs 100 100 1100 300 0 0 0> // R2: ,
+          , <&key_physical_attrs 100 100 1200 300 0 0 0> // R3: .
+          , <&key_physical_attrs 100 100 1300 300 0 0 0> // R4: /
+          , <&key_physical_attrs 100 100 1400 300 0 0 0> // R5: RShift
+            // Thumbs left: 3 keys (row 4: RC(4,3) RC(4,2) RC(4,1))
+          , <&key_physical_attrs 100 100 300 425 0 0 0>  // LT0: Space
+          , <&key_physical_attrs 100 100 400 425 0 0 0>  // LT1: Up
+          , <&key_physical_attrs 100 100 500 425 0 0 0>  // LT2: Right
+            // Thumbs right: 2 keys (row 4: RC(4,7) RC(4,8))
+          , <&key_physical_attrs 100 100 900 425 0 0 0>  // RT0: Del
+          , <&key_physical_attrs 100 100 1000 425 0 0 0> // RT1: Space
+            // Thumbs left bottom: 2 keys (RC(4,5) RC(4,4))
+          , <&key_physical_attrs 100 100 400 525 0 0 0>  // LT3: Left
+          , <&key_physical_attrs 100 100 500 525 0 0 0>  // LT4: Down
+            // Thumb right bottom: 1 key (RC(4,10))
+          , <&key_physical_attrs 100 100 1000 525 0 0 0> // RT2: Enter
+          ;
     };
 
     default_transform: keymap_transform_0 {

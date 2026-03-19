@@ -18,6 +18,7 @@ include:
     cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
   - board: nice_nano@2.0.0/nrf52840/zmk
     shield: charybdis_right
-    cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main -DCONFIG_ZMK_STUDIO=y
   - board: nice_nano@2.0.0/nrf52840/zmk
     shield: settings_reset
