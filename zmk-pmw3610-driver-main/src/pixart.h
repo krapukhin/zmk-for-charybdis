@@ -50,6 +50,12 @@ struct pixart_data {
 
     // for pmw3610 smart algorithm
     bool sw_smart_flag;
+
+#ifdef CONFIG_PMW3610_ACCEL_ENABLED
+    int32_t accel_remainder_x; // fixed-point Q16.16
+    int32_t accel_remainder_y;
+    int64_t last_move_time;
+#endif
 };
 
 // device config data structure

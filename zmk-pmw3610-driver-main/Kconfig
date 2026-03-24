@@ -162,6 +162,37 @@ config PMW3610_INVERT_SCROLL_Y
   bool "Invert the Y axis of the scroll"
   default PMW3610_INVERT_Y
 
+config PMW3610_ACCEL_ENABLED
+  bool "Enable pointer acceleration for MOVE mode"
+  default n
+  help
+    Enable plateau-style pointer acceleration. Slow movements are unaffected,
+    fast movements are multiplied up to ACCEL_MAX_MULT.
+
+config PMW3610_ACCEL_LOW_SPEED
+  int "Speed threshold below which no acceleration is applied (x100)"
+  default 300
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Speeds below this value (in counts/ms * 100) get multiplier 1.0.
+    Example: 300 means 3.00 counts/ms.
+
+config PMW3610_ACCEL_HIGH_SPEED
+  int "Speed threshold above which max acceleration is applied (x100)"
+  default 2000
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Speeds above this value get the maximum multiplier.
+    Example: 2000 means 20.00 counts/ms.
+
+config PMW3610_ACCEL_MAX_MULT
+  int "Maximum acceleration multiplier (x100)"
+  default 400
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Maximum multiplier applied at high speed.
+    Example: 400 means 4.0x.
+
 config PMW3610_AUTOMOUSE_TIMEOUT_MS
   int "Amount of milliseconds the mouse layer will be active after using the trackball"
   default 400

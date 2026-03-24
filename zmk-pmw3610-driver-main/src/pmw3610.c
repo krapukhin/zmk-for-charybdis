@@ -584,6 +584,47 @@ static enum pixart_input_mode get_input_mode_for_current_layer(const struct devi
     return MOVE;
 }
 
+#ifdef CONFIG_PMW3610_ACCEL_ENABLED
+#include <math.h>
+
+static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y) {
+    int64_t now = k_uptime_get();
+    int64_t dt = now - data->last_move_time;
+    data->last_move_time = now;
+
+    if (dt <= 0 || dt > 100) {
+        dt = 8; // fallback ~125Hz
+    }
+
+    // speed in counts/ms
+    float speed = sqrtf((float)(*x * *x + *y * *y)) / (float)dt;
+
+    float low = CONFIG_PMW3610_ACCEL_LOW_SPEED / 100.0f;
+    float high = CONFIG_PMW3610_ACCEL_HIGH_SPEED / 100.0f;
+    float max_m = CONFIG_PMW3610_ACCEL_MAX_MULT / 100.0f;
+
+    float mult = 1.0f;
+    if (speed > low) {
+        float t = (speed - low) / (high - low);
+        if (t > 1.0f) {
+            t = 1.0f;
+        }
+        mult = 1.0f + t * (max_m - 1.0f);
+    }
+
+    // sub-pixel accumulation via fixed-point Q16.16
+    int32_t fx = (int32_t)(*x * mult * 65536.0f) + data->accel_remainder_x;
+    int32_t fy = (int32_t)(*y * mult * 65536.0f) + data->accel_remainder_y;
+
+    *x = (int16_t)(fx >> 16);
+    *y = (int16_t)(fy >> 16);
+
+    // keep fractional part for next poll
+    data->accel_remainder_x = fx - (*x << 16);
+    data->accel_remainder_y = fy - (*y << 16);
+}
+#endif
+
 static int pmw3610_report_data(const struct device *dev) {
     struct pixart_data *data = dev->data;
     uint8_t buf[PMW3610_BURST_SIZE];
@@ -700,6 +741,12 @@ static int pmw3610_report_data(const struct device *dev) {
         data->last_poll_time = 0;
         data->last_x = 0;
         data->last_y = 0;
+    }
+#endif
+
+#ifdef CONFIG_PMW3610_ACCEL_ENABLED
+    if (input_mode == MOVE && (x != 0 || y != 0)) {
+        apply_acceleration(data, &x, &y);
     }
 #endif
 
