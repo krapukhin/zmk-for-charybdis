@@ -56,12 +56,12 @@
 
         QWERTY {
             bindings = <
-&kp GRAVE       &kp N1       &kp N2          &kp N3          &kp N4            &kp N5                 &kp N6     &kp N7             &kp N8           &kp N9          &kp N0               &kp BACKSPACE
-&kp TAB         &kp Q        &kp W           &kp E           &kp R             &kp T                  &kp Y      &kp U              &kp I            &kp O           &kp P                &kp LBKT
-&kp CAPSLOCK    &mt LCTRL A  &mt LEFT_ALT S  &mt LEFT_GUI D  &mt LEFT_SHIFT F  &kp G                  &kp H      &mt RIGHT_SHIFT J  &mt RIGHT_GUI K  &mt LEFT_ALT L  &mt LCTRL SEMICOLON  &kp SQT
-&kp LEFT_SHIFT  &kp Z        &kp X           &kp C           &kp V             &lt 3 B                &kp N      &kp M              &lt 1 COMMA      &lt 2 DOT       &kp FSLH             &kp RIGHT_SHIFT
-                                             &kp SPACE       &lt 1 UP_ARROW    &mt RIGHT_ALT RIGHT    &lt 0 DEL  &kp SPACE
-                                                             &lt 2 LEFT        &lt 4 DOWN             &kp ENTER
+&kp GRAVE       &kp N1  &kp N2   &kp N3              &kp N4                 &kp N5                  &kp N6                   &kp N7               &kp N8       &kp N9     &kp N0         &kp BACKSPACE
+&kp TAB         &kp Q   &kp W    &kp E               &kp R                  &kp T                   &kp Y                    &kp U                &kp I        &kp O      &kp P          &kp LBKT
+&kp CAPSLOCK    &kp A   &lt 4 S  &lt 2 D             &lt 1 F                &kp G                   &kp H                    &lt 1 J              &lt 2 K      &lt 4 L    &kp SEMICOLON  &kp SQT
+&kp LEFT_SHIFT  &kp Z   &kp X    &kp C               &kp V                  &lt 3 B                 &kp N                    &kp M                &lt 1 COMMA  &lt 2 DOT  &kp FSLH       &kp RIGHT_SHIFT
+                                 &mt LEFT_ALT SPACE  &mt LEFT_GUI UP_ARROW  &mt K_FIND2 UP_ARROW    &mt RIGHT_GUI DEL        &mt RIGHT_ALT SPACE
+                                                     &mt LEFT_CONTROL LEFT  &mt K_FIND DOWN         &mt RIGHT_CONTROL ENTER
             >;
         };
 
