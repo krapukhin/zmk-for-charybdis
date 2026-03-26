@@ -28,7 +28,7 @@ To flash: put the nice!nano into bootloader mode (double-tap reset), drag the `.
 | `config/west.yml` | ZMK dependency manifest (points to `zmkfirmware/zmk@main`) |
 | `build.yaml` | GitHub Actions matrix — defines which boards/shields to build |
 | `config/boards/shields/charybdis/charybdis_right.overlay` | Devicetree for right half: SPI pins, trackball, RGB LEDs |
-| `config/boards/shields/charybdis/charybdis_right.conf` | Kconfig for right half: PMW3610 driver settings |
+| `config/boards/shields/charybdis/charybdis_right.conf` | Kconfig for right half: PMW3610 driver + acceleration settings |
 | `config/boards/shields/charybdis/charybdis.dtsi` | Shared Devicetree: matrix transform, kscan GPIO rows |
 | `zmk-pmw3610-driver-main/` | Vendored PMW3610 driver (local copy, not fetched via west) |
 
@@ -46,6 +46,26 @@ The driver is injected at build time via `cmake-args` in `build.yaml`:
 cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
 ```
 **Do not add the driver to `config/west.yml`** — it must stay as a local module.
+
+### Pointer Acceleration
+
+Plateau-style acceleration is implemented in the vendored PMW3610 driver. The code is guarded by `CONFIG_PMW3610_ACCEL_ENABLED` and only applies to MOVE mode (not Snipe/Scroll/Caret).
+
+Key locations:
+- `zmk-pmw3610-driver-main/Kconfig` — `PMW3610_ACCEL_*` config options
+- `zmk-pmw3610-driver-main/src/pixart.h` — `accel_remainder_x/y`, `last_move_time` in `struct pixart_data`
+- `zmk-pmw3610-driver-main/src/pmw3610.c` — `apply_acceleration()` function, called before HID report in `pmw3610_report_data()`
+
+Parameters (all x100 because Kconfig doesn't support float):
+- `ACCEL_LOW_SPEED` (300 = 3.0 counts/ms) — below this, multiplier = 1.0
+- `ACCEL_HIGH_SPEED` (2000 = 20.0 counts/ms) — above this, multiplier = max
+- `ACCEL_MAX_MULT` (400 = 4.0x) — maximum multiplier at high speed
+
+Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision loss on small deltas. Speed is delta/dt for stability across variable polling rates.
+
+### ZMK Board Variant — Breaking Change
+
+ZMK introduced a board variant system. The nice_nano board must be specified as `nice_nano@2.0.0/nrf52840/zmk` in `build.yaml` (not just `nice_nano@2.0.0`). The `/zmk` variant sets `CONFIG_ZMK_BLE=y` which is required for split BLE. Without it, builds fail with linker errors about `ZMK_SPLIT_ROLE_CENTRAL`.
 
 ### Layer Map
 
@@ -79,8 +99,8 @@ Both `&mt` and `&lt` are configured with `tapping-term-ms=200`, `quick-tap-ms=13
 Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200.
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=2600`, `CPI_DIVIDOR=2` → ~1300 effective
-- Snipe: `SNIPE_CPI=250` (low speed for precision)
+- Normal: `CPI=2200`, `CPI_DIVIDOR=2` → ~1100 effective (with acceleration up to 4x at high speed)
+- Snipe: `SNIPE_CPI=250` (low speed for precision, no acceleration)
 - Scroll tick: `70`, Caret tick: `20`
 - `ORIENTATION_90=y`, `INVERT_X=y`
 
@@ -95,6 +115,8 @@ Current settings in `charybdis_right.conf`:
 
 - **Change a keybinding**: edit `config/charybdis.keymap`
 - **Change trackball sensitivity**: edit `CONFIG_PMW3610_CPI` / `CONFIG_PMW3610_CPI_DIVIDOR` in `config/boards/shields/charybdis/charybdis_right.conf`
+- **Tune acceleration**: edit `CONFIG_PMW3610_ACCEL_*` in `config/boards/shields/charybdis/charybdis_right.conf`
+- **Disable acceleration**: set `CONFIG_PMW3610_ACCEL_ENABLED=n` in `charybdis_right.conf`
 - **Add a combo**: add a `combo_*` block in the `combos` section of `charybdis.keymap`
 - **Add/modify a layer**: add a new layer entry in `keymap {}` in `charybdis.keymap` and update the layer index references in the overlay if it's a trackball mode layer
 - **Toggle debug logging**: `CONFIG_ZMK_USB_LOGGING` and related log level configs in `charybdis_right.conf` (currently enabled; disable for production builds)
