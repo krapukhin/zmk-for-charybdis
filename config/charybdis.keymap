@@ -125,12 +125,12 @@
 
         corne_2 {
             bindings = <
-&trans             &trans  &trans  &trans  &trans  &trans    &trans          &trans          &trans          &trans           &trans           &trans
-&kp LA(LC(SPACE))  &trans  &trans  &trans  &trans  &trans    &kp HOME        &mkp LCLK       &msc SCRL_UP    &kp PAGE_UP      &msc SCRL_LEFT   &trans
-&trans             &trans  &trans  &trans  &trans  &trans    &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_UP    &mmv MOVE_RIGHT  &trans           &trans
-&trans             &trans  &trans  &trans  &trans  &trans    &kp END         &mkp RCLK       &msc SCRL_DOWN  &kp PAGE_DOWN    &msc SCRL_RIGHT  &trans
-                                   &trans  &trans  &trans    &trans          &trans
-                                           &trans  &trans    &trans
+&trans             &trans  &trans  &trans  &trans  &trans           &trans          &trans          &trans          &trans           &trans           &trans
+&kp LA(LC(SPACE))  &trans  &trans  &trans  &trans  &trans           &kp HOME        &mkp LCLK       &msc SCRL_UP    &kp PAGE_UP      &msc SCRL_LEFT   &trans
+&trans             &trans  &trans  &trans  &trans  &trans           &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_UP    &mmv MOVE_RIGHT  &trans           &trans
+&trans             &trans  &trans  &trans  &trans  &trans           &kp END         &mkp RCLK       &msc SCRL_DOWN  &kp PAGE_DOWN    &msc SCRL_RIGHT  &trans
+                                   &trans  &trans  &kp LG(SPACE)    &trans          &trans
+                                           &trans  &trans           &trans
             >;
         };
     };
