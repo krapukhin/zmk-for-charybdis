@@ -56,12 +56,12 @@
 
         QWERTY {
             bindings = <
-&kp GRAVE       &kp N1  &kp N2   &kp N3              &kp N4                 &kp N5                           &kp N6                       &kp N7               &kp N8       &kp N9     &kp N0         &kp BACKSPACE
-&kp TAB         &kp Q   &kp W    &kp E               &kp R                  &kp T                            &kp Y                        &kp U                &kp I        &kp O      &kp P          &kp LBKT
-&kp CAPSLOCK    &kp A   &lt 4 S  &lt 2 D             &lt 1 F                &kp G                            &kp H                        &lt 1 J              &lt 2 K      &lt 4 L    &kp SEMICOLON  &kp SQT
-&kp LEFT_SHIFT  &kp Z   &kp X    &kp C               &kp V                  &lt 3 B                          &kp N                        &kp M                &lt 1 COMMA  &lt 2 DOT  &kp FSLH       &kp RIGHT_SHIFT
-                                 &mt LEFT_ALT SPACE  &mt LEFT_GUI UP_ARROW  &mt LA(LEFT_GUI) LEFT_BRACKET    &mt RIGHT_GUI RIGHT_BRACKET  &mt RIGHT_ALT SPACE
-                                                     &mt LEFT_CONTROL LEFT  &mt LA(LC(LEFT_GUI)) TAB         &mt RIGHT_CONTROL ENTER
+&kp GRAVE       &kp N1  &kp N2   &kp N3    &kp N4            &kp N5      &kp N6     &kp N7     &kp N8       &kp N9     &kp N0         &kp BACKSPACE
+&kp TAB         &kp Q   &kp W    &kp E     &kp R             &kp T       &kp Y      &kp U      &kp I        &kp O      &kp P          &kp LBKT
+&kp CAPSLOCK    &kp A   &lt 4 S  &lt 2 D   &lt 1 F           &kp G       &kp H      &lt 1 J    &lt 2 K      &lt 4 L    &kp SEMICOLON  &kp SQT
+&kp LEFT_SHIFT  &kp Z   &kp X    &kp C     &kp V             &lt 3 B     &kp N      &kp M      &lt 1 COMMA  &lt 2 DOT  &kp FSLH       &kp RIGHT_SHIFT
+                                 &kp LGUI  &kp SPACE         &mo 5       &mo 6      &kp SPACE
+                                           &kp LEFT_CONTROL  &kp LALT    &kp ENTER
             >;
         };
 
@@ -109,6 +109,28 @@
 &trans                &trans                &trans        &trans           &trans      &trans               &trans           &trans          &trans            &trans      &trans  &trans
                                                           &trans           &trans      &trans               &trans           &trans
                                                                            &trans      &trans               &trans
+            >;
+        };
+
+        corne_1 {
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans    &trans         &trans          &trans        &trans     &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans         &trans          &trans        &trans     &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &kp LEFT       &kp DOWN_ARROW  &kp UP_ARROW  &kp RIGHT  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans         &trans          &trans        &trans     &trans  &trans
+                        &trans  &trans  &trans    &kp LA(SPACE)  &trans
+                                &trans  &trans    &trans
+            >;
+        };
+
+        corne_2 {
+            bindings = <
+&trans             &trans  &trans  &trans  &trans  &trans    &trans          &trans          &trans          &trans           &trans           &trans
+&kp LA(LC(SPACE))  &trans  &trans  &trans  &trans  &trans    &kp HOME        &mkp LCLK       &msc SCRL_UP    &kp PAGE_UP      &msc SCRL_LEFT   &trans
+&trans             &trans  &trans  &trans  &trans  &trans    &mmv MOVE_LEFT  &mmv MOVE_DOWN  &mmv MOVE_UP    &mmv MOVE_RIGHT  &trans           &trans
+&trans             &trans  &trans  &trans  &trans  &trans    &kp END         &mkp RCLK       &msc SCRL_DOWN  &kp PAGE_DOWN    &msc SCRL_RIGHT  &trans
+                                   &trans  &trans  &trans    &trans          &trans
+                                           &trans  &trans    &trans
             >;
         };
     };
