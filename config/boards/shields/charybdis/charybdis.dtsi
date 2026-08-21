@@ -71,9 +71,9 @@
             // Thumbs left: 3 keys (row 4: RC(4,3) RC(4,2) RC(4,1))
           , <&key_physical_attrs 100 100 300 425 0 0 0>  // LT0: GUI
           , <&key_physical_attrs 100 100 400 425 0 0 0>  // LT1: Space
-          , <&key_physical_attrs 100 100 500 425 0 0 0>  // LT2: MO(5) — corne_1 (стрелки на HJKL)
+          , <&key_physical_attrs 100 100 500 425 0 0 0>  // LT2: MO(6) — corne_1 (стрелки на HJKL)
             // Thumbs right: 2 keys (row 4: RC(4,7) RC(4,8))
-          , <&key_physical_attrs 100 100 900 425 0 0 0>  // RT0: MO(6) — corne_2 (мышь на HJKL)
+          , <&key_physical_attrs 100 100 900 425 0 0 0>  // RT0: MO(7) — corne_2 (мышь на HJKL)
           , <&key_physical_attrs 100 100 1000 425 0 0 0> // RT1: Space
             // Thumbs left bottom: 2 keys (RC(4,5) RC(4,4))
           , <&key_physical_attrs 100 100 400 525 0 0 0>  // LT3: Ctrl

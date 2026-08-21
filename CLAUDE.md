@@ -74,9 +74,27 @@ Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision l
 
 Caret mode converts trackball movement into arrow key presses — roll to move the text cursor in any editor/terminal. Implemented in the vendored PMW3610 driver (`pmw3610.c`, inside `pmw3610_report_data()` CURSOR branch).
 
-- Activated by layer 4 (`caret_layer`) — declared in overlay: `caret-layers = <4>;`
+- Activated by layer 5 (`caret_layer`) — declared in overlay: `caret-layers = <5>;`
 - Sensitivity: `CONFIG_PMW3610_CARET_TICK=20` in `charybdis_right.conf` (lower = more responsive)
 - Accumulates delta X/Y until threshold, then sends arrow key press/release via `raise_zmk_keycode_state_changed_from_encoded()`
+
+### Auto Mouse Layer — layer index is load-bearing
+
+Trackball motion automatically raises layer 1 (`mouse_layer`, clicks on H/J/K), which drops again 800 ms after the ball stops. Implemented with ZMK's upstream `&zip_temp_layer` input processor, wired up in `charybdis_right.overlay`:
+
+```dts
+&trackball_listener { input-processors = <&zip_temp_layer 1 800>; };
+&zip_temp_layer {
+    require-prior-idle-ms = <200>;
+    excluded-positions = <30 31 32 36 47 48 53 54>;
+};
+```
+
+**Invariant — do not break this:** the auto mouse layer's index must stay **lower** than `snipe`/`scroll`/`caret`. The vendored driver picks the trackball mode from `zmk_keymap_highest_layer_active()` (`get_input_mode_for_current_layer()` in `pmw3610.c`) — *only* the topmost active layer. Give the mouse layer a higher index and holding `D` for scroll leaves the mouse layer on top, so the driver never leaves MOVE mode and scroll/snipe/caret silently stop working while the ball is moving. Nothing fails at build time; it only shows up in the hand. The same trap applies to the driver's own `automouse-layer` property, which is deliberately left disabled (`-1`).
+
+`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks plus Shift/GUI/Ctrl/Alt, so that shift-click and cmd-click survive.
+
+Tuning: raise the 800 ms timeout for more clicking comfort, lower it if `H`/`J`/`K` stay clicks too long when you resume typing. `require-prior-idle-ms` guards the other direction — brushing the ball mid-sentence.
 
 ### ZMK Studio
 
@@ -97,28 +115,30 @@ ZMK introduced a board variant system. The nice_nano board must be specified as 
 | Index | Name | Activation |
 |-------|------|-----------|
 | 0 | QWERTY | Default |
-| 1 | snipe-layers | `lt 1` on F, J, COMMA (snipe trackball mode) |
-| 2 | scroll-layers | `lt 2` on D, K, DOT (scroll trackball mode) |
-| 3 | BT_layers | `lt 3` on B (Bluetooth channel management) |
-| 4 | caret_layer | `lt 4` on S, L (trackball moves text cursor) |
-| 5 | corne_1 | `mo 5` on left thumb (3rd key) — HJKL → arrow keys, vim-style |
-| 6 | corne_2 | `mo 6` on right thumb (1st key) — HJKL → mouse move/click/scroll, no trackball needed |
+| 1 | mouse_layer | **Automatic** — raised by trackball motion (see Auto Mouse Layer below) |
+| 2 | snipe-layers | `lt 2` on F, J, COMMA (snipe trackball mode) |
+| 3 | scroll-layers | `lt 3` on D, K, DOT (scroll trackball mode) |
+| 4 | BT_layers | `lt 4` on B (Bluetooth channel management) |
+| 5 | caret_layer | `lt 5` on S, L (trackball moves text cursor) |
+| 6 | corne_1 | `mo 6` on left thumb (3rd key) — HJKL → arrow keys, vim-style |
+| 7 | corne_2 | `mo 7` on right thumb (1st key) — HJKL → mouse move/click/scroll, no trackball needed |
 
 Trackball layer modes are declared in the overlay:
 ```dts
-scroll-layers = <2>;
-snipe-layers = <1>;
-caret-layers = <4>;
+scroll-layers = <3>;
+snipe-layers = <2>;
+caret-layers = <5>;
 ```
 
-Layers 5/6 (`corne_1`/`corne_2`) are unrelated to the trackball — they're momentary (`&mo`) layers added later ("similar to corne" commit) that mimic mouse-less navigation/mouse-emulation from the maintainer's Corne keyboard, activated purely from the thumb cluster.
+Layers 6/7 (`corne_1`/`corne_2`) are unrelated to the trackball — they're momentary (`&mo`) layers added later ("similar to corne" commit) that mimic mouse-less navigation/mouse-emulation from the maintainer's Corne keyboard, activated purely from the thumb cluster.
 
 ### Home Row & Thumb Keys
 
 Row 2 (home row) is entirely `&lt` (layer-tap) into trackball modes — there are no home-row modifiers:
-- Left home row: `A` (plain), `S` → caret (layer 4), `D` → scroll (layer 2), `F` → snipe (layer 1)
-- Right home row: `J` → snipe (layer 1), `K` → scroll (layer 2), `L` → caret (layer 4), `;` (plain)
-- Thumbs are plain `&kp` (not hold-tap): left = GUI, SPACE, CTRL, ALT; right = SPACE, ENTER — plus `&mo 5`/`&mo 6` on the remaining two thumb keys for the corne_1/corne_2 layers above.
+- Left home row: `A` (plain), `S` → caret (layer 5), `D` → scroll (layer 3), `F` → snipe (layer 2)
+- Right home row: `J` → snipe (layer 2), `K` → scroll (layer 3), `L` → caret (layer 5), `;` (plain)
+- While the auto mouse layer is up, `J`/`K` are clicks rather than layer-taps — snipe/scroll stay reachable from the left hand (`F`/`D`)
+- Thumbs are plain `&kp` (not hold-tap): left = GUI, SPACE, CTRL, ALT; right = SPACE, ENTER — plus `&mo 6`/`&mo 7` on the remaining two thumb keys for the corne_1/corne_2 layers above.
 
 `&lt` is configured with `tapping-term-ms=200`, `quick-tap-ms=130`, `require-prior-idle-ms=40`. The keymap also declares an `&mt` (mod-tap) behavior block with the same tuning, but as of the current keymap no binding actually uses `&mt` — it's dead configuration from an earlier layout revision (thumb mod-taps were replaced with plain keypresses).
 

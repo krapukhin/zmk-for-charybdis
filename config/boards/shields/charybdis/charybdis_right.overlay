@@ -58,9 +58,11 @@
         reg = <0>;
         spi-max-frequency = <2000000>;
         irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-        scroll-layers = <2>;
-        snipe-layers = <1>;
-        caret-layers = <4>;
+        scroll-layers = <3>;
+        snipe-layers = <2>;
+        caret-layers = <5>;
+        // automouse-layer драйвера намеренно НЕ включаем (default -1):
+        // AML реализован через upstream &zip_temp_layer ниже, два сразу включать нельзя.
     };
 };
 
@@ -122,5 +124,25 @@
     trackball_listener: trackball_listener {
         compatible = "zmk,input-listener";
         device = <&trackball>;
+        // Auto Mouse Layer: движение шара поднимает слой 1 (mouse_layer),
+        // слой гаснет через 800 мс после ОСТАНОВКИ шара.
+        input-processors = <&zip_temp_layer 1 800>;
     };
+};
+
+// Настройка авто-слоя мыши. zip_temp_layer объявлен в <input/processors.dtsi>
+// (уже подключён выше) через /omit-if-no-ref/ — достаточно на него сослаться.
+&zip_temp_layer {
+    // Не поднимать слой, если в последние 200 мс была нажата клавиша.
+    // Защита от случайного касания шара во время печати.
+    require-prior-idle-ms = <200>;
+
+    // ВНИМАНИЕ, семантика вывернутая: перечисленные позиции слой НЕ гасят,
+    // все остальные — гасят. Если список пустой, слой не гасится вообще
+    // ни от какой клавиши, только по таймауту.
+    //   30 31 32 — сами клики (H/J/K), иначе клик гасил бы слой под собой
+    //   36 47    — LShift / RShift  -> shift+клик
+    //   48 53 54 — GUI / Ctrl / Alt -> cmd+клик, ctrl+клик, alt+клик
+    // Space (49, 52) и Enter (55) намеренно НЕ исключены: нажал пробел — вернулся к печати.
+    excluded-positions = <30 31 32 36 47 48 53 54>;
 };

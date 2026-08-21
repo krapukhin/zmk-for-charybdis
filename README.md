@@ -59,7 +59,7 @@ Caret mode turns the trackball into arrow keys — roll the ball to move the tex
 
 Roll left/right to move character by character, up/down to move line by line. Particularly useful for Vim users or precise text editing.
 
-**Implementation:** `caret-layers = <6>` in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay). Sensitivity is controlled by `CONFIG_PMW3610_CARET_TICK=20` in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf) (lower = more responsive).
+**Implementation:** `caret-layers = <5>` in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay). Sensitivity is controlled by `CONFIG_PMW3610_CARET_TICK=20` in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf) (lower = more responsive).
 
 ### How to add caret mode to your own ZMK trackball build
 
@@ -69,6 +69,45 @@ The caret mode logic is built into the vendored PMW3610 driver. To port:
 2. In your shield's `.conf`, set `CONFIG_PMW3610_CARET_TICK=20` (adjust to taste)
 3. Add a layer in your `.keymap` at index N — the layer content doesn't matter for arrow key generation, but you can put extra bindings there
 4. Bind a key to `&lt N <key>` to activate the caret layer on hold
+
+---
+
+## Auto Mouse Layer
+
+Moving the trackball automatically raises a mouse layer with click buttons under `H` / `J` / `K` (right / left / middle). It drops again 800 ms after the ball stops, so the keys go back to being letters. No key is held — you roll the ball, click, and keep typing.
+
+Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-processors/temp-layer) input processor, configured in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay):
+
+```dts
+&trackball_listener {
+    input-processors = <&zip_temp_layer 1 800>;   // layer 1, 800 ms after the ball stops
+};
+
+&zip_temp_layer {
+    require-prior-idle-ms = <200>;
+    excluded-positions = <30 31 32 36 47 48 53 54>;
+};
+```
+
+**Tuning:**
+- Not enough time to click after aiming -> raise the `800` timeout to 1200–1500
+- `H`/`J`/`K` stay clicks too long when you resume typing -> lower it to 400–600
+- Layer pops up while touch-typing -> raise `require-prior-idle-ms` to 300
+
+### Two traps worth knowing
+
+**1. The layer index is load-bearing.** The auto mouse layer must sit at a *lower* index than the snipe / scroll / caret layers. The PMW3610 driver selects the trackball mode from `zmk_keymap_highest_layer_active()` — only the topmost active layer. Put the mouse layer above them and holding `D` for scroll leaves the mouse layer on top, so the driver never leaves cursor mode and scroll / snipe / caret quietly stop working while the ball is moving. Nothing fails at build time. That is why the mouse layer is index 1 and everything else shifted up.
+
+**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger) plus Shift / GUI / Ctrl / Alt (so shift-click and cmd-click survive). Space and Enter are deliberately left out: pressing space means you're back to typing.
+
+### How to add this to your own ZMK trackball build
+
+1. Add a mouse layer to your keymap at an index **below** your trackball-mode layers — everything on it `&trans` except the click keys
+2. Point the processor at it: `input-processors = <&zip_temp_layer N 800>;` on your input listener
+3. Set `excluded-positions` to your click keys plus your modifiers, and `require-prior-idle-ms` to ~200
+4. Make sure `#include <input/processors.dtsi>` is in your overlay
+
+If your driver has its own automouse (the PMW3610 one does, via `automouse-layer`), leave it disabled — running both at once conflicts.
 
 ---
 
@@ -92,10 +131,11 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 
 ## Features
 
-- **7 layers** — QWERTY base, Snipe, Scroll, Bluetooth, Caret, plus two Corne-style auxiliary layers (arrow-key nav and mouse emulation via HJKL, no trackball needed)
+- **8 layers** — QWERTY base, auto mouse, Snipe, Scroll, Bluetooth, Caret, plus two Corne-style auxiliary layers (arrow-key nav and mouse emulation via HJKL, no trackball needed)
 - **Pointer acceleration** — plateau-style acceleration in the PMW3610 driver
 - **Home-row layer-taps** — `S`/`D`/`F` and `J`/`K`/`L` hold into trackball modes (caret/scroll/snipe); modifiers live on the thumb cluster, not the home row
 - **4 trackball modes** — normal cursor, scroll wheel, precision snipe, and text caret control
+- **Auto mouse layer** — moving the ball raises a click layer automatically, no key held
 - **Vendored PMW3610 driver** — works with the 3-wire SDIO hardware wiring found on this keyboard
 - **Combos** for brackets, `=`/`-`, and a ZMK Studio unlock
 - **ZMK Studio** support on the right half for live keymap editing over USB
@@ -115,17 +155,19 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │ TAB  │  Q   │  W   │  E   │  R   │  T   │       │  Y   │  U   │  I   │  O   │  P   │  [   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│ CAPS │  A   │ S[4] │ D[2] │ F[1] │  G   │       │  H   │ J[1] │ K[2] │ L[4] │  ;   │  '   │
+│ CAPS │  A   │ S[5] │ D[3] │ F[2] │  G   │       │  H   │ J[2] │ K[3] │ L[5] │  ;   │  '   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│SHIFT │  Z   │  X   │  C   │  V   │ B[3] │       │  N   │  M   │ ,[1] │ .[2] │  /   │SHIFT │
+│SHIFT │  Z   │  X   │  C   │  V   │ B[4] │       │  N   │  M   │ ,[2] │ .[3] │  /   │SHIFT │
 └──────┴──────┴──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┴──────┴──────┴──────┘
-                      │ GUI  │SPACE │MO(5) │       │MO(6) │SPACE │
+                      │ GUI  │SPACE │MO(6) │       │MO(7) │SPACE │
                       └──────┼──────┼──────┤       ├──────┼──────┘
                              │ CTRL │ ALT  │       │ENTER │
                              └──────┴──────┘       └──────┘
 ```
 
-`[N]` = hold to activate layer N (see [Layer Reference](#layer-reference)). `MO(5)`/`MO(6)` hold into the two Corne-style auxiliary layers.
+`[N]` = hold to activate layer N (see [Layer Reference](#layer-reference)). `MO(6)`/`MO(7)` hold into the two Corne-style auxiliary layers.
+
+Layer 1 is missing from this diagram on purpose — it's the auto mouse layer, raised by the trackball rather than by a key.
 
 ---
 
@@ -165,12 +207,13 @@ Layer-tap keys (`&lt`) are configured with `tap-preferred` flavor, `tapping-term
 | # | Name | How to activate | Description |
 |---|------|----------------|-------------|
 | 0 | QWERTY | — | Base layer |
-| 1 | Snipe | Hold `F` / `J` / `,` | Trackball precision mode; F-keys and bracket pairs on top rows |
-| 2 | Scroll | Hold `D` / `K` / `.` | Trackball → scroll wheel + arrow keys |
-| 3 | Bluetooth | Hold `B` | BT channel management |
-| 4 | **Caret** | Hold `S` / `L` | **Trackball moves text cursor**; top row doubles as media/brightness keys |
-| 5 | Corne-nav | Hold left thumb, 3rd key (`MO(5)`) | HJKL → arrow keys (vim-style navigation) |
-| 6 | Corne-mouse | Hold right thumb, 1st key (`MO(6)`) | HJKL → mouse movement, with click/scroll on the rows above and below |
+| 1 | **Auto mouse** | **Automatic** — moving the trackball | **Clicks appear under H/J/K; drops 800 ms after the ball stops** |
+| 2 | Snipe | Hold `F` / `J` / `,` | Trackball precision mode; F-keys and bracket pairs on top rows |
+| 3 | Scroll | Hold `D` / `K` / `.` | Trackball → scroll wheel + arrow keys |
+| 4 | Bluetooth | Hold `B` | BT channel management |
+| 5 | **Caret** | Hold `S` / `L` | **Trackball moves text cursor**; top row doubles as media/brightness keys |
+| 6 | Corne-nav | Hold left thumb, 3rd key (`MO(6)`) | HJKL → arrow keys (vim-style navigation) |
+| 7 | Corne-mouse | Hold right thumb, 1st key (`MO(7)`) | HJKL → mouse movement, with click/scroll on the rows above and below |
 
 ---
 
@@ -180,7 +223,7 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with plateau acceleration (~1100 effective CPI, up to 4x at high speed) |
+| **Normal** | default | Mouse cursor with plateau acceleration (~1100 effective CPI, up to 4x at high speed); raises the auto mouse layer |
 | **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (~250 CPI) for exact cursor placement |
 | **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
 | **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
