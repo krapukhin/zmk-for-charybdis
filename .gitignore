@@ -1,2 +1,6 @@
 **/.DS_Store
 zmk-for-charybdis-Charybdis_4x6 original/*
+
+# Локальные настройки Claude Code (личные, не для общего репозитория).
+# .claude/settings.json при необходимости можно коммитить — он общий.
+.claude/settings.local.json

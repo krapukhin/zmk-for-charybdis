@@ -30,7 +30,14 @@ To flash: put the nice!nano into bootloader mode (double-tap reset), drag the `.
 | `config/boards/shields/charybdis/charybdis_right.overlay` | Devicetree for right half: SPI pins, trackball, RGB LEDs |
 | `config/boards/shields/charybdis/charybdis_right.conf` | Kconfig for right half: PMW3610 driver + acceleration settings |
 | `config/boards/shields/charybdis/charybdis.dtsi` | Shared Devicetree: matrix transform, kscan GPIO rows |
+| `config/charybdis.json` | Physical key layout definition consumed by ZMK Studio / keymap editors |
 | `zmk-pmw3610-driver-main/` | Vendored PMW3610 driver (local copy, not fetched via west) |
+
+Note: `zmk-for-charybdis-Charybdis_4x6 original/` at the repo root is a frozen copy of the original seller firmware, kept only as a reference for diffing against upstream defaults. It is not built and should not be edited.
+
+Note: `notes/` holds archived historical docs (seller manual, early spec drafts, an old ASCII cheatsheet). They describe earlier keymap revisions and are **not** accurate for the current firmware — see `notes/README.md`. Don't cite them as current behaviour; the hardware sections of `notes/instruction.md` (flashing, switch replacement) do still apply.
+
+Note: comments in `charybdis.keymap` and the `.conf` files are written in a mix of Russian and (occasionally) Chinese — expect this when grepping for context rather than assuming English-only comments.
 
 ### PMW3610 Trackball Driver — Critical Detail
 
@@ -63,6 +70,24 @@ Parameters (all x100 because Kconfig doesn't support float):
 
 Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision loss on small deltas. Speed is delta/dt for stability across variable polling rates.
 
+### Caret Mode — Trackball as Text Cursor
+
+Caret mode converts trackball movement into arrow key presses — roll to move the text cursor in any editor/terminal. Implemented in the vendored PMW3610 driver (`pmw3610.c`, inside `pmw3610_report_data()` CURSOR branch).
+
+- Activated by layer 4 (`caret_layer`) — declared in overlay: `caret-layers = <4>;`
+- Sensitivity: `CONFIG_PMW3610_CARET_TICK=20` in `charybdis_right.conf` (lower = more responsive)
+- Accumulates delta X/Y until threshold, then sends arrow key press/release via `raise_zmk_keycode_state_changed_from_encoded()`
+
+### ZMK Studio
+
+The right shield build includes `snippet: studio-rpc-usb-uart` and `-DCONFIG_ZMK_STUDIO=y` in `build.yaml` (left half does not). This enables live keymap editing via ZMK Studio over USB. A dedicated combo (`combo_studio_unlock` in `charybdis.keymap`, GRAVE + BACKSPACE) calls `&studio_unlock` to allow the Studio connection to write to the keyboard — without it, Studio can view but not modify the keymap.
+
+**The keymap has a second author.** Alongside manual edits, `config/charybdis.keymap` is rewritten by the keymap editor and pushed straight to the branch as commits from `keymap-editor[bot]` (e.g. `similar to corne`, `new position for brackets`, `removed home row`). Consequences to keep in mind:
+
+- **Always `git pull` before touching the keymap.** The remote branch may have moved even if nothing local changed. Re-read `charybdis.keymap` after pulling rather than trusting an earlier read in the same session — layers have been added and thumb keys reassigned this way.
+- **The keymap file is the single source of truth.** Layer tables in this file and in `README.md` are hand-maintained snapshots that drift whenever the bot pushes; verify against the actual bindings before relying on them, and treat a mismatch as the docs being stale, not the keymap.
+- **Bot commits are formatting-blind.** They rewrite the whole `bindings` block, so hand-written comments and alignment inside a layer may not survive. Put durable explanations outside the layer blocks (or in this file) rather than inline.
+
 ### ZMK Board Variant — Breaking Change
 
 ZMK introduced a board variant system. The nice_nano board must be specified as `nice_nano@2.0.0/nrf52840/zmk` in `build.yaml` (not just `nice_nano@2.0.0`). The `/zmk` variant sets `CONFIG_ZMK_BLE=y` which is required for split BLE. Without it, builds fail with linker errors about `ZMK_SPLIT_ROLE_CENTRAL`.
@@ -72,27 +97,30 @@ ZMK introduced a board variant system. The nice_nano board must be specified as 
 | Index | Name | Activation |
 |-------|------|-----------|
 | 0 | QWERTY | Default |
-| 1 | snipe-layers | `lt 1` on COMMA, SPACE (snipe trackball mode) |
-| 2 | scroll-layers | `lt 2` on V, DOT, UP (scroll trackball mode) |
-| 3 | F_layers | `lt 3` on DOWN (F1–F12) |
-| 4 | BT_layers | `lt 4` on B (Bluetooth channel management) |
-| 5 | WINDOWS_LAYERS | `lt 5` on LEFT |
-| 6 | caret_layer | `lt 6` on LEFT_THUMB (trackball moves text cursor) |
+| 1 | snipe-layers | `lt 1` on F, J, COMMA (snipe trackball mode) |
+| 2 | scroll-layers | `lt 2` on D, K, DOT (scroll trackball mode) |
+| 3 | BT_layers | `lt 3` on B (Bluetooth channel management) |
+| 4 | caret_layer | `lt 4` on S, L (trackball moves text cursor) |
+| 5 | corne_1 | `mo 5` on left thumb (3rd key) — HJKL → arrow keys, vim-style |
+| 6 | corne_2 | `mo 6` on right thumb (1st key) — HJKL → mouse move/click/scroll, no trackball needed |
 
 Trackball layer modes are declared in the overlay:
 ```dts
 scroll-layers = <2>;
 snipe-layers = <1>;
-caret-layers = <6>;
+caret-layers = <4>;
 ```
 
-### Home Row Mods
+Layers 5/6 (`corne_1`/`corne_2`) are unrelated to the trackball — they're momentary (`&mo`) layers added later ("similar to corne" commit) that mimic mouse-less navigation/mouse-emulation from the maintainer's Corne keyboard, activated purely from the thumb cluster.
 
-Row 2 (home row) uses `&mt` (mod-tap) with `tap-preferred` flavor:
-- Left: `A=Ctrl`, `S=Alt`, `D=GUI`, `F=Shift`
-- Right: `J=Shift`, `K=GUI`, `L=Alt`, `;=Ctrl`
+### Home Row & Thumb Keys
 
-Both `&mt` and `&lt` are configured with `tapping-term-ms=200`, `quick-tap-ms=130`, `require-prior-idle-ms=40`.
+Row 2 (home row) is entirely `&lt` (layer-tap) into trackball modes — there are no home-row modifiers:
+- Left home row: `A` (plain), `S` → caret (layer 4), `D` → scroll (layer 2), `F` → snipe (layer 1)
+- Right home row: `J` → snipe (layer 1), `K` → scroll (layer 2), `L` → caret (layer 4), `;` (plain)
+- Thumbs are plain `&kp` (not hold-tap): left = GUI, SPACE, CTRL, ALT; right = SPACE, ENTER — plus `&mo 5`/`&mo 6` on the remaining two thumb keys for the corne_1/corne_2 layers above.
+
+`&lt` is configured with `tapping-term-ms=200`, `quick-tap-ms=130`, `require-prior-idle-ms=40`. The keymap also declares an `&mt` (mod-tap) behavior block with the same tuning, but as of the current keymap no binding actually uses `&mt` — it's dead configuration from an earlier layout revision (thumb mod-taps were replaced with plain keypresses).
 
 ### Trackball CPI Settings
 

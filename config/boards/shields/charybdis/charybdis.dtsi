@@ -67,16 +67,17 @@
           , <&key_physical_attrs 100 100 1200 300 0 0 0> // R3: .
           , <&key_physical_attrs 100 100 1300 300 0 0 0> // R4: /
           , <&key_physical_attrs 100 100 1400 300 0 0 0> // R5: RShift
+            // Подписи ниже — привязки слоя QWERTY из charybdis.keymap (для ориентации при чтении).
             // Thumbs left: 3 keys (row 4: RC(4,3) RC(4,2) RC(4,1))
-          , <&key_physical_attrs 100 100 300 425 0 0 0>  // LT0: Space
-          , <&key_physical_attrs 100 100 400 425 0 0 0>  // LT1: Up
-          , <&key_physical_attrs 100 100 500 425 0 0 0>  // LT2: Right
+          , <&key_physical_attrs 100 100 300 425 0 0 0>  // LT0: GUI
+          , <&key_physical_attrs 100 100 400 425 0 0 0>  // LT1: Space
+          , <&key_physical_attrs 100 100 500 425 0 0 0>  // LT2: MO(5) — corne_1 (стрелки на HJKL)
             // Thumbs right: 2 keys (row 4: RC(4,7) RC(4,8))
-          , <&key_physical_attrs 100 100 900 425 0 0 0>  // RT0: Del
+          , <&key_physical_attrs 100 100 900 425 0 0 0>  // RT0: MO(6) — corne_2 (мышь на HJKL)
           , <&key_physical_attrs 100 100 1000 425 0 0 0> // RT1: Space
             // Thumbs left bottom: 2 keys (RC(4,5) RC(4,4))
-          , <&key_physical_attrs 100 100 400 525 0 0 0>  // LT3: Left
-          , <&key_physical_attrs 100 100 500 525 0 0 0>  // LT4: Down
+          , <&key_physical_attrs 100 100 400 525 0 0 0>  // LT3: Ctrl
+          , <&key_physical_attrs 100 100 500 525 0 0 0>  // LT4: Alt
             // Thumb right bottom: 1 key (RC(4,10))
           , <&key_physical_attrs 100 100 1000 525 0 0 0> // RT2: Enter
           ;

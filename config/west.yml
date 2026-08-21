@@ -2,8 +2,6 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: DoctorWangWang
-      url-base: https://github.com/DoctorWangWang
   projects:
     - name: zmk
       remote: zmkfirmware
@@ -11,3 +9,11 @@ manifest:
       import: app/west.yml
   self:
     path: config
+
+# Ниже — неиспользуемый remote. Раньше отсюда через west подтягивался драйвер
+# pmw3610 (project zmk-pmw3610-driver), пока его не вендорили локально в
+# zmk-pmw3610-driver-main/ (см. CLAUDE.md). Сборку не затрагивает, оставлено
+# для истории на случай, если понадобится сверяться с оригинальным источником.
+#  remotes:
+#    - name: DoctorWangWang
+#      url-base: https://github.com/DoctorWangWang

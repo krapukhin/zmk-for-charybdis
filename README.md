@@ -92,17 +92,20 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 
 ## Features
 
-- **7 layers** — QWERTY base, Snipe, Scroll, F-keys, Bluetooth, Windows/app shortcuts, Caret
+- **7 layers** — QWERTY base, Snipe, Scroll, Bluetooth, Caret, plus two Corne-style auxiliary layers (arrow-key nav and mouse emulation via HJKL, no trackball needed)
 - **Pointer acceleration** — plateau-style acceleration in the PMW3610 driver
-- **Home Row Mods** — modifiers on the home row, no dedicated modifier keys needed
+- **Home-row layer-taps** — `S`/`D`/`F` and `J`/`K`/`L` hold into trackball modes (caret/scroll/snipe); modifiers live on the thumb cluster, not the home row
 - **4 trackball modes** — normal cursor, scroll wheel, precision snipe, and text caret control
 - **Vendored PMW3610 driver** — works with the 3-wire SDIO hardware wiring found on this keyboard
-- **Combos** for brackets and language switching
+- **Combos** for brackets, `=`/`-`, and a ZMK Studio unlock
+- **ZMK Studio** support on the right half for live keymap editing over USB
 - RGB underglow support (disabled by default)
 
 ---
 
 ## Keymap
+
+> The keymap is actively edited both by hand and via ZMK Studio (commits from `keymap-editor[bot]`) — `config/charybdis.keymap` is always the source of truth; this section is a snapshot of it.
 
 ### Base Layer (QWERTY)
 
@@ -112,39 +115,37 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │ TAB  │  Q   │  W   │  E   │  R   │  T   │       │  Y   │  U   │  I   │  O   │  P   │  [   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│ CAPS │  A   │  S   │  D   │  F   │  G   │       │  H   │  J   │  K   │  L   │  ;   │  '   │
-│      │ Ctrl │ Alt  │ GUI  │Shift │      │       │      │Shift │ GUI  │ Alt  │ Ctrl │      │
+│ CAPS │  A   │ S[4] │ D[2] │ F[1] │  G   │       │  H   │ J[1] │ K[2] │ L[4] │  ;   │  '   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│SHIFT │  Z   │  X   │  C   │  V   │  B   │       │  N   │  M   │  ,   │  .   │  /   │SHIFT │
-│      │      │      │      │[SCR] │[BT]  │       │      │      │[SNP] │[SCR] │      │      │
+│SHIFT │  Z   │  X   │  C   │  V   │ B[3] │       │  N   │  M   │ ,[1] │ .[2] │  /   │SHIFT │
 └──────┴──────┴──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┴──────┴──────┴──────┘
-                     │SPACE │  ↑   │  →   │       │ DEL  │SPACE │
-                     │[SNP] │      │      │       │[CAR] │      │
-                     └──────┼──────┼──────┤       └──────┴──────┘
-                            │  ←   │  ↓   │
-                            │[CAR] │[F]   │
-                            └──────┴──────┘
+                      │ GUI  │SPACE │MO(5) │       │MO(6) │SPACE │
+                      └──────┼──────┼──────┤       ├──────┼──────┘
+                             │ CTRL │ ALT  │       │ENTER │
+                             └──────┴──────┘       └──────┘
 ```
 
-Layer hold keys: `[SCR]` = Scroll, `[SNP]` = Snipe, `[BT]` = Bluetooth, `[CAR]` = Caret, `[F]` = F-keys
+`[N]` = hold to activate layer N (see [Layer Reference](#layer-reference)). `MO(5)`/`MO(6)` hold into the two Corne-style auxiliary layers.
 
 ---
 
-### Home Row Mods
+### Home Row & Thumb Keys
 
-Hold any home row key to activate the modifier. Tap for the letter.
+Home row carries no modifiers anymore — it's entirely layer-taps into trackball modes:
 
 ```
 Left hand                     Right hand
 ┌─────┬─────┬─────┬─────┐    ┌─────┬─────┬─────┬─────┐
 │  A  │  S  │  D  │  F  │    │  J  │  K  │  L  │  ;  │
-│Ctrl │ Alt │ GUI │Shift│    │Shift│ GUI │ Alt │Ctrl │
+│  —  │Caret│Scrl │Snipe│    │Snipe│Scrl │Caret│  —  │
 └─────┴─────┴─────┴─────┘    └─────┴─────┴─────┴─────┘
 ```
 
-**Examples:** `Ctrl+C` -> hold A, tap C &nbsp;|&nbsp; `Cmd+V` -> hold F, tap V &nbsp;|&nbsp; `Ctrl+Shift+S` -> hold A+F, tap S
+Modifiers instead live on the thumb cluster as plain key presses (not hold-taps): left thumb = `GUI`, `SPACE`, `CTRL`, `ALT`; right thumb = `SPACE`, `ENTER`. The two remaining thumb keys hold into the Corne-nav / Corne-mouse layers below.
 
-Configured with `tap-preferred` flavor, `tapping-term-ms = 200`, `require-prior-idle-ms = 40` — feels natural at typing speed.
+Layer-tap keys (`&lt`) are configured with `tap-preferred` flavor, `tapping-term-ms = 200`, `require-prior-idle-ms = 40`.
+
+> Note: the keymap still declares an `&mt` (mod-tap) behavior config block at the top of the file, but no binding uses it anymore — it's dead configuration left over from an earlier layout revision.
 
 ---
 
@@ -155,6 +156,7 @@ Configured with `tap-preferred` flavor, `tapping-term-ms = 200`, `require-prior-
 | `U` + `I` | `-` | |
 | `I` + `O` | `=` | |
 | `O` + `P` | `]` | |
+| `` ` `` + `BKSP` | ZMK Studio unlock | Lets ZMK Studio write keymap changes over USB |
 
 ---
 
@@ -163,12 +165,12 @@ Configured with `tap-preferred` flavor, `tapping-term-ms = 200`, `require-prior-
 | # | Name | How to activate | Description |
 |---|------|----------------|-------------|
 | 0 | QWERTY | — | Base layer |
-| 1 | Snipe | Hold `,` or `SPACE` | Trackball precision mode |
-| 2 | Scroll | Hold `V`, `.`, or `↑` | Trackball -> scroll wheel + arrow keys |
-| 3 | F-keys | Hold `↓` (right thumb) | F1-F12, mouse buttons |
-| 4 | Bluetooth | Hold `B` | BT channel management |
-| 5 | Windows | Hold `←` (right thumb) | App-specific shortcuts (Ctrl+Alt+key) |
-| 6 | **Caret** | Hold `DEL` or `←` (left thumb) | **Trackball moves text cursor** |
+| 1 | Snipe | Hold `F` / `J` / `,` | Trackball precision mode; F-keys and bracket pairs on top rows |
+| 2 | Scroll | Hold `D` / `K` / `.` | Trackball → scroll wheel + arrow keys |
+| 3 | Bluetooth | Hold `B` | BT channel management |
+| 4 | **Caret** | Hold `S` / `L` | **Trackball moves text cursor**; top row doubles as media/brightness keys |
+| 5 | Corne-nav | Hold left thumb, 3rd key (`MO(5)`) | HJKL → arrow keys (vim-style navigation) |
+| 6 | Corne-mouse | Hold right thumb, 1st key (`MO(6)`) | HJKL → mouse movement, with click/scroll on the rows above and below |
 
 ---
 
@@ -179,35 +181,28 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 | Mode | Activate | Behavior |
 |------|----------|----------|
 | **Normal** | default | Mouse cursor with plateau acceleration (~1100 effective CPI, up to 4x at high speed) |
-| **Snipe** | Hold `,` or `SPACE` | Low-speed precision (~250 CPI) for exact cursor placement |
-| **Scroll** | Hold `V`, `.`, or `↑` | Ball controls scroll wheel; layer also has arrow keys |
-| **Caret** | Hold `DEL` or `←` | **Ball moves the text cursor (arrow keys)** |
+| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (~250 CPI) for exact cursor placement |
+| **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
+| **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
 
 ---
 
-### F-keys Layer (hold `↓`)
+### Snipe Layer (hold `F`, `J`, or `,`)
 
 ```
 ┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
 │ F1 │ F2 │ F3 │ F4 │ F5 │ F6 │  │ F7 │ F8 │ F9 │F10 │F11 │F12 │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │    │    │    │    │    │  │    │    │    │    │    │    │
+│    │ <  │ {  │ [  │ (  │TAB │  │⌘⌫  │ )  │ ]  │ }  │ >  │ ]  │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │    │    │    │    │    │  │RClk│LClk│    │    │    │    │
+│    │    │    │    │    │    │  │RClk│LClk│    │    │    │ \  │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │    │    │    │    │    │  │    │    │    │    │    │    │
 └────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
-                                   RClk LClk  (thumbs)
+                              thumbs: — — —  |  RClk LClk
 ```
 
-### Bluetooth Layer (hold `B`)
-
-| Key combo | Action |
-|-----------|--------|
-| `B` + `1`-`5` | Switch to BT channel 1-5 |
-| `B` + `Z` | Clear ALL pairings |
-| `B` + `C` | Clear current channel pairing |
-| `B` + `N` | Next BT channel |
-
-### Scroll Layer (hold `V`, `.`, or `↑`)
+### Scroll Layer (hold `D`, `K`, or `.`)
 
 ```
 ┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
@@ -218,17 +213,58 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 │      │      │      │      │      │      │  │  ←   │  ↓   │  ↑   │  →   │      │  \   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
 │      │      │      │      │      │      │  │ End  │ PgDn │SCRL↓ │      │      │      │
+└──────┴──────┴──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┴──────┴──────┴──────┘
+                      │  ↑   │  →   │      │  │      │
+                      └──────┼──────┼──────┤  ├──────┘
+                             │  ←   │  ↓   │  │
+                             └──────┴──────┘  └──────┘
+```
+
+### Bluetooth Layer (hold `B`)
+
+| Key combo | Action |
+|-----------|--------|
+| `B` + `1`-`5` | Switch to BT channel 1-5 |
+| `B` + `A` | Clear ALL pairings |
+| `B` + `C` | Clear current channel pairing |
+| `B` + `N` | Next BT channel |
+
+### Caret Layer (hold `S` or `L`)
+
+Top row doubles as media/brightness controls while the trackball drives the text cursor; every other key stays transparent (the keyboard types normally):
+
+```
+┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
+│ Bri- │ Bri+ │⇧Home │Search│ Mute │ Vol- │  │ Vol+ │ Prev │ Play │ Next │      │      │
 └──────┴──────┴──────┴──────┴──────┴──────┘  └──────┴──────┴──────┴──────┴──────┴──────┘
 ```
 
-### Snipe Layer (hold `,` or `SPACE`)
+See [Caret Mode](#caret-mode--trackball-as-text-cursor) below for how the trackball itself behaves on this layer.
 
-Trackball slows to ~250 CPI for precise cursor placement. Layer also provides media keys and bracket pairs on the left half:
+### Corne-nav Layer (hold left thumb, 3rd key)
+
+HJKL become arrow keys, vim-style — lets you navigate without reaching for the trackball:
 
 ```
-Left half top row:  Bri- | Bri+ | App switch | Search | Mute | Vol-
-Left half row 2:    <    |  {   |    [       |   (    |  )   | Tab
-Left half row 3:    (all transparent)
+┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
+│      │      │      │      │      │      │  │  ←   │  ↓   │  ↑   │  →   │      │      │
+└──────┴──────┴──────┴──────┴──────┴──────┘  └──────┴──────┴──────┴──────┴──────┴──────┘
+                                                          thumbs: — — —  |  ⌥Space —
+```
+
+### Corne-mouse Layer (hold right thumb, 1st key)
+
+Mouse emulation without the trackball — HJKL move the cursor, with clicks and scroll on the rows above/below:
+
+```
+┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
+│      │      │      │      │      │      │  │ Home │LClk  │SCRL↑ │PgUp  │SCRL←│      │
+├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
+│      │      │      │      │      │      │  │  ←   │  ↓   │  ↑   │  →   │      │      │
+├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
+│      │      │      │      │      │      │  │ End  │RClk  │SCRL↓ │PgDn  │SCRL→│      │
+└──────┴──────┴──────┴──────┴──────┴──────┘  └──────┴──────┴──────┴──────┴──────┴──────┘
+                              thumbs: — ⌘Space —  |  — —
 ```
 
 ---
