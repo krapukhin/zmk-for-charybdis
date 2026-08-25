@@ -12,9 +12,19 @@ Plateau-style pointer acceleration for the trackball: slow movements stay precis
 
 ```
 speed <= low   ->  multiplier = 1.0x  (no acceleration)
-low < speed < high ->  linear interpolation from 1.0x to max
+low < speed < high ->  ramp from 1.0x to max, shape selectable
 speed >= high  ->  multiplier = max   (plateau)
 ```
+
+The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothstep:
+
+| speed, counts/ms | 5 | 7 | 10 | 13 | 16 | 20 |
+|---|---|---|---|---|---|---|
+| linear | 1.35 | 1.71 | 2.24 | 2.76 | 3.29 | 4.00 |
+| **quadratic** | **1.04** | **1.17** | **1.51** | **2.04** | **2.75** | **4.00** |
+| smoothstep | 1.11 | 1.42 | 2.11 | 2.89 | 3.58 | 4.00 |
+
+Quadratic keeps the multiplier near 1.0 well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
 Sub-pixel accumulation prevents precision loss on small deltas, and speed is calculated as counts/ms (delta / time between polls) for stable behavior regardless of polling rate.
 

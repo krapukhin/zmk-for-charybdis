@@ -616,6 +616,15 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
         if (t > 1.0f) {
             t = 1.0f;
         }
+        /* Форма разгона между LOW и HIGH. Все варианты дают 1.0 на LOW
+         * и max_m на HIGH, отличается только середина.
+         * Выбирается через CONFIG_PMW3610_ACCEL_CURVE_* (Kconfig).
+         */
+#if defined(CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC)
+        t = t * t;
+#elif defined(CONFIG_PMW3610_ACCEL_CURVE_SMOOTHSTEP)
+        t = t * t * (3.0f - 2.0f * t);
+#endif /* LINEAR — t без изменений */
         mult = 1.0f + t * (max_m - 1.0f);
     }
 

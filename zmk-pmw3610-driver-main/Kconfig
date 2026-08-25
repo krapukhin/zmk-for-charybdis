@@ -196,6 +196,37 @@ config PMW3610_ACCEL_MAX_MULT
     Maximum multiplier applied at high speed.
     Example: 400 means 4.0x.
 
+choice
+  prompt "Pointer acceleration curve"
+  default PMW3610_ACCEL_CURVE_QUADRATIC
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Shape of the ramp between ACCEL_LOW_SPEED and ACCEL_HIGH_SPEED.
+    All three reach the same 1.0x at LOW and ACCEL_MAX_MULT at HIGH;
+    they differ in what happens in between.
+
+config PMW3610_ACCEL_CURVE_LINEAR
+  bool "Linear"
+  help
+    mult = 1 + t * (max - 1). Constant ramp. Simple, but the multiplier
+    starts and stops growing abruptly at the two thresholds.
+
+config PMW3610_ACCEL_CURVE_QUADRATIC
+  bool "Quadratic"
+  help
+    mult = 1 + t^2 * (max - 1). Keeps the multiplier near 1.0 well past
+    LOW, so slow and medium movements stay honest, then ramps hard toward
+    HIGH. Smooth at LOW, abrupt at HIGH. Best for precise pointing.
+
+config PMW3610_ACCEL_CURVE_SMOOTHSTEP
+  bool "Smoothstep (S-curve)"
+  help
+    mult = 1 + t^2 * (3 - 2t) * (max - 1). Mid-range close to linear but
+    smooth at both thresholds — no point where acceleration visibly kicks
+    in or hits the ceiling.
+
+endchoice
+
 config PMW3610_AUTOMOUSE_TIMEOUT_MS
   int "Amount of milliseconds the mouse layer will be active after using the trackball"
   default 400

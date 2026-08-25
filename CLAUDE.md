@@ -63,6 +63,8 @@ Key locations:
 - `zmk-pmw3610-driver-main/src/pixart.h` — `accel_remainder_x/y`, `last_move_time` in `struct pixart_data`
 - `zmk-pmw3610-driver-main/src/pmw3610.c` — `apply_acceleration()` function, called before HID report in `pmw3610_report_data()`
 
+The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give 1.0x at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — multiplier at 5/10/16 counts/ms is 1.04/1.51/2.75 versus linear's 1.35/2.24/3.29. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
+
 Parameters (all x100 because Kconfig doesn't support float):
 - `ACCEL_LOW_SPEED` (300 = 3.0 counts/ms) — below this, multiplier = 1.0
 - `ACCEL_HIGH_SPEED` (2000 = 20.0 counts/ms) — above this, multiplier = max
