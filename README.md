@@ -223,8 +223,8 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with plateau acceleration (~1100 effective CPI, up to 4x at high speed); raises the auto mouse layer |
-| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (~250 CPI) for exact cursor placement |
+| **Normal** | default | Mouse cursor with plateau acceleration (1200 CPI, up to 4x at high speed); raises the auto mouse layer |
+| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI) for exact cursor placement |
 | **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
 | **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
 
@@ -359,9 +359,9 @@ To enter bootloader: double-tap the reset button. The controller appears as a US
 Edit [`config/boards/shields/charybdis/charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
 
 ```conf
-CONFIG_PMW3610_CPI=2200            # Raw sensor CPI (200-3200)
-CONFIG_PMW3610_CPI_DIVIDOR=2       # Effective CPI = 2200/2 = 1100
-CONFIG_PMW3610_SNIPE_CPI=250       # Snipe mode CPI
+CONFIG_PMW3610_CPI=1200            # Raw sensor CPI (200-3200, quantised to steps of 200)
+CONFIG_PMW3610_CPI_DIVIDOR=1       # Keep at 1 — see the warning below
+CONFIG_PMW3610_SNIPE_CPI=200       # Snipe mode CPI (200 = range minimum)
 CONFIG_PMW3610_SCROLL_TICK=70      # Scroll sensitivity (higher = slower)
 CONFIG_PMW3610_CARET_TICK=20       # Caret mode sensitivity (lower = more responsive)
 ```
@@ -467,7 +467,13 @@ Do **not** add it to `config/west.yml`.
 
 ### CPI tuning notes
 
-Effective cursor speed = `CPI / CPI_DIVIDOR`. Multiple combinations can yield the same effective speed but with different motion characteristics (smoothness vs. noise):
+Effective cursor speed = `CPI / CPI_DIVIDOR`.
+
+**Prefer changing `CPI` and leaving `CPI_DIVIDOR` at 1.** The divisor is an integer division on the raw delta, applied *before* the acceleration step and its sub-pixel remainder accumulator — so the fraction is thrown away instead of carried over. With `CPI_DIVIDOR=2`, a slow roll that produces `raw=1` per poll becomes `1/2 = 0`: roughly half the motion is lost at low speed and almost none at high speed, so effective sensitivity *falls* the slower you move. Letting the sensor do the scaling avoids this entirely.
+
+Note that CPI is quantised: the driver writes `cpi / 200` to the sensor, so only multiples of 200 are actually reachable. A non-multiple is silently rounded down — `SNIPE_CPI=250` ran at 200, which is why it is now written as 200 outright.
+
+The combinations below yield the same nominal speed but differ in motion character (smoothness vs. noise) — and, per the warning above, in how much slow-speed detail survives:
 
 ```
 3200/8 = 400  — more filtering, smoother but less responsive

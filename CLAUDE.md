@@ -144,11 +144,13 @@ Row 2 (home row) is entirely `&lt` (layer-tap) into trackball modes — there ar
 
 ### Trackball CPI Settings
 
-Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200.
+Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sensor register is `cpi / 200`, so **CPI is quantised to multiples of 200** — a value like 1100 silently becomes 1000.
+
+**Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=2200`, `CPI_DIVIDOR=2` → ~1100 effective (with acceleration up to 4x at high speed)
-- Snipe: `SNIPE_CPI=250` (low speed for precision, no acceleration)
+- Normal: `CPI=1200`, `CPI_DIVIDOR=1` → 1200 effective (with acceleration up to 4x at high speed)
+- Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
 - Scroll tick: `70`, Caret tick: `20`
 - `ORIENTATION_90=y`, `INVERT_X=y`
 
