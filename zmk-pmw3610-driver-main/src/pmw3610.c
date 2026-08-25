@@ -588,16 +588,23 @@ static enum pixart_input_mode get_input_mode_for_current_layer(const struct devi
 #include <math.h>
 
 static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y) {
-    int64_t now = k_uptime_get();
-    int64_t dt = now - data->last_move_time;
-    data->last_move_time = now;
+    /* Меряем в тиках системного таймера, а не в целых миллисекундах.
+     * Опрос идёт раз в ~8 мс, поэтому миллисекундный квант давал ошибку
+     * оценки скорости до ±12% (dt скакал 7/8/9), и множитель ускорения
+     * дрожал от опроса к опросу на равномерном движении. Тик на nRF52840
+     * это ~30 мкс, ошибка падает до долей процента.
+     */
+    int64_t now = k_uptime_ticks();
+    int64_t dt_us = k_ticks_to_us_floor64(now - data->last_move_ticks);
+    data->last_move_ticks = now;
 
-    if (dt <= 0 || dt > 100) {
-        dt = 8; // fallback ~125Hz
+    /* Первый отсчёт или пауза в движении — считаем как один период опроса. */
+    if (dt_us <= 0 || dt_us > 100000) {
+        dt_us = 8000; // fallback ~125Hz
     }
 
     // speed in counts/ms
-    float speed = sqrtf((float)(*x * *x + *y * *y)) / (float)dt;
+    float speed = sqrtf((float)(*x * *x + *y * *y)) * 1000.0f / (float)dt_us;
 
     float low = CONFIG_PMW3610_ACCEL_LOW_SPEED / 100.0f;
     float high = CONFIG_PMW3610_ACCEL_HIGH_SPEED / 100.0f;

@@ -392,15 +392,17 @@ Left half has 29 LEDs, right half has 27 LEDs (set in the respective overlays).
 
 ### Debug Logging
 
-USB serial logging is currently **enabled** in `charybdis_right.conf`. Disable for production to save power and reduce latency:
+USB serial logging is **disabled** by default — the block sits commented out at the bottom of `charybdis_right.conf`. Uncomment it when you need to watch what the sensor is doing:
 
 ```conf
-# CONFIG_ZMK_USB_LOGGING=y   <- comment out these lines
-# CONFIG_LOG=y
-# CONFIG_ZMK_LOG_LEVEL_DBG=y
-# CONFIG_SENSOR_LOG_LEVEL_DBG=y
-# CONFIG_INPUT_LOG_LEVEL_DBG=y
+CONFIG_ZMK_USB_LOGGING=y
+CONFIG_LOG=y
+CONFIG_ZMK_LOG_LEVEL_DBG=y
+CONFIG_SENSOR_LOG_LEVEL_DBG=y
+CONFIG_INPUT_LOG_LEVEL_DBG=y
 ```
+
+Worth keeping off for daily use: every `LOG_DBG` in the driver lives inside `pmw3610_report_data()`, which runs 125 times a second while the ball is moving. With `ZMK_LOG_LEVEL_DBG` off those calls are removed at compile time rather than checked at runtime.
 
 ---
 

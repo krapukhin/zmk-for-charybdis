@@ -70,6 +70,8 @@ Parameters (all x100 because Kconfig doesn't support float):
 
 Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision loss on small deltas. Speed is delta/dt for stability across variable polling rates.
 
+`dt` is measured in **system timer ticks** (`k_uptime_ticks()`, ~30 µs on nRF52840), not whole milliseconds. Polls land ~8 ms apart, so millisecond resolution rounded `dt` to 7/8/9 and the multiplier jittered on perfectly steady movement — worse the faster you moved, because the ramp is steeper there. Switching to ticks cut the multiplier error 4×at low speed and ~13× at high speed. The field storing the timestamp is `last_move_ticks` — the name carries the unit deliberately; do not feed it milliseconds.
+
 ### Caret Mode — Trackball as Text Cursor
 
 Caret mode converts trackball movement into arrow key presses — roll to move the text cursor in any editor/terminal. Implemented in the vendored PMW3610 driver (`pmw3610.c`, inside `pmw3610_report_data()` CURSOR branch).
@@ -182,5 +184,5 @@ Current settings in `charybdis_right.conf`:
 - **Disable acceleration**: set `CONFIG_PMW3610_ACCEL_ENABLED=n` in `charybdis_right.conf`
 - **Add a combo**: add a `combo_*` block in the `combos` section of `charybdis.keymap`
 - **Add/modify a layer**: add a new layer entry in `keymap {}` in `charybdis.keymap` and update the layer index references in the overlay if it's a trackball mode layer
-- **Toggle debug logging**: `CONFIG_ZMK_USB_LOGGING` and related log level configs in `charybdis_right.conf` (currently enabled; disable for production builds)
+- **Toggle debug logging**: `CONFIG_ZMK_USB_LOGGING` and the log-level configs at the bottom of `charybdis_right.conf` — commented out by default. All three `LOG_DBG` calls in the driver sit inside `pmw3610_report_data()`, i.e. the 125 Hz hot path, so leaving DBG on costs a string format per poll while the ball moves. With `ZMK_LOG_LEVEL_DBG` off they are compiled out entirely. Re-enable only while debugging.
 - **Enable RGB underglow**: uncomment the `CONFIG_ZMK_RGB_UNDERGLOW` block in `config/charybdis.conf`

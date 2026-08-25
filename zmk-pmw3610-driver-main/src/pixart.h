@@ -54,7 +54,7 @@ struct pixart_data {
 #ifdef CONFIG_PMW3610_ACCEL_ENABLED
     int32_t accel_remainder_x; // fixed-point Q16.16
     int32_t accel_remainder_y;
-    int64_t last_move_time;
+    int64_t last_move_ticks; // тики системного таймера, НЕ миллисекунды
 #endif
 };
 
