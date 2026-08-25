@@ -126,6 +126,13 @@ extern "C" {
  */
 #define PMW3610_SCROLL_MAX_TICKS_PER_POLL 32
 
+/* То же для каретки, но лимит жёстче: каждый "тик" здесь — это полноценные
+ * press+release события клавиши, они куда дороже репорта колеса.
+ * 4 за опрос при 125 Гц — это 500 символов в секунду, недостижимо для руки;
+ * ограничение существует только на случай абсурдного CARET_TICK.
+ */
+#define PMW3610_CARET_MAX_TICKS_PER_POLL 4
+
 #ifdef CONFIG_PMW3610_INVERT_SCROLL_X
 #define PMW3610_SCROLL_X_NEGATIVE 1
 #define PMW3610_SCROLL_X_POSITIVE -1

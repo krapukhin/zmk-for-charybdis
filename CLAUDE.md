@@ -76,7 +76,10 @@ Caret mode converts trackball movement into arrow key presses — roll to move t
 
 - Activated by layer 5 (`caret_layer`) — declared in overlay: `caret-layers = <5>;`
 - Sensitivity: `CONFIG_PMW3610_CARET_TICK=20` in `charybdis_right.conf` (lower = more responsive)
+- Runs at `SNIPE_CPI` (200), not the normal cursor CPI
 - Accumulates delta X/Y until threshold, then sends arrow key press/release via `raise_zmk_keycode_state_changed_from_encoded()`
+
+The accumulator works exactly like the scroll one: **the threshold is subtracted and the remainder carried**, and one poll can emit several arrows. It used to zero both accumulators and emit at most one arrow per poll, losing 7–13% of travel at normal speed and ~36% on a fast roll. Axis locking is intentional here too — the firing axis zeroes the other one. `PMW3610_CARET_MAX_TICKS_PER_POLL` is 4 rather than the scroll cap of 32, because each tick is a real key press/release pair and far more expensive than a wheel report. See the scroll-mode section for the full rationale; the two branches should be kept in sync if either is ever touched.
 
 ### Auto Mouse Layer — layer index is load-bearing
 

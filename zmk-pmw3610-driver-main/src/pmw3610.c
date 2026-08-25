@@ -756,23 +756,38 @@ static int pmw3610_report_data(const struct device *dev) {
             data->caret_delta_y += y;
             LOG_DBG("CURSOR mode: x=%d, y=%d, delta_x=%d, delta_y=%d, tick=%d",
                     x, y, data->caret_delta_x, data->caret_delta_y, CONFIG_PMW3610_CARET_TICK);
-            if (abs(data->caret_delta_y) > CONFIG_PMW3610_CARET_TICK) {
-                uint32_t keycode = data->caret_delta_y > 0 ? DOWN_ARROW : UP_ARROW;
-                LOG_DBG("Sending arrow key: %s (keycode=0x%08x)",
-                        data->caret_delta_y > 0 ? "DOWN" : "UP", keycode);
-                int64_t timestamp = k_uptime_get();
-                raise_zmk_keycode_state_changed_from_encoded(keycode, true, timestamp);
-                raise_zmk_keycode_state_changed_from_encoded(keycode, false, timestamp);
+            /* Та же логика, что в SCROLL: порог вычитается, остаток переносится
+             * в следующий опрос, за один опрос уходит столько стрелок, сколько
+             * набралось. Раньше аккумулятор обнулялся, и каретка отставала от
+             * проката шара тем сильнее, чем быстрее ведёшь (до трети на быстрых
+             * движениях). Фиксация оси сохранена: сработавшая ось гасит вторую.
+             */
+            int32_t ticks_y = data->caret_delta_y / CONFIG_PMW3610_CARET_TICK;
+            int32_t ticks_x = data->caret_delta_x / CONFIG_PMW3610_CARET_TICK;
+
+            if (ticks_y != 0) {
+                int32_t n = MIN(abs(ticks_y), PMW3610_CARET_MAX_TICKS_PER_POLL);
+                uint32_t keycode = ticks_y > 0 ? DOWN_ARROW : UP_ARROW;
+                LOG_DBG("Sending arrow key: %s x%d (keycode=0x%08x)",
+                        ticks_y > 0 ? "DOWN" : "UP", n, keycode);
+                data->caret_delta_y -= (ticks_y > 0 ? n : -n) * CONFIG_PMW3610_CARET_TICK;
+                for (int32_t i = 0; i < n; i++) {
+                    int64_t timestamp = k_uptime_get();
+                    raise_zmk_keycode_state_changed_from_encoded(keycode, true, timestamp);
+                    raise_zmk_keycode_state_changed_from_encoded(keycode, false, timestamp);
+                }
                 data->caret_delta_x = 0;
-                data->caret_delta_y = 0;
-            } else if (abs(data->caret_delta_x) > CONFIG_PMW3610_CARET_TICK) {
-                uint32_t keycode = data->caret_delta_x > 0 ? RIGHT_ARROW : LEFT_ARROW;
-                LOG_DBG("Sending arrow key: %s (keycode=0x%08x)",
-                        data->caret_delta_x > 0 ? "RIGHT" : "LEFT", keycode);
-                int64_t timestamp = k_uptime_get();
-                raise_zmk_keycode_state_changed_from_encoded(keycode, true, timestamp);
-                raise_zmk_keycode_state_changed_from_encoded(keycode, false, timestamp);
-                data->caret_delta_x = 0;
+            } else if (ticks_x != 0) {
+                int32_t n = MIN(abs(ticks_x), PMW3610_CARET_MAX_TICKS_PER_POLL);
+                uint32_t keycode = ticks_x > 0 ? RIGHT_ARROW : LEFT_ARROW;
+                LOG_DBG("Sending arrow key: %s x%d (keycode=0x%08x)",
+                        ticks_x > 0 ? "RIGHT" : "LEFT", n, keycode);
+                data->caret_delta_x -= (ticks_x > 0 ? n : -n) * CONFIG_PMW3610_CARET_TICK;
+                for (int32_t i = 0; i < n; i++) {
+                    int64_t timestamp = k_uptime_get();
+                    raise_zmk_keycode_state_changed_from_encoded(keycode, true, timestamp);
+                    raise_zmk_keycode_state_changed_from_encoded(keycode, false, timestamp);
+                }
                 data->caret_delta_y = 0;
             }
         } else if (input_mode == SCROLL) {
