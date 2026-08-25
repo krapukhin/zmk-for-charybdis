@@ -119,6 +119,13 @@ extern "C" {
 
 #define PMW3610_PERFORMANCE_VALUE (PMW3610_FORCE_MODE_VALUE | PMW3610_POLLING_RATE_VALUE)
 
+/* Предохранитель: сколько тиков колеса максимум отправляем за один опрос.
+ * Дельта сенсора 12-битная, поэтому при разумном SCROLL_TICK столько никогда
+ * не набирается — ограничение защищает от абсурдных значений SCROLL_TICK.
+ * Неотправленное остаётся в аккумуляторе и уйдёт следующим опросом.
+ */
+#define PMW3610_SCROLL_MAX_TICKS_PER_POLL 32
+
 #ifdef CONFIG_PMW3610_INVERT_SCROLL_X
 #define PMW3610_SCROLL_X_NEGATIVE 1
 #define PMW3610_SCROLL_X_POSITIVE -1

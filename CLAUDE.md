@@ -96,6 +96,16 @@ Trackball motion automatically raises layer 1 (`mouse_layer`, clicks on H/J/K), 
 
 Tuning: raise the 800 ms timeout for more clicking comfort, lower it if `H`/`J`/`K` stay clicks too long when you resume typing. `require-prior-idle-ms` guards the other direction — brushing the ball mid-sentence.
 
+### Scroll Mode — accumulator carries its remainder
+
+Scroll mode has no acceleration (`apply_acceleration()` is MOVE-only) and no CPI divisor. Movement accumulates into `scroll_delta_x/y`; every `CONFIG_PMW3610_SCROLL_TICK` (70) counts emits one wheel tick.
+
+The accumulator **subtracts the threshold and carries the remainder**, and emits as many ticks as accumulated in one poll. It used to zero the accumulator outright and emit at most one tick per poll, which lost everything above the threshold — the faster you spun the ball, the more was dropped (measured: ~8% lost at moderate speed, ~42% on a flick, ~77% on a hard flick). That is an *inverse* acceleration, the same class of bug as the old `CPI_DIVIDOR=2` truncation.
+
+**Axis locking is deliberate:** the axis that fires zeroes the *other* accumulator, so vertical scrolling suppresses horizontal drift. Do not "fix" this — on a trackball it is very hard to roll straight up without sideways drift. Only the firing axis carries its remainder.
+
+`PMW3610_SCROLL_MAX_TICKS_PER_POLL` (32, in `pmw3610.h`) caps the burst per poll; anything beyond stays in the accumulator for the next poll, so no motion is lost. `PMW3610_SCROLL_TICK` has a Kconfig `range 1 1000` because the accumulator divides by it.
+
 ### ZMK Studio
 
 The right shield build includes `snippet: studio-rpc-usb-uart` and `-DCONFIG_ZMK_STUDIO=y` in `build.yaml` (left half does not). This enables live keymap editing via ZMK Studio over USB. A dedicated combo (`combo_studio_unlock` in `charybdis.keymap`, GRAVE + BACKSPACE) calls `&studio_unlock` to allow the Studio connection to write to the keyboard — without it, Studio can view but not modify the keymap.
@@ -151,7 +161,7 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 Current settings in `charybdis_right.conf`:
 - Normal: `CPI=1200`, `CPI_DIVIDOR=1` → 1200 effective (with acceleration up to 4x at high speed)
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
-- Scroll tick: `70`, Caret tick: `20`
+- Scroll tick: `70` (~1.5 mm of ball travel per wheel tick at 1200 CPI), Caret tick: `20`
 - `ORIENTATION_90=y`, `INVERT_X=y`
 
 ### Bluetooth

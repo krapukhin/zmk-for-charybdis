@@ -52,8 +52,10 @@ config PMW3610_SNIPE_CPI_DIVIDOR
 config PMW3610_SCROLL_TICK
     int "PMW3610's required ticks to produce a scroll report"
     default 20
+    range 1 1000
     help
-      Scroll tick value.
+      Scroll tick value. Higher = slower scrolling.
+      Must be >= 1: the scroll accumulator divides by this value.
 
 config PMW3610_CARET_TICK
     int "PMW3610's required ticks to produce an arrow key press in caret mode"

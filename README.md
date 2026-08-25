@@ -362,7 +362,7 @@ Edit [`config/boards/shields/charybdis/charybdis_right.conf`](config/boards/shie
 CONFIG_PMW3610_CPI=1200            # Raw sensor CPI (200-3200, quantised to steps of 200)
 CONFIG_PMW3610_CPI_DIVIDOR=1       # Keep at 1 — see the warning below
 CONFIG_PMW3610_SNIPE_CPI=200       # Snipe mode CPI (200 = range minimum)
-CONFIG_PMW3610_SCROLL_TICK=70      # Scroll sensitivity (higher = slower)
+CONFIG_PMW3610_SCROLL_TICK=70      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
 CONFIG_PMW3610_CARET_TICK=20       # Caret mode sensitivity (lower = more responsive)
 ```
 

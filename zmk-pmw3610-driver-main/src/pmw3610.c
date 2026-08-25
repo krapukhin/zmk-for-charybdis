@@ -778,17 +778,38 @@ static int pmw3610_report_data(const struct device *dev) {
         } else if (input_mode == SCROLL) {
             data->scroll_delta_x += x;
             data->scroll_delta_y += y;
-            if (abs(data->scroll_delta_y) > CONFIG_PMW3610_SCROLL_TICK) {
-                input_report_rel(dev, INPUT_REL_WHEEL,
-                                 data->scroll_delta_y > 0 ? PMW3610_SCROLL_Y_NEGATIVE : PMW3610_SCROLL_Y_POSITIVE,
-                                 true, K_FOREVER);
+
+            /* Сколько целых тиков набралось на каждой оси.
+             *
+             * Раньше при срабатывании аккумулятор просто обнулялся, из-за чего
+             * всё, что накопилось сверх порога, терялось — и терялось тем сильнее,
+             * чем быстрее крутишь шар (на резком движении до половины проката).
+             * Получалось "обратное ускорение". Теперь порог вычитается, остаток
+             * переносится в следующий опрос, и прокрутка пропорциональна прокату
+             * на любой скорости.
+             *
+             * Фиксация оси сохранена намеренно: сработавшая ось обнуляет вторую,
+             * иначе на трекболе не прокрутить строго вертикально без дрейфа вбок.
+             */
+            int32_t ticks_y = data->scroll_delta_y / CONFIG_PMW3610_SCROLL_TICK;
+            int32_t ticks_x = data->scroll_delta_x / CONFIG_PMW3610_SCROLL_TICK;
+
+            if (ticks_y != 0) {
+                int32_t n = MIN(abs(ticks_y), PMW3610_SCROLL_MAX_TICKS_PER_POLL);
+                int16_t dir = ticks_y > 0 ? PMW3610_SCROLL_Y_NEGATIVE : PMW3610_SCROLL_Y_POSITIVE;
+                /* вычитаем только то, что реально отправили */
+                data->scroll_delta_y -= (ticks_y > 0 ? n : -n) * CONFIG_PMW3610_SCROLL_TICK;
+                for (int32_t i = 0; i < n; i++) {
+                    input_report_rel(dev, INPUT_REL_WHEEL, dir, true, K_FOREVER);
+                }
                 data->scroll_delta_x = 0;
-                data->scroll_delta_y = 0;
-            } else if (abs(data->scroll_delta_x) > CONFIG_PMW3610_SCROLL_TICK) {
-                input_report_rel(dev, INPUT_REL_HWHEEL,
-                                 data->scroll_delta_x > 0 ? PMW3610_SCROLL_X_NEGATIVE : PMW3610_SCROLL_X_POSITIVE,
-                                 true, K_FOREVER);
-                data->scroll_delta_x = 0;
+            } else if (ticks_x != 0) {
+                int32_t n = MIN(abs(ticks_x), PMW3610_SCROLL_MAX_TICKS_PER_POLL);
+                int16_t dir = ticks_x > 0 ? PMW3610_SCROLL_X_NEGATIVE : PMW3610_SCROLL_X_POSITIVE;
+                data->scroll_delta_x -= (ticks_x > 0 ? n : -n) * CONFIG_PMW3610_SCROLL_TICK;
+                for (int32_t i = 0; i < n; i++) {
+                    input_report_rel(dev, INPUT_REL_HWHEEL, dir, true, K_FOREVER);
+                }
                 data->scroll_delta_y = 0;
             }
         } else {
