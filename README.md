@@ -18,11 +18,11 @@ speed >= high  ->  multiplier = max   (plateau)
 
 The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothstep:
 
-| speed, counts/ms | 5 | 7 | 10 | 13 | 16 | 20 |
+| speed, counts/ms | 3 | 5 | 8 | 12 | 20 | 30 |
 |---|---|---|---|---|---|---|
-| linear | 1.35 | 1.71 | 2.24 | 2.76 | 3.29 | 4.00 |
-| **quadratic** | **1.04** | **1.17** | **1.51** | **2.04** | **2.75** | **4.00** |
-| smoothstep | 1.11 | 1.42 | 2.11 | 2.89 | 3.58 | 4.00 |
+| linear | 1.28 | 1.66 | 2.23 | 2.98 | 4.49 | 6.00 |
+| **quadratic** | 1.02 | 1.09 | 1.30 | 1.78 | 3.44 | 6.00 |
+| smoothstep | 1.05 | 1.24 | 1.75 | 2.73 | 4.91 | 6.00 |
 
 Quadratic keeps the multiplier near 1.0 well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
@@ -32,9 +32,9 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y
-CONFIG_PMW3610_ACCEL_LOW_SPEED=300     # 3.0 counts/ms — below this, no acceleration
-CONFIG_PMW3610_ACCEL_HIGH_SPEED=2000   # 20.0 counts/ms — above this, max acceleration
-CONFIG_PMW3610_ACCEL_MAX_MULT=400      # 4.0x max multiplier
+CONFIG_PMW3610_ACCEL_LOW_SPEED=150     # 1.5 counts/ms — below this, no acceleration
+CONFIG_PMW3610_ACCEL_HIGH_SPEED=2800   # 28.0 counts/ms — above this, max acceleration
+CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier
 ```
 
 (Values are x100 because Kconfig doesn't support floats.)
