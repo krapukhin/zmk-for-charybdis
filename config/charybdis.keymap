@@ -58,7 +58,7 @@
             bindings = <
 &kp GRAVE       &kp N1  &kp N2   &kp N3    &kp N4            &kp N5      &kp N6     &kp N7     &kp N8       &kp N9     &kp N0         &kp BACKSPACE
 &kp TAB         &kp Q   &kp W    &kp E     &kp R             &kp T       &kp Y      &kp U      &kp I        &kp O      &kp P          &kp LBKT
-&kp CAPSLOCK    &kp A   &lt 5 S  &lt 3 D   &lt 2 F           &kp G       &kp H      &lt 2 J    &lt 3 K      &lt 5 L    &kp SEMICOLON  &kp SQT
+&kp CAPSLOCK    &kp A   &lt 5 S  &lt 3 D   &lt 2 F           &kp G       &kp H      &kp J      &kp K        &kp L      &kp SEMICOLON  &kp SQT
 &kp LEFT_SHIFT  &kp Z   &kp X    &kp C     &kp V             &lt 4 B     &kp N      &kp M      &lt 2 COMMA  &lt 3 DOT  &kp FSLH       &kp RIGHT_SHIFT
                                  &kp LGUI  &kp SPACE         &mo 6       &mo 7      &kp SPACE
                                            &kp LEFT_CONTROL  &kp LALT    &kp ENTER
@@ -75,10 +75,10 @@
 
         mouse_layer {
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mkp MCLK  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans  &trans  &trans  &trans
                         &trans  &trans  &trans    &trans     &trans
                                 &trans  &trans    &trans
             >;
@@ -89,7 +89,7 @@
 &kp F1  &kp F2         &kp F3          &kp F4            &kp F5                &kp F6     &kp F7             &kp F8                 &kp F9             &kp F10          &kp F11           &kp F12
 &trans  &kp LESS_THAN  &kp LEFT_BRACE  &kp LEFT_BRACKET  &kp LEFT_PARENTHESIS  &kp TAB    &kp LG(BACKSPACE)  &kp RIGHT_PARENTHESIS  &kp RIGHT_BRACKET  &kp RIGHT_BRACE  &kp GREATER_THAN  &kp RIGHT_BRACKET
 &trans  &trans         &trans          &trans            &trans                &trans     &mkp RCLK          &mkp LCLK              &trans             &trans           &trans            &kp BACKSLASH
-&trans  &trans         &trans          &trans            &trans                &trans     &trans             &trans                 &trans             &trans           &trans            &trans
+&trans  &trans         &trans          &trans            &trans                &trans     &mkp MCLK          &trans                 &trans             &trans           &trans            &trans
                                        &trans            &trans                &trans     &mkp RCLK          &mkp LCLK
                                                          &trans                &trans     &trans
             >;
