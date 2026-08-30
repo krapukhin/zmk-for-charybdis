@@ -168,9 +168,10 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 **Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=1200`, `CPI_DIVIDOR=1` → 1200 effective (with acceleration up to 4x at high speed)
+- Normal: `CPI=1000`, `CPI_DIVIDOR=1` → 1000 effective, up to 6000 with acceleration
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
-- Scroll tick: `70` (~1.5 mm of ball travel per wheel tick at 1200 CPI), Caret tick: `20`
+- Scroll tick: `58` (~1.5 mm of ball travel per wheel tick at 1000 CPI), Caret tick: `20`
+- Scroll mode runs at `CONFIG_PMW3610_CPI`, **not** `SNIPE_CPI` — so changing the normal-mode CPI silently rescales scrolling too. Adjust `SCROLL_TICK` proportionally to keep the scroll feel unchanged. Caret mode uses `SNIPE_CPI` and is unaffected.
 - `ORIENTATION_90=y`, `INVERT_X=y`
 
 ### Bluetooth
@@ -179,6 +180,18 @@ Current settings in `charybdis_right.conf`:
 - `BT_CLR` clears current channel, `BT_CLR_ALL` clears all pairings
 - Deep sleep disabled: `CONFIG_ZMK_SLEEP=n`
 - TX power boosted: `CONFIG_BT_CTLR_TX_PWR_PLUS_8=y`
+
+Two non-obvious settings were needed to make BLE usable on Linux (Aug 2026, Intel AX-series adapter, BlueZ 5.72). Both were found by measurement, and neither is guessable from the symptom:
+
+**`CONFIG_BT_CTLR_PHY_2M=n`** (in `charybdis.conf`) — without it, pairing fails outright on Intel AX200/AX201. Documented ZMK workaround for that chipset family. Side effect: the link runs at 1M PHY, so packets take twice as long on air. Not a bottleneck for HID reports (11 bytes), but it is why `LE 2M PHY` is absent from the negotiated feature set. Worth revisiting only if BLE throughput ever becomes the limit.
+
+**`CONFIG_BT_PERIPHERAL_PREF_LATENCY=0`** (in `charybdis_right.conf`, right half only) — ZMK defaults this to 30, which lets the peripheral sleep through connection events. Correct for a keyboard, wrong for a trackball streaming 125 reports/s. Symptom was a cursor that felt like ~30 Hz over BLE while being perfectly smooth over USB.
+
+The diagnosis is worth remembering because the obvious suspects were wrong twice. `btmon` showed the connection interval was already fine (11.25 ms) and *no reports were being dropped* — 131/s arrived, matching the sensor rate. The problem was purely distribution: reports landed in bursts of 6–9 with gaps of exactly 5–6 × the connection interval, i.e. 19 bursts/s. Exact multiples of the interval mean the peripheral is skipping connection events — that fingerprint points at latency, not at bandwidth, interference, or the host's connection parameters.
+
+To re-measure: `sudo btmon -w /tmp/bt.log` while moving the ball, then `btmon -r /tmp/bt.log | grep -B1 "Handle Value Notification" | grep "ACL Data RX"` and look at the gaps between timestamps.
+
+Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, so it costs battery. If that becomes a problem, latency 2–3 is the compromise — shorter bursts rather than none.
 
 ## Common Edits
 
