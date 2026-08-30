@@ -58,10 +58,10 @@
             bindings = <
 &kp GRAVE       &kp N1   &kp N2   &kp N3     &kp N4   &kp N5          &kp N6                  &kp N7     &kp N8     &kp N9   &kp N0           &kp BACKSPACE
 &kp TAB         &kp Q    &kp W    &kp E      &kp R    &kp T           &kp Y                   &kp U      &kp I      &kp O    &kp P            &kp LBKT
-&kp CAPSLOCK    &lt 5 A  &lt 3 S  &lt 2 D    &lt 5 F  &kp G           &kp H                   &kp J      &lt 2 K    &lt 3 L  &lt 5 SEMICOLON  &kp SQT
+&kp CAPSLOCK    &lt 5 A  &lt 3 S  &lt 2 D    &lt 5 F  &kp G           &kp H                   &kp J      &lt 2 K    &lt 3 L  &lt 5 SEMICOLON  &mt RIGHT_ALT SQT
 &kp LEFT_SHIFT  &kp Z    &kp X    &kp C      &kp V    &lt 4 B         &kp N                   &kp M      &kp COMMA  &kp DOT  &kp FSLH         &kp RIGHT_SHIFT
                                   &kp SPACE  &mo 6    &kp LEFT_ALT    &mo 8                   &kp SPACE
-                                             &mo 7    &kp LEFT_GUI    &mt ENTER LEFT_CONTROL
+                                             &mo 7    &kp LEFT_GUI    &mt LEFT_CONTROL ENTER
             >;
         };
 
