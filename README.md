@@ -233,7 +233,7 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with acceleration (800 CPI, up to 6x on a fast roll); raises the auto mouse layer |
+| **Normal** | default | Mouse cursor with acceleration (600 CPI; the 6x ceiling is effectively out of reach at this CPI — see note below); raises the auto mouse layer |
 | **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI) for exact cursor placement |
 | **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
 | **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
@@ -369,10 +369,10 @@ To enter bootloader: double-tap the reset button. The controller appears as a US
 Edit [`config/boards/shields/charybdis/charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
 
 ```conf
-CONFIG_PMW3610_CPI=800             # Raw sensor CPI (200-3200, quantised to steps of 200)
+CONFIG_PMW3610_CPI=600             # Raw sensor CPI (200-3200, quantised to steps of 200)
 CONFIG_PMW3610_CPI_DIVIDOR=1       # Keep at 1 — see the warning below
 CONFIG_PMW3610_SNIPE_CPI=200       # Snipe mode CPI (200 = range minimum)
-CONFIG_PMW3610_SCROLL_TICK=46      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
+CONFIG_PMW3610_SCROLL_TICK=35      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
                                    # note: scroll uses CONFIG_PMW3610_CPI, so rescale this if you change it
 CONFIG_PMW3610_CARET_TICK=20       # Caret mode sensitivity (lower = more responsive)
 ```
