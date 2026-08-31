@@ -163,6 +163,10 @@ Row 2 (home row) is entirely `&lt` (layer-tap) into trackball modes — there ar
 
 ### Trackball CPI Settings
 
+**To slow the pointer below what CPI allows, use `&zip_xy_scaler`, never `CPI_DIVIDOR`.** The scaler sits on the input listener in `charybdis_right.overlay` and ships with `track-remainders`, so fractions carry over instead of being discarded. `CPI_DIVIDOR` divides integers inside the driver *before* the remainder accumulator and reintroduces the slow-speed stiction documented above. The scaler also runs after the driver, so the acceleration thresholds (counts/ms) keep firing at the same physical ball speeds — lowering CPI instead shifts the whole curve out of reach. It targets `REL_X`/`REL_Y` only: scroll and caret are unaffected.
+
+Also note `SNIPE_CPI` cannot go below 200 — that is the sensor's floor. Halving snipe is only possible via the scaler.
+
 The keyboard is used through a **DeskHop** USB KVM, which hands the host absolute coordinates. That bypasses the OS pointer-speed sliders on both macOS and Ubuntu, so `CONFIG_PMW3610_CPI` is the *only* place cursor speed can be adjusted — which is why it sits lower than the sensor's default.
 
 Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sensor register is `cpi / 200`, so **CPI is quantised to multiples of 200** — a value like 1100 silently becomes 1000.
@@ -170,7 +174,8 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 **Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=600`, `CPI_DIVIDOR=1` → 600 effective, up to 3600 with acceleration
+- Normal: `CPI=600`, `CPI_DIVIDOR=1`, then halved by `&zip_xy_scaler 1 2` → **300 effective**, up to 1800 with acceleration
+- Snipe: `SNIPE_CPI=200`, also halved by the scaler → **100 effective**
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
 - Scroll tick: `35` (~1.5 mm of ball travel per wheel tick at 600 CPI), Caret tick: `20`
 - **`ACCEL_LOW_SPEED`/`ACCEL_HIGH_SPEED` are in counts/ms, a sensor unit — so lowering CPI silently moves the acceleration curve in *physical* terms.** At 1200 CPI a 600 mm/s roll hit the 6x ceiling; at 600 CPI the same roll only reaches 2.1x, and the ceiling now needs ~1185 mm/s (11 ball revolutions/s), which is not reachable by hand. The thresholds have deliberately not been rescaled — the goal was a slower pointer overall. To restore the previous *feel* at a lower CPI, scale both thresholds by the same ratio as the CPI change.

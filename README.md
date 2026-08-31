@@ -233,8 +233,8 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with acceleration (600 CPI; the 6x ceiling is effectively out of reach at this CPI — see note below); raises the auto mouse layer |
-| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI) for exact cursor placement |
+| **Normal** | default | Mouse cursor with acceleration (600 CPI, halved to 300 effective by `&zip_xy_scaler`); raises the auto mouse layer |
+| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI, halved to 100 effective) for exact cursor placement |
 | **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
 | **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
 
