@@ -66,9 +66,9 @@ Key locations:
 The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give 1.0x at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — at 5/12/20 counts/ms it gives 1.09/1.78/3.44 versus linear's 1.66/2.98/4.49. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
 
 Parameters (all x100 because Kconfig doesn't support float):
-- `ACCEL_LOW_SPEED` (150 = 1.5 counts/ms) — below this, multiplier = 1.0
-- `ACCEL_HIGH_SPEED` (2800 = 28.0 counts/ms) — above this, multiplier = max
-- `ACCEL_MAX_MULT` (600 = 6.0x) — maximum multiplier at high speed
+- `ACCEL_LOW_SPEED` (75 = 0.75 counts/ms) — below this, multiplier = 1.0
+- `ACCEL_HIGH_SPEED` (1400 = 14.0 counts/ms) — above this, multiplier = max
+- `ACCEL_MAX_MULT` (1000 = 10.0x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
 
 The thresholds were widened deliberately (Aug 2026): acceleration starts on smaller movements and no longer caps out at 20 counts/ms, so a hard flick keeps gaining. Lowering LOW is cheap specifically because the curve is quadratic — `t²` is flat near the lower threshold, so precise pointing barely notices.
 
@@ -174,7 +174,7 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 **Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=600`, `CPI_DIVIDOR=1`, then halved by `&zip_xy_scaler 1 2` → **300 effective**, up to 1800 with acceleration
+- Normal: `CPI=600`, `CPI_DIVIDOR=1`, then halved by `&zip_xy_scaler 1 2` → **300 effective**, up to 3000 with acceleration
 - Snipe: `SNIPE_CPI=200`, also halved by the scaler → **100 effective**
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
 - Scroll tick: `35` (~1.5 mm of ball travel per wheel tick at 600 CPI), Caret tick: `20`
