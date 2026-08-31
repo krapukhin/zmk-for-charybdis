@@ -20,9 +20,9 @@ The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothste
 
 | speed, counts/ms | 3 | 5 | 8 | 12 | 20 | 30 |
 |---|---|---|---|---|---|---|
-| linear | 2.53 | 3.89 | 5.92 | 8.64 | 10.00 | 10.00 |
-| **quadratic** | 1.26 | 1.93 | 3.69 | 7.49 | 10.00 | 10.00 |
-| smoothstep | 1.69 | 3.18 | 6.13 | 9.45 | 10.00 | 10.00 |
+| linear | 1.28 | 1.66 | 2.23 | 2.98 | 4.49 | 6.00 |
+| **quadratic** | 1.02 | 1.09 | 1.30 | 1.78 | 3.44 | 6.00 |
+| smoothstep | 1.05 | 1.24 | 1.75 | 2.73 | 4.91 | 6.00 |
 
 Quadratic keeps the multiplier near 1.0 well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
@@ -32,9 +32,9 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y
-CONFIG_PMW3610_ACCEL_LOW_SPEED=75      # 0.75 counts/ms — below this, no acceleration
-CONFIG_PMW3610_ACCEL_HIGH_SPEED=1400   # 14.0 counts/ms — above this, max acceleration
-CONFIG_PMW3610_ACCEL_MAX_MULT=1000     # 10.0x max multiplier (do not exceed ~15x, see CLAUDE.md)
+CONFIG_PMW3610_ACCEL_LOW_SPEED=150     # 1.5 counts/ms — below this, no acceleration
+CONFIG_PMW3610_ACCEL_HIGH_SPEED=2800   # 28.0 counts/ms — above this, max acceleration
+CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier (do not exceed ~15x, see CLAUDE.md)
 ```
 
 (Values are x100 because Kconfig doesn't support floats.)
@@ -233,8 +233,8 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with acceleration (600 CPI, scaled to 257 effective by `&zip_xy_scaler 3 7`; up to ~2570 on a fast roll); raises the auto mouse layer |
-| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI, scaled to 86 effective) for exact cursor placement |
+| **Normal** | default | Mouse cursor with acceleration (1200 CPI, up to 7200 on a fast roll); raises the auto mouse layer |
+| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI) for exact cursor placement |
 | **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
 | **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
 
@@ -369,10 +369,10 @@ To enter bootloader: double-tap the reset button. The controller appears as a US
 Edit [`config/boards/shields/charybdis/charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
 
 ```conf
-CONFIG_PMW3610_CPI=600             # Raw sensor CPI (200-3200, quantised to steps of 200)
+CONFIG_PMW3610_CPI=1200            # Raw sensor CPI (200-3200, quantised to steps of 200)
 CONFIG_PMW3610_CPI_DIVIDOR=1       # Keep at 1 — see the warning below
 CONFIG_PMW3610_SNIPE_CPI=200       # Snipe mode CPI (200 = range minimum)
-CONFIG_PMW3610_SCROLL_TICK=18      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
+CONFIG_PMW3610_SCROLL_TICK=36      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
                                    # note: scroll uses CONFIG_PMW3610_CPI, so rescale this if you change it
 CONFIG_PMW3610_CARET_TICK=20       # Caret mode sensitivity (lower = more responsive)
 ```

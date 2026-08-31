@@ -66,9 +66,9 @@ Key locations:
 The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give 1.0x at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — at 5/12/20 counts/ms it gives 1.09/1.78/3.44 versus linear's 1.66/2.98/4.49. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
 
 Parameters (all x100 because Kconfig doesn't support float):
-- `ACCEL_LOW_SPEED` (75 = 0.75 counts/ms) — below this, multiplier = 1.0
-- `ACCEL_HIGH_SPEED` (1400 = 14.0 counts/ms) — above this, multiplier = max
-- `ACCEL_MAX_MULT` (1000 = 10.0x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
+- `ACCEL_LOW_SPEED` (150 = 1.5 counts/ms) — below this, multiplier = 1.0
+- `ACCEL_HIGH_SPEED` (2800 = 28.0 counts/ms) — above this, multiplier = max
+- `ACCEL_MAX_MULT` (600 = 6.0x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
 
 The thresholds were widened deliberately (Aug 2026): acceleration starts on smaller movements and no longer caps out at 20 counts/ms, so a hard flick keeps gaining. Lowering LOW is cheap specifically because the curve is quadratic — `t²` is flat near the lower threshold, so precise pointing barely notices.
 
@@ -163,23 +163,23 @@ Row 2 (home row) is entirely `&lt` (layer-tap) into trackball modes — there ar
 
 ### Trackball CPI Settings
 
-**To trim pointer speed, use `&zip_xy_scaler`, never `CPI_DIVIDOR`.** It also gives fine steps CPI cannot: CPI moves in jumps of 200, while any fraction with both parts ≤16 is available (3/7 was picked for a ~15% trim).
-
-**To slow the pointer below what CPI allows, use `&zip_xy_scaler`, never `CPI_DIVIDOR`.** The scaler sits on the input listener in `charybdis_right.overlay` and ships with `track-remainders`, so fractions carry over instead of being discarded. `CPI_DIVIDOR` divides integers inside the driver *before* the remainder accumulator and reintroduces the slow-speed stiction documented above. The scaler also runs after the driver, so the acceleration thresholds (counts/ms) keep firing at the same physical ball speeds — lowering CPI instead shifts the whole curve out of reach. It targets `REL_X`/`REL_Y` only: scroll and caret are unaffected.
+**If the pointer ever needs slowing below what CPI allows, use `&zip_xy_scaler`, never `CPI_DIVIDOR`.** It also gives finer steps than CPI's jumps of 200 — any fraction with both parts ≤16. Not currently in use. The scaler sits on the input listener in `charybdis_right.overlay` and ships with `track-remainders`, so fractions carry over instead of being discarded. `CPI_DIVIDOR` divides integers inside the driver *before* the remainder accumulator and reintroduces the slow-speed stiction documented above. The scaler also runs after the driver, so the acceleration thresholds (counts/ms) keep firing at the same physical ball speeds — lowering CPI instead shifts the whole curve out of reach. It targets `REL_X`/`REL_Y` only: scroll and caret are unaffected.
 
 Also note `SNIPE_CPI` cannot go below 200 — that is the sensor's floor. Halving snipe is only possible via the scaler.
 
-The keyboard is used through a **DeskHop** USB KVM, which hands the host absolute coordinates. That bypasses the OS pointer-speed sliders on both macOS and Ubuntu, so `CONFIG_PMW3610_CPI` is the *only* place cursor speed can be adjusted — which is why it sits lower than the sensor's default.
+The keyboard is used through a **DeskHop** USB KVM, which hands the host absolute coordinates — that bypasses the OS pointer-speed sliders on both macOS and Ubuntu, so `CONFIG_PMW3610_CPI` is the only place cursor speed can be adjusted.
+
+**Check DeskHop's own acceleration setting before tuning anything here.** It has its own, and while it was on, the firmware was being tuned to cancel out a second acceleration stage — CPI got dragged 1200 → 600 and a `&zip_xy_scaler` was added on top, none of which was really about the keyboard. With DeskHop's acceleration off, the values reverted cleanly to the pre-DeskHop set.
 
 Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sensor register is `cpi / 200`, so **CPI is quantised to multiples of 200** — a value like 1100 silently becomes 1000.
 
 **Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=600`, `CPI_DIVIDOR=1`, then scaled by `&zip_xy_scaler 3 7` → **257 effective**, up to ~2570 with acceleration
-- Snipe: `SNIPE_CPI=200`, also scaled by the same 3/7 → **86 effective**
+- Normal: `CPI=1200`, `CPI_DIVIDOR=1` → **1200 effective**, up to 7200 with acceleration
+- Snipe: `SNIPE_CPI=200` → 200 effective, no acceleration
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
-- Scroll tick: `18` (~0.76 mm of ball travel per wheel tick at 600 CPI), Caret tick: `20`
+- Scroll tick: `36` (~0.76 mm of ball travel per wheel tick at 1200 CPI), Caret tick: `20`
 - **`ACCEL_LOW_SPEED`/`ACCEL_HIGH_SPEED` are in counts/ms, a sensor unit — so lowering CPI silently moves the acceleration curve in *physical* terms.** At 1200 CPI a 600 mm/s roll hit the 6x ceiling; at 600 CPI the same roll only reaches 2.1x, and the ceiling now needs ~1185 mm/s (11 ball revolutions/s), which is not reachable by hand. The thresholds have deliberately not been rescaled — the goal was a slower pointer overall. To restore the previous *feel* at a lower CPI, scale both thresholds by the same ratio as the CPI change.
 - Scroll mode runs at `CONFIG_PMW3610_CPI`, **not** `SNIPE_CPI` — so changing the normal-mode CPI silently rescales scrolling too. Adjust `SCROLL_TICK` proportionally to keep the scroll feel unchanged. Caret mode uses `SNIPE_CPI` and is unaffected.
 - `ORIENTATION_90=y`, `INVERT_X=y`
