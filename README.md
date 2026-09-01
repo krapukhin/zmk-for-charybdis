@@ -20,9 +20,9 @@ The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothste
 
 | speed, counts/ms | 3 | 5 | 8 | 12 | 20 | 30 |
 |---|---|---|---|---|---|---|
-| linear | 1.40 | 1.85 | 2.53 | 3.44 | 5.25 | 6.00 |
-| **quadratic** | 1.03 | 1.14 | 1.47 | 2.19 | 4.62 | 6.00 |
-| smoothstep | 1.09 | 1.38 | 2.12 | 3.41 | 5.70 | 6.00 |
+| linear | 1.57 | 2.13 | 2.98 | 4.12 | 6.00 | 6.00 |
+| **quadratic** | 1.06 | 1.26 | 1.79 | 2.94 | 6.00 | 6.00 |
+| smoothstep | 1.18 | 1.65 | 2.74 | 4.41 | 6.00 | 6.00 |
 
 Quadratic keeps the multiplier near 1.0 well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
@@ -32,8 +32,8 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y
-CONFIG_PMW3610_ACCEL_LOW_SPEED=125     # 1.25 counts/ms — below this, no acceleration
-CONFIG_PMW3610_ACCEL_HIGH_SPEED=2330   # 23.3 counts/ms — above this, max acceleration
+CONFIG_PMW3610_ACCEL_LOW_SPEED=100     # 1.0 counts/ms — below this, no acceleration
+CONFIG_PMW3610_ACCEL_HIGH_SPEED=1865   # 18.65 counts/ms — above this, max acceleration
 CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier (do not exceed ~15x, see CLAUDE.md)
 ```
 
@@ -233,7 +233,7 @@ The PMW3610 trackball on the right half has four operating modes, selected by th
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with acceleration (1000 CPI, up to 6000 on a fast roll); raises the auto mouse layer |
+| **Normal** | default | Mouse cursor with acceleration (800 CPI, up to 4800 on a fast roll); raises the auto mouse layer |
 | **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI) for exact cursor placement |
 | **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
 | **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
@@ -369,10 +369,10 @@ To enter bootloader: double-tap the reset button. The controller appears as a US
 Edit [`config/boards/shields/charybdis/charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
 
 ```conf
-CONFIG_PMW3610_CPI=1000            # Raw sensor CPI (200-3200, quantised to steps of 200)
+CONFIG_PMW3610_CPI=800             # Raw sensor CPI (200-3200, quantised to steps of 200)
 CONFIG_PMW3610_CPI_DIVIDOR=1       # Keep at 1 — see the warning below
 CONFIG_PMW3610_SNIPE_CPI=200       # Snipe mode CPI (200 = range minimum)
-CONFIG_PMW3610_SCROLL_TICK=30      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
+CONFIG_PMW3610_SCROLL_TICK=24      # Scroll sensitivity (higher = slower); ~1.5 mm of ball travel per tick
                                    # note: scroll uses CONFIG_PMW3610_CPI, so rescale this if you change it
 CONFIG_PMW3610_CARET_TICK=20       # Caret mode sensitivity (lower = more responsive)
 ```
