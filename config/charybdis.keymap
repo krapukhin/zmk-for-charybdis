@@ -7,10 +7,13 @@
     // Тап (Enter) уходит по ОТПУСКАНИЮ, хол (Ctrl) — после 200 мс удержания.
     // Отложенность тапа неустранима: пока клавиша нажата, поведение не знает,
     // тап это или хол. На практике отпускание наступает через ~50 мс, незаметно.
+
     tapping-term-ms = <200>;
     quick-tap-ms = <130>;   // тап + повторное нажатие в это окно = снова тап
-                            // (нужно, чтобы Enter подряд не превращался в Ctrl)
+    // (нужно, чтобы Enter подряд не превращался в Ctrl)
+
     flavor = "tap-preferred";
+
     // require-prior-idle-ms НЕ задан намеренно. С ним тап разрешался мгновенно,
     // если предыдущая клавиша была нажата <40 мс назад, и ждал отпускания в
     // остальных случаях — Enter отзывался по-разному в зависимости от того, что
@@ -64,12 +67,12 @@
 
         QWERTY {
             bindings = <
-&kp GRAVE       &kp N1   &kp N2   &kp N3     &kp N4        &kp N5          &kp N6                  &kp N7     &kp N8     &kp N9   &kp N0           &kp BACKSPACE
-&kp TAB         &kp Q    &kp W    &kp E      &kp R         &kp T           &kp Y                   &kp U      &kp I      &kp O    &kp P            &kp LBKT
-&kp CAPSLOCK    &lt 5 A  &lt 3 S  &lt 2 D    &lt 5 F       &kp G           &kp H                   &kp J      &lt 2 K    &lt 3 L  &lt 5 SEMICOLON  &mt RIGHT_ALT SQT
-&kp LEFT_SHIFT  &kp Z    &kp X    &kp C      &kp V         &lt 4 B         &kp N                   &kp M      &kp COMMA  &kp DOT  &kp FSLH         &kp RIGHT_SHIFT
-                                  &kp SPACE  &mo 6         &kp LEFT_ALT    &mo 8                   &kp SPACE
-                                             &kp LEFT_GUI  &mo 7           &mt LEFT_CONTROL ENTER
+&kp GRAVE            &kp N1   &kp N2   &kp N3     &kp N4        &kp N5          &kp N6                  &kp N7     &kp N8     &kp N9   &kp N0           &kp BACKSPACE
+&mt LCTRL TAB        &kp Q    &kp W    &kp E      &kp R         &kp T           &kp Y                   &kp U      &kp I      &kp O    &kp P            &mt RIGHT_CONTROL LEFT_BRACKET
+&mt LEFT_ALT ESCAPE  &lt 5 A  &lt 3 S  &lt 2 D    &lt 5 F       &kp G           &kp H                   &kp J      &lt 2 K    &lt 3 L  &lt 5 SEMICOLON  &mt RIGHT_ALT SQT
+&kp LEFT_SHIFT       &kp Z    &kp X    &kp C      &kp V         &lt 4 B         &kp N                   &kp M      &kp COMMA  &kp DOT  &kp FSLH         &kp RIGHT_SHIFT
+                                       &kp SPACE  &mo 6         &kp LEFT_ALT    &mo 8                   &kp SPACE
+                                                  &kp LEFT_GUI  &mo 7           &mt LEFT_CONTROL ENTER
             >;
         };
 
