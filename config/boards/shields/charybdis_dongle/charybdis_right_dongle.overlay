@@ -145,9 +145,20 @@
      *
      * reg должен совпадать с приёмником в charybdis_dongle.overlay.
      */
-    trackball_split: trackball_split@0 {
-        compatible = "zmk,input-split";
-        reg = <0>;
-        device = <&trackball>;
+    /*
+     * Контейнер splits обязателен: узлу с unit-адресом @0 и reg = <0> нужен
+     * родитель с #address-cells = <1> и #size-cells = <0>. В корне devicetree
+     * size-cells = 1, и сборка падает на этапе cmake. Так же сделано в тесте
+     * ZMK app/tests/ble/split/peripheral-input/shared.dtsi.
+     */
+    splits {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        trackball_split: trackball_split@0 {
+            compatible = "zmk,input-split";
+            reg = <0>;
+            device = <&trackball>;
+        };
     };
 };
