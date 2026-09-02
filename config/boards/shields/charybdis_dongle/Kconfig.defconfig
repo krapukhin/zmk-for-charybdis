@@ -9,8 +9,12 @@
 
 if SHIELD_CHARYBDIS_DONGLE
 
+# ВНИМАНИЕ: не длиннее 15 символов.
+# ZMK ставит BT_DEVICE_NAME_MAX=16, чтобы имя влезало в advertising data,
+# а Zephyr проверяет строго: BUILD_ASSERT(DEVICE_NAME_LEN < BT_DEVICE_NAME_MAX)
+# в subsys/bluetooth/host/hci_core.c. Ровно 16 символов уже не проходит.
 config ZMK_KEYBOARD_NAME
-	default "Charybdis Dongle"
+	default "Charybdis DGL"
 
 config ZMK_SPLIT_ROLE_CENTRAL
 	default y
