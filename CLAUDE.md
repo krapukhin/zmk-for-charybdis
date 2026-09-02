@@ -138,7 +138,11 @@ Dongle shields live in a separate directory, `config/boards/shields/charybdis_do
 
 Both are handled with `#if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)` guards in `pmw3610.c`: `get_input_mode_for_current_layer()` returns `MOVE` unconditionally on a peripheral, and the whole CURSOR/caret branch is compiled out. The acceleration path is untouched and identical in both variants — it is pure arithmetic with no keymap dependency.
 
-In the dongle set, snipe / scroll / auto-mouse are re-implemented on the central as layer-scoped `input-processors` in `charybdis_dongle.overlay`, so **their layer numbers are duplicated there too** — a third place to update on renumbering, alongside the driver's `*-layers` and the snipe scaler override in `charybdis_right.overlay`. Caret mode has no dongle equivalent and is absent by design.
+In the dongle set, snipe / scroll / auto-mouse are re-implemented on the central as layer-scoped `input-processors` in `charybdis_dongle.overlay`, so **their layer numbers are duplicated there too** — a third place to update on renumbering, alongside the driver's `*-layers` and the snipe scaler override in `charybdis_right.overlay`. Caret mode is provided by a **custom input processor** rather than the driver: `zmk,input-processor-caret` in the vendored module (`src/input_processor_caret.c`, binding under `dts/bindings/input_processors/`). Processors run on the device holding the keymap, so this works where the driver's caret cannot. It duplicates the driver's logic — threshold subtraction with carried remainder, axis locking, burst cap — and returns `ZMK_INPUT_PROC_STOP` so the cursor does not also move.
+
+There are now **two caret implementations**: the driver's (used by variant 1, gated to central-only) and the processor's (used by the dongle). They are meant to behave identically; if you fix one, fix the other. The processor could eventually replace the driver's caret in both variants — clearing `caret-layers` and adding `&zip_caret` to variant 1's listener would collapse them into one — but that has not been done, since variant 1 works as is.
+
+Threshold differs between the two by design: the driver uses `CARET_TICK=20` at `SNIPE_CPI=200`, the processor uses `60` at the normal 600 CPI. Both land near 2.5 mm of ball travel per arrow.
 
 ### ZMK Board Variant — Breaking Change
 

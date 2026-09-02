@@ -376,13 +376,15 @@ Both firmware sets are built from every push, but they are **mutually exclusive*
 
 ### What you lose in dongle mode
 
-- **Caret mode.** Cannot be reproduced. The trackball sits on a peripheral, and ZMK does not send layer state to peripherals — so the mode cannot be selected there. On the central side there is no input processor that accumulates axis delta up to a threshold and emits arrow keys.
+- ~~Caret mode~~ — **recovered.** It is not the driver's caret (that one only runs on a central), but a custom input processor, `zmk,input-processor-caret`, living in the vendored module. Processors run on whichever device holds the keymap, so on the dongle it works. Same logic as the driver's version, including the threshold-subtraction and axis-lock fixes. Threshold is `60` rather than `20`, because events arrive at 600 CPI here instead of the driver's 200 CPI snipe rate.
 - **Switching between 5 BT devices.** Inherent to a dongle: you are wired to one host. The `BT_layers` layer becomes pointless.
 - **ZMK Studio moves to the dongle**, since that is now the central. The right half no longer exposes it.
 - **Snipe becomes software scaling** rather than a hardware CPI change — the sensor's CPI cannot be set from the dongle. Speed has to be re-tuned.
 - **Scroll uses ZMK's stock X/Y-to-wheel mapper** instead of the driver's `SCROLL_TICK` accumulator. Also needs re-tuning.
 
-Keys, layers, combos, cursor movement, pointer acceleration and the auto mouse layer all work the same.
+Keys, layers, combos, cursor movement, pointer acceleration, the auto mouse layer and caret mode all work.
+
+One nuance specific to dongle caret: acceleration is applied on the peripheral and cannot be switched off per layer there, so caret movement is accelerated — unlike variant 1, where caret runs in a non-accelerated mode. In practice the quadratic curve stays flat at the speeds caret is actually used at (1.01x at 50 mm/s, 1.07x at 100 mm/s), so it is barely noticeable.
 
 ### Flashing the dongle set
 

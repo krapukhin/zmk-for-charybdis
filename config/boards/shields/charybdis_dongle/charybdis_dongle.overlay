@@ -118,6 +118,20 @@
 	
 
     /*
+     * Caret mode. В драйвере он остался, но работает только на central,
+     * поэтому в донгл-варианте переиспользуется как input-процессор — тот
+     * выполняется здесь, на устройстве с раскладкой.
+     *
+     * Параметр — порог в counts на одну стрелку. 60 при CPI=600 даёт примерно
+     * 2.5 мм проката шара на символ, то есть то же ощущение, что CARET_TICK=20
+     * при SNIPE_CPI=200 в прямом BLE-режиме.
+     */
+    zip_caret: zip_caret {
+        compatible = "zmk,input-processor-caret";
+        #input-processor-cells = <1>;
+    };
+
+    /*
      * Приёмник трекбола с правой половины. reg должен совпадать с
      * trackball_split в charybdis_right_dongle.overlay.
      */
@@ -167,6 +181,13 @@
         scroll_mapper {
             layers = <3>;
             input-processors = <&zip_xy_to_scroll_mapper>;
+        };
+
+        // Caret: движение шара -> стрелки. Процессор съедает событие, так что
+        // курсор в этом режиме не двигается — как и в прямом BLE-режиме.
+        caret_proc {
+            layers = <5>;
+            input-processors = <&zip_caret 60>;
         };
     };
 };

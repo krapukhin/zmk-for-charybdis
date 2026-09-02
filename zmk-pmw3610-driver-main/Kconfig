@@ -236,3 +236,14 @@ module-str = PMW3610
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
 
 endif #PMW3610
+
+# Caret-процессор живёт в этом же модуле, но с сенсором не связан: он работает
+# на том устройстве, которое держит раскладку. В донгл-варианте это донгл,
+# в прямом BLE-режиме — правая половина.
+config ZMK_INPUT_PROCESSOR_CARET
+  bool "Caret mode input processor (pointer movement -> arrow keys)"
+  default y
+  depends on DT_HAS_ZMK_INPUT_PROCESSOR_CARET_ENABLED
+  help
+    Converts pointer movement into arrow key presses. Threshold is set per
+    instance in devicetree, e.g. <&zip_caret 60>.

@@ -1,0 +1,11 @@
+# Caret mode: движение указателя -> нажатия стрелок.
+#
+# Параметр (param1) — порог в counts на одну стрелку. Чем меньше, тем
+# чувствительнее. Подбирается под CPI: при 600 CPI значение около 60 даёт
+# примерно 2.5 мм проката шара на символ.
+
+description: Input Processor converting pointer movement into arrow key presses
+
+compatible: "zmk,input-processor-caret"
+
+include: ip_one_param.yaml
