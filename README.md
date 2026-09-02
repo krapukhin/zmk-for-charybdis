@@ -362,6 +362,47 @@ To enter bootloader: double-tap the reset button. The controller appears as a US
 
 ---
 
+## Dongle Mode — Alternative Build
+
+Both firmware sets are built from every push, but they are **mutually exclusive**. Flash one set or the other; never mix files from the two on the same pair of halves.
+
+| | Direct BLE (default) | Dongle |
+|---|---|---|
+| Parts | `charybdis_left` + `charybdis_right` | `charybdis_left_dongle` + `charybdis_right_dongle` + `charybdis_dongle` |
+| Central | right half | the dongle |
+| Connection to host | BLE from the right half | USB from the dongle |
+| Works in BIOS | no | **yes** |
+| Extra hardware | — | Seeed Studio XIAO nRF52840 (~$10) |
+
+### What you lose in dongle mode
+
+- **Caret mode.** Cannot be reproduced. The trackball sits on a peripheral, and ZMK does not send layer state to peripherals — so the mode cannot be selected there. On the central side there is no input processor that accumulates axis delta up to a threshold and emits arrow keys.
+- **Switching between 5 BT devices.** Inherent to a dongle: you are wired to one host. The `BT_layers` layer becomes pointless.
+- **ZMK Studio moves to the dongle**, since that is now the central. The right half no longer exposes it.
+- **Snipe becomes software scaling** rather than a hardware CPI change — the sensor's CPI cannot be set from the dongle. Speed has to be re-tuned.
+- **Scroll uses ZMK's stock X/Y-to-wheel mapper** instead of the driver's `SCROLL_TICK` accumulator. Also needs re-tuning.
+
+Keys, layers, combos, cursor movement, pointer acceleration and the auto mouse layer all work the same.
+
+### Flashing the dongle set
+
+Order matters — the dongle must exist before the halves look for it:
+
+1. Flash `settings_reset` to **all three** devices. Note there are two reset artifacts: the `nice_nano` one for the halves and the `xiao_ble` one for the dongle — they are not interchangeable.
+2. Flash `charybdis_dongle` to the XIAO and plug it into USB.
+3. Flash `charybdis_left_dongle` and `charybdis_right_dongle` to the halves.
+4. The halves find the dongle on their own; connection order does not matter.
+
+To go back to direct BLE: `settings_reset` on both halves, then flash `charybdis_left` and `charybdis_right` as usual.
+
+### How it is wired internally
+
+The trackball stays physically on the right half, but its events are forwarded to the dongle over the split link with ZMK's `zmk,input-split`: the peripheral wraps the sensor in a node with `reg = <0>`, and the dongle declares a matching receiver plus the `input-listener` that carries all the processors.
+
+The dongle shield lives in its own directory, `config/boards/shields/charybdis_dongle/`, deliberately duplicating the matrix and physical layout rather than sharing them. The duplication is the point: a mistake in the dongle variant cannot reach the direct BLE build. **If you change the matrix or the physical layout, change it in both places.**
+
+---
+
 ## Customization
 
 ### Trackball Sensitivity

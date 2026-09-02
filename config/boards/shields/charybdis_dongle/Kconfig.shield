@@ -1,0 +1,11 @@
+# Донгл-вариант: обе половины — peripheral, роль central у отдельного донгла.
+# Полностью отдельные shield'ы, чтобы не пересекаться с charybdis_left/right.
+
+config SHIELD_CHARYBDIS_LEFT_DONGLE
+    def_bool $(shields_list_contains,charybdis_left_dongle)
+
+config SHIELD_CHARYBDIS_RIGHT_DONGLE
+    def_bool $(shields_list_contains,charybdis_right_dongle)
+
+config SHIELD_CHARYBDIS_DONGLE
+    def_bool $(shields_list_contains,charybdis_dongle)

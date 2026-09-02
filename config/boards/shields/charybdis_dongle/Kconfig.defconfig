@@ -1,0 +1,36 @@
+# Роли донгл-варианта.
+#
+# Донгл = central, обе половины = peripheral. Половины роль не задают вовсе:
+# ZMK_SPLIT_ROLE_CENTRAL по умолчанию n, этого достаточно.
+#
+# Используется актуальное имя ZMK_SPLIT_ROLE_CENTRAL. Старое
+# ZMK_SPLIT_BLE_ROLE_CENTRAL — back-compat алиас (см. app/src/split/bluetooth/Kconfig
+# в ZMK), в основном shield'е оставлено как есть, здесь берём новое.
+
+if SHIELD_CHARYBDIS_DONGLE
+
+config ZMK_KEYBOARD_NAME
+	default "Charybdis Dongle"
+
+config ZMK_SPLIT_ROLE_CENTRAL
+	default y
+
+# Две периферии: левая и правая половины.
+config ZMK_SPLIT_BLE_CENTRAL_PERIPHERALS
+	default 2
+
+# Число периферий + желаемое число BT-профилей (5).
+config BT_MAX_CONN
+	default 7
+
+config BT_MAX_PAIRED
+	default 7
+
+endif
+
+if SHIELD_CHARYBDIS_LEFT_DONGLE || SHIELD_CHARYBDIS_RIGHT_DONGLE || SHIELD_CHARYBDIS_DONGLE
+
+config ZMK_SPLIT
+	default y
+
+endif

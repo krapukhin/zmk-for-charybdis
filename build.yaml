@@ -1,18 +1,16 @@
-# This file generates the GitHub Actions matrix
-# For simple board + shield combinations, add them
-# to the top level board and shield arrays, for more
-# control, add individual board + shield combinations to
-# the `include` property, e.g:
+# Матрица сборки GitHub Actions.
 #
-# board: [ "nice_nano_v2" ]
-# shield: [ "corne_left", "corne_right" ]
-# include:
-#   - board: bdn9_rev2
-#   - board: nice_nano_v2
-#     shield: reviung41
+# Собираются ОБА варианта сразу, но прошиваются они взаимоисключающе:
 #
+#   Вариант 1 — прямой BLE:  charybdis_left + charybdis_right
+#                            (правая половина = central, идёт к компьютеру сама)
+#   Вариант 2 — донгл:       charybdis_left_dongle + charybdis_right_dongle
+#                            + charybdis_dongle (XIAO в USB = central)
+#
+# Не смешивать файлы двух комплектов на одной паре половин — см. README.
 ---
 include:
+  # ---------- Вариант 1: прямой BLE (существующий, не менять) ----------
   - board: nice_nano@2.0.0/nrf52840/zmk
     shield: charybdis_left
     cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
@@ -20,5 +18,26 @@ include:
     shield: charybdis_right
     snippet: studio-rpc-usb-uart
     cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main -DCONFIG_ZMK_STUDIO=y
+
+  # ---------- Вариант 2: донгл ----------
+  # Обе половины — peripheral. Studio здесь не нужен: central теперь донгл.
   - board: nice_nano@2.0.0/nrf52840/zmk
+    shield: charybdis_left_dongle
+    cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
+  - board: nice_nano@2.0.0/nrf52840/zmk
+    shield: charybdis_right_dongle
+    cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
+  # Донгл. Имя платы сверено с app/boards/seeed/xiao_ble/board.yml в ZMK
+  # (variant zmk, qualifier nrf52840).
+  - board: xiao_ble/nrf52840/zmk
+    shield: charybdis_dongle
+    snippet: studio-rpc-usb-uart
+    cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main -DCONFIG_ZMK_STUDIO=y
+
+  # ---------- Общее ----------
+  # Один и тот же settings_reset годится для nice!nano обеих половин.
+  - board: nice_nano@2.0.0/nrf52840/zmk
+    shield: settings_reset
+  # Для донгла нужен свой — другая плата.
+  - board: xiao_ble/nrf52840/zmk
     shield: settings_reset

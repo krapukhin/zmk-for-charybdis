@@ -564,6 +564,22 @@ K_TIMER_DEFINE(automouse_layer_timer, deactivate_automouse_layer, NULL);
 #endif
 
 static enum pixart_input_mode get_input_mode_for_current_layer(const struct device *dev) {
+#if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+    /*
+     * Донгл-вариант: эта половина — peripheral.
+     *
+     * src/keymap.c в ZMK собирается только для central (app/CMakeLists.txt),
+     * поэтому zmk_keymap_highest_layer_active() здесь не слинкуется. Плюс ZMK
+     * не передаёт состояние слоёв на периферию, так что выбрать режим тут
+     * всё равно было бы нечем.
+     *
+     * Работаем всегда в MOVE; snipe/scroll/auto-mouse делает central через
+     * input-processors. Ускорение ниже не затрагивается — оно от раскладки
+     * не зависит и работает в обоих вариантах одинаково.
+     */
+    ARG_UNUSED(dev);
+    return MOVE;
+#else
     const struct pixart_config *config = dev->config;
     uint8_t curr_layer = zmk_keymap_highest_layer_active();
     for (size_t i = 0; i < config->scroll_layers_len; i++) {
@@ -582,6 +598,7 @@ static enum pixart_input_mode get_input_mode_for_current_layer(const struct devi
         }
     }
     return MOVE;
+#endif
 }
 
 #ifdef CONFIG_PMW3610_ACCEL_ENABLED
@@ -767,6 +784,16 @@ static int pmw3610_report_data(const struct device *dev) {
 #endif
 
     if (x != 0 || y != 0) {
+/*
+ * Caret-ветка целиком исключается из сборки на периферии: она вызывает
+ * raise_zmk_keycode_state_changed_from_encoded(), а src/events/keycode_state_changed.c
+ * в ZMK собирается только для central (app/CMakeLists.txt). Сам код каретки ниже
+ * не изменён — на central он компилируется и работает ровно как раньше.
+ *
+ * В донгл-варианте caret-режима нет: воспроизвести его на central нечем,
+ * накопителя дельты с порогом среди input-processors ZMK не существует.
+ */
+#if !(IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL))
         if (input_mode == CURSOR) {
             data->caret_delta_x += x;
             data->caret_delta_y += y;
@@ -806,7 +833,9 @@ static int pmw3610_report_data(const struct device *dev) {
                 }
                 data->caret_delta_y = 0;
             }
-        } else if (input_mode == SCROLL) {
+        } else
+#endif /* caret-ветка: только central */
+        if (input_mode == SCROLL) {
             data->scroll_delta_x += x;
             data->scroll_delta_y += y;
 

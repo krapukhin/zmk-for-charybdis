@@ -125,6 +125,21 @@ The right shield build includes `snippet: studio-rpc-usb-uart` and `-DCONFIG_ZMK
 - **The keymap file is the single source of truth.** Layer tables in this file and in `README.md` are hand-maintained snapshots that drift whenever the bot pushes; verify against the actual bindings before relying on them, and treat a mismatch as the docs being stale, not the keymap.
 - **Bot commits are formatting-blind.** They rewrite the whole `bindings` block, so hand-written comments and alignment inside a layer may not survive. Put durable explanations outside the layer blocks (or in this file) rather than inline.
 
+### Dongle Variant — Two Mutually Exclusive Firmware Sets
+
+`build.yaml` builds two complete sets from every push: the original direct-BLE pair, and a dongle set (`charybdis_left_dongle`, `charybdis_right_dongle`, `charybdis_dongle` on `xiao_ble/nrf52840/zmk`). Both halves become peripherals in the dongle set; the XIAO is the central. Note there are **two** `settings_reset` artifacts — one per board — and they are not interchangeable.
+
+Dongle shields live in a separate directory, `config/boards/shields/charybdis_dongle/`, with their own `Kconfig.shield`/`Kconfig.defconfig`. The matrix transform and physical layout are **deliberately duplicated** from `charybdis.dtsi` rather than shared, so a mistake in the dongle variant cannot reach the working build. Changing the matrix means changing it in both places.
+
+**Two ZMK facts that shape this whole design — verify against them before touching the trackball:**
+
+1. **`src/keymap.c` is compiled for the central only** (`app/CMakeLists.txt`: the `if ((NOT CONFIG_ZMK_SPLIT) OR CONFIG_ZMK_SPLIT_ROLE_CENTRAL)` block). So is `src/events/keycode_state_changed.c`. Anything in the vendored driver calling `zmk_keymap_*` or `raise_zmk_keycode_state_changed_*` will fail to link on a peripheral.
+2. **ZMK does not propagate layer state to peripherals.** So the driver's mode selection cannot work there at all, regardless of linking.
+
+Both are handled with `#if IS_ENABLED(CONFIG_ZMK_SPLIT) && !IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)` guards in `pmw3610.c`: `get_input_mode_for_current_layer()` returns `MOVE` unconditionally on a peripheral, and the whole CURSOR/caret branch is compiled out. The acceleration path is untouched and identical in both variants — it is pure arithmetic with no keymap dependency.
+
+In the dongle set, snipe / scroll / auto-mouse are re-implemented on the central as layer-scoped `input-processors` in `charybdis_dongle.overlay`, so **their layer numbers are duplicated there too** — a third place to update on renumbering, alongside the driver's `*-layers` and the snipe scaler override in `charybdis_right.overlay`. Caret mode has no dongle equivalent and is absent by design.
+
 ### ZMK Board Variant — Breaking Change
 
 ZMK introduced a board variant system. The nice_nano board must be specified as `nice_nano@2.0.0/nrf52840/zmk` in `build.yaml` (not just `nice_nano@2.0.0`). The `/zmk` variant sets `CONFIG_ZMK_BLE=y` which is required for split BLE. Without it, builds fail with linker errors about `ZMK_SPLIT_ROLE_CENTRAL`.
