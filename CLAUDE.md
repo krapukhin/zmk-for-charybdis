@@ -177,7 +177,7 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 
 Current settings in `charybdis_right.conf`:
 - Normal: `CPI=600`, `CPI_DIVIDOR=1` → **600 effective**, up to 3600 with acceleration
-- Snipe: `SNIPE_CPI=200`, then ×3/4 by a layer-scoped `&zip_xy_scaler` → **150 effective**, no acceleration
+- Snipe: `SNIPE_CPI=200`, then halved by a layer-scoped `&zip_xy_scaler 1 2` → **100 effective**, no acceleration
 
 200 is the sensor's floor (the register is `cpi / 200`), so slowing snipe further is only possible with a scaler. It is attached as a child node of `trackball_listener` with `layers = <2>` so it applies to the snipe layer only — a global scaler would drag the normal mode down too. **That layer number is duplicated between the override and the driver's `snipe-layers` property; renumbering layers without updating both leaves snipe silently un-scaled, and the build still succeeds.**
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
