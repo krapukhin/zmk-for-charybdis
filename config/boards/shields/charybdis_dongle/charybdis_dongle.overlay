@@ -14,6 +14,7 @@
 #include <physical_layouts.dtsi>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <input/processors.dtsi>
+#include <dt-bindings/zmk/input_transform.h>
 
 / {
     chosen {
@@ -176,11 +177,27 @@
             input-processors = <&zip_xy_scaler 1 4>;
         };
 
-        // Scroll: штатный маппер X/Y -> колесо. Механика отличается от
-        // аккумулятора SCROLL_TICK в драйвере, скорость подбирать заново.
+        /*
+         * Scroll. Цепочка из трёх процессоров, чтобы совпасть с поведением
+         * драйвера в прямом BLE-режиме:
+         *
+         *   1. маппер   X/Y -> HWHEEL/WHEEL
+         *   2. инверсия обеих осей. Драйвер шлёт -1 при положительной дельте
+         *      (см. PMW3610_SCROLL_{X,Y}_NEGATIVE в pmw3610.h), маппер знак
+         *      не меняет — без этого прокрутка идёт в обратную сторону.
+         *   3. деление на 18. Маппер пропускает счётчики один в один, а в
+         *      драйвере один тик колеса стоит CONFIG_PMW3610_SCROLL_TICK=18
+         *      counts. Без этого прокрутка примерно в 18 раз быстрее.
+         *      У zip_scroll_scaler стоит track-remainders, так что остаток
+         *      не теряется. Документация ZMK советует не превышать 16, но это
+         *      про множитель: переполняется умножение, а не деление.
+         */
         scroll_mapper {
             layers = <3>;
-            input-processors = <&zip_xy_to_scroll_mapper>;
+            input-processors =
+                <&zip_xy_to_scroll_mapper>,
+                <&zip_scroll_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+                <&zip_scroll_scaler 1 18>;
         };
 
         // Caret: движение шара -> стрелки. Процессор съедает событие, так что
