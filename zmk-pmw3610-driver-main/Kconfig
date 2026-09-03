@@ -247,3 +247,13 @@ config ZMK_INPUT_PROCESSOR_CARET
   help
     Converts pointer movement into arrow key presses. Threshold is set per
     instance in devicetree, e.g. <&zip_caret 60>.
+
+# Вывод заряда в USB-лог на уровне INFO. Нужен в донгл-варианте: по USB
+# батарею иначе не увидеть, а штатные сообщения ZMK все на LOG_DBG.
+config ZMK_BATTERY_LOG
+  bool "Log battery levels at INFO level"
+  default n
+  depends on ZMK_BATTERY_REPORTING
+  help
+    Prints one line per battery level change, so the level can be read over
+    USB CDC without turning on DBG logging for everything else.

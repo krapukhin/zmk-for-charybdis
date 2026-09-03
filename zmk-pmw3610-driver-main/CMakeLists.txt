@@ -2,4 +2,5 @@ zephyr_library()
 
 zephyr_library_sources_ifdef(CONFIG_PMW3610 src/pmw3610.c)
 zephyr_library_sources_ifdef(CONFIG_ZMK_INPUT_PROCESSOR_CARET src/input_processor_caret.c)
+zephyr_library_sources_ifdef(CONFIG_ZMK_BATTERY_LOG src/battery_log.c)
 zephyr_include_directories(${APPLICATION_SOURCE_DIR}/include)
