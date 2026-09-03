@@ -14,9 +14,12 @@
  * от того, какой уровень выставлен для zmk.
  *
  * Читать так:  cat /dev/ttyACM0        (или screen /dev/ttyACM0 115200)
+ * Строка вида: BATTERY  0:72%  1:68%
  *
  * SPDX-License-Identifier: MIT
  */
+
+#include <stdio.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -28,14 +31,48 @@
  * видны при обычном INFO, без включения DBG для всего остального. */
 LOG_MODULE_REGISTER(zmk_battery_log, LOG_LEVEL_INF);
 
+/*
+ * Сколько половин помним. Событие BAS приходит только при ИЗМЕНЕНИИ уровня,
+ * поэтому половина со стабильным зарядом молчала бы часами. Кэшируем последние
+ * значения и печатаем все известные разом — так одна строка всегда показывает
+ * полную картину.
+ */
+#define ZMK_BATTERY_LOG_MAX_PERIPHERALS 4
+
+static uint8_t levels[ZMK_BATTERY_LOG_MAX_PERIPHERALS];
+static bool known[ZMK_BATTERY_LOG_MAX_PERIPHERALS];
+
+static void zmk_battery_log_print(void) {
+    char buf[80];
+    size_t off = 0;
+    bool any = false;
+
+    for (uint8_t i = 0; i < ZMK_BATTERY_LOG_MAX_PERIPHERALS; i++) {
+        if (!known[i]) {
+            continue;
+        }
+        int n = snprintf(buf + off, sizeof(buf) - off, "%s%u:%u%%", any ? "  " : "", i, levels[i]);
+        if (n < 0 || (size_t)n >= sizeof(buf) - off) {
+            break;
+        }
+        off += n;
+        any = true;
+    }
+
+    if (any) {
+        LOG_INF("BATTERY  %s", buf);
+    }
+}
+
 static int zmk_battery_log_listener(const zmk_event_t *eh) {
     const struct zmk_peripheral_battery_state_changed *periph =
         as_zmk_peripheral_battery_state_changed(eh);
     if (periph != NULL) {
-        /* source — индекс периферии в порядке подключения к central.
-         * Какая половина под каким номером, надёжнее определить опытом:
-         * разрядить одну сильнее и посмотреть, чьё число просело. */
-        LOG_INF("BATTERY peripheral %u: %u%%", periph->source, periph->state_of_charge);
+        if (periph->source < ZMK_BATTERY_LOG_MAX_PERIPHERALS) {
+            levels[periph->source] = periph->state_of_charge;
+            known[periph->source] = true;
+        }
+        zmk_battery_log_print();
         return ZMK_EV_EVENT_BUBBLE;
     }
 

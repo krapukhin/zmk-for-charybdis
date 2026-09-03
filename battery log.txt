@@ -1,0 +1,40 @@
+(base) dmitry@snwbl:~$ sudo cat /dev/ttyACM0
+[sudo] password for dmitry:
+Sorry, try again.
+[sudo] password for dmitry:
+*** Booting Zephyr OS build 10ba6d0cb38b ***
+
+[00:00:00.301,086] <wrn> zmk: Have 4 combos!
+
+[00:00:00.306,121] <inf> fs_nvs: 8 Sectors of 4096 bytes
+
+[00:00:00.306,121] <inf> fs_nvs: alloc wra: 0, d30
+
+[00:00:00.306,121] <inf> fs_nvs: data wra: 0, 450
+
+[00:00:00.308,074] <inf> bt_hci_core: HW Platform: Nordic Semiconductor (0x0002)
+
+[00:00:00.308,105] <inf> bt_hci_core: HW Variant: nRF52x (0x0002)
+
+[00:00:00.308,135] <inf> bt_hci_core: Firmware: Standard Bluetooth controller (0x00) Version 4.1 Build 0
+
+[00:00:00.308,624] <inf> bt_hci_core: No ID address. App must call settings_load()
+
+[00:00:00.310,119] <wrn> zmk_studio: Failed to select a transport!
+
+[00:00:00.310,577] <inf> zmk: Welcome to ZMK!
+
+
+[00:00:00.311,553] <inf> usb_hid: Device connected
+
+[00:00:00.311,584] <inf> usb_hid: Device suspended
+
+[00:00:00.311,584] <inf> usb_hid: Device resumed
+
+[00:00:00.311,614] <inf> usb_hid: from suspend00:25:40.423,858] <inf> zmk_battery_log: BATTERY peripheral 0: 24%
+
+[00:29:22.764,465] <inf> zmk_battery_log: BATTERY peripheral 0: 23%
+
+[00:30:22.753,845] <inf> zmk_battery_log: BATTERY peripheral 0: 24%
+
+[00:31:22.786,987] <inf> zmk_battery_log: BATTERY peripheral 0: 23%
