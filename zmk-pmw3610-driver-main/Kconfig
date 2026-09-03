@@ -253,9 +253,17 @@ config ZMK_INPUT_PROCESSOR_CARET
 config ZMK_BATTERY_LOG
   bool "Log battery levels at INFO level"
   default n
-  # Собственная батарея не обязательна: на донгле её нет, но заряд периферии
-  # приходит через ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING.
-  depends on ZMK_BATTERY_REPORTING || ZMK_SPLIT_BLE_CENTRAL_BATTERY_LEVEL_FETCHING
+  # Зависимость обязательна: события заряда определяются в
+  # src/events/battery_state_changed.c, а он собирается только при этой опции.
+  depends on ZMK_BATTERY_REPORTING
   help
     Prints one line per battery level change, so the level can be read over
     USB CDC without turning on DBG logging for everything else.
+
+config ZMK_BATTERY_LOG_SELF
+  bool "Also log this device's own battery level"
+  default y
+  depends on ZMK_BATTERY_LOG
+  help
+    Disable on a dongle: it runs on USB power and its ADC reading is
+    meaningless, so the line would only be noise.

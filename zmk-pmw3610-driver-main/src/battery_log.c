@@ -39,16 +39,23 @@ static int zmk_battery_log_listener(const zmk_event_t *eh) {
         return ZMK_EV_EVENT_BUBBLE;
     }
 
+#if IS_ENABLED(CONFIG_ZMK_BATTERY_LOG_SELF)
     const struct zmk_battery_state_changed *own = as_zmk_battery_state_changed(eh);
     if (own != NULL) {
-        /* Собственная батарея устройства. На донгле её нет (питание от USB),
-         * поэтому строка появится только в прямом BLE-режиме. */
         LOG_INF("BATTERY self: %u%%", own->state_of_charge);
     }
+#endif
 
     return ZMK_EV_EVENT_BUBBLE;
 }
 
 ZMK_LISTENER(zmk_battery_log, zmk_battery_log_listener);
 ZMK_SUBSCRIPTION(zmk_battery_log, zmk_peripheral_battery_state_changed);
+#if IS_ENABLED(CONFIG_ZMK_BATTERY_LOG_SELF)
+/*
+ * Подписка на собственную батарею отключается на донгле: он на USB-питании,
+ * ADC читает мусор, и строка была бы только шумом. Саму ZMK_BATTERY_REPORTING
+ * при этом выключать нельзя — от неё зависит сборка событий заряда.
+ */
 ZMK_SUBSCRIPTION(zmk_battery_log, zmk_battery_state_changed);
+#endif
