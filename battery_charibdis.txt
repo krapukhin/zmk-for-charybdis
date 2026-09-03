@@ -1,0 +1,533 @@
+(base) dmitry@snwbl:~$ sudo cat /dev/ttyACM0
+[00:00:56.224,395] <dbg> zmk: split_central_notify_func: [NO0:00:56.224,731] <dbg> zmk: zmk_hid_imp[00:00:56.224,426] <dbg> zmk: split_central_notify_func: data
+
+                              00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |........ ........
+
+[00:00:56.224,517] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 0
+
+[00:00:56.224,548] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_position_state_changed
+
+[00:00:56.224,548] <dbg> zmk: position_state_changed_listener: 39 bubble (no undecided hold_tap active)
+
+[00:00:56.224,639] <dbg> zmk: zmk_keymap_apply_position_state: layer_id: 0 position: 39, binding name: key_press
+
+[00:00:56.224,670] <dbg> zmk: on_keymap_binding_released: position 39 keycode 0x70006
+
+[00:00:56.224,670] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_keycode_state_changed
+
+[00:00:56.224,731] <dbg> zmk: hid_listener_keycode_released: usage_page 0x07 keycode 0x06 implicit_mods 0x00 explicit_mods 0x00
+
+[00:00:56.224,731] <dbg> zmk: zmk_hid_imptap
+
+[00:00:59.410,339] <dbg> zmk: split_central_notify_func: [NOTIFICATION] data 0x200148ac length 16
+
+[00:00:59.410,369] <dbg> zmk: split_central_notify_func: data
+
+                              00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |........ ........
+
+[00:00:59.410,461] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 0
+
+[00:00:59.410,491] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_position_state_changed
+
+[00:00:59.410,522] <dbg> zmk: position_state_changed_listener: 55 bubble undecided hold-tap keyrelease event
+
+[00:00:59.410,583] <dbg> zmk: zmk_keymap_apply_position_state: layer_id: 0 position: 55, binding name: mod_tap
+
+[00:00:59.410,736] <dbg> zmk: decide_hold_tap: 55 decided tap (tap-preferred decision moment key-up)
+
+[00:00:59.410,766] <dbg> zmk: on_keymap_binding_pressed: position 55 keycode 0x70028
+
+[00:00:59.410,858] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_keycode_state_changed
+
+[00:00:59.410,858] <dbg> zmk: handle_keycode_state_changed: Setting last_tapped_timestamp to: 59312
+
+[00:00:59.410,919] <dbg> zmk: hid_listener_keycode_pressed: usage_page 0x07 keycode 0x28 implicit_mods 0x00 explicit_mods 0x00
+
+[00:00:59.410,919] <dbg> zmk: zmk_hid_implicit_modifiers_press: Modifiers set to 0x00
+
+[00:00:59.410,949] <dbg> zmk: zmk_endpoint_send_report: usage page 0x07
+
+[00:00:59.411,010] <dbg> zmk: on_keymap_binding_released: position 55 keycode 0x70028
+
+[00:00:59.411,041] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_keycode_state_changed
+
+[00:00:59.411,071] <dbg> zmk: hid_listener_keycode_released: usage_page 0x07 keycode 0x28 implicit_mods 0x00 explicit_mods 0x00
+
+[00:00:59.411,071] <dbg> zmk: zmk_hid_implicit_modifiers_release: Modifiers set to 0x00
+
+[00:00:59.411,102] <dbg> zmk: zmk_endpoint_send_report: usage page 0x07
+
+[00:00:59.411,773] <dbg> zmk: on_hold_tap_binding_released: 55 cleaning up hold-tap
+
+[00:01:00.320,312] <dbg> zmk: bvd_sample_fetch: ADC raw 1595 ~ 1401 mV => 4148 mV
+
+[00:01:00.320,343] <dbg> zmk: bvd_sample_fetch: Percent: 94
+
+[00:01:00.320,373] <inf> zmk_battery_log: BATTERY self: 94%
+
+[00:01:00.320,404] <dbg> zmk: zmk_battery_update: Setting BAS GATT battery level to 94.
+
+[00:01:22.712,738] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:22.712,829] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.712,829] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.712,921] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.713,012] <dbg> zmk: set_layer_state: layer_changed: layer 1 state 1 locked 0
+
+[00:01:22.713,043] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_layer_state_changed
+
+[00:01:22.713,073] <dbg> zmk: update_layer_state: Layer 1 activated
+
+[00:01:22.723,205] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:22.723,297] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.723,297] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.723,388] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014818 length 8
+
+[00:01:22.723,480] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.723,510] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.723,571] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.723,632] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.723,663] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.723,754] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.723,785] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 1/2
+
+[00:01:22.723,815] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.723,846] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.723,907] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.723,999] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.724,090] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 4/2
+
+[00:01:22.724,121] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.724,151] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.727,813] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.727,935] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.727,966] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.728,088] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.728,454] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.728,515] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.728,515] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.728,637] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.728,668] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 4/2
+
+[00:01:22.728,729] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.728,729] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.735,229] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.735,290] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.735,321] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.735,412] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.736,053] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.736,114] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.736,114] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.736,236] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.736,267] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 5/3
+
+[00:01:22.736,328] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.736,328] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.750,335] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.750,427] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.750,457] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.750,579] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.750,946] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.751,007] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.751,037] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.751,129] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.751,159] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 5/2
+
+[00:01:22.751,251] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.751,251] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.757,720] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.757,781] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.757,812] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.757,904] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.758,514] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.758,575] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.758,605] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.758,728] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.758,758] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 4/1
+
+[00:01:22.758,789] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.758,819] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.765,228] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.765,289] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.765,319] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.765,411] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.766,052] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.766,174] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.766,174] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.766,357] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.766,448] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/2
+
+[00:01:22.766,479] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.766,510] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.772,705] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.772,796] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.772,796] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.772,918] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.773,559] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.773,620] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.773,651] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.773,803] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.773,834] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/1
+
+[00:01:22.773,864] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.773,895] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.780,212] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.780,303] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.780,303] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.780,395] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.781,036] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.781,127] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.781,158] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.781,311] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.781,341] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 3/1
+
+[00:01:22.781,372] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.781,402] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.787,719] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.787,811] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.787,811] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.787,902] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.788,543] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.788,635] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.788,635] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.788,787] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.788,818] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/1
+
+[00:01:22.788,879] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.788,879] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.802,795] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.802,886] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.802,917] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.803,100] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.803,466] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.803,527] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.803,527] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.803,649] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.803,680] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/2
+
+[00:01:22.803,741] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.803,771] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.810,211] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.810,302] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.810,302] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.810,394] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.811,035] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.811,096] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.811,096] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.811,218] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.811,248] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/0
+
+[00:01:22.811,309] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.811,309] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.892,822] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.892,944] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.892,974] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.893,096] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.893,432] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.893,493] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.893,524] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.893,646] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.893,676] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 1/1
+
+[00:01:22.893,737] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.893,768] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.907,867] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.907,958] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.907,958] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.908,111] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.908,447] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.908,508] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.908,508] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.908,630] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.908,660] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 1/-2
+
+[00:01:22.908,721] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.908,752] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:22.915,222] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.915,283] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.915,313] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.915,405] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.916,046] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:22.916,107] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:22.916,107] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:22.916,229] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:22.916,259] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 1/-3
+
+[00:01:22.916,320] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:22.916,320] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:23.716,369] <dbg> zmk: set_layer_state: layer_changed: layer 1 state 0 locked 0
+
+[00:01:23.716,400] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_layer_state_changed
+
+[00:01:23.716,430] <dbg> zmk: handle_layer_state_changed: Deactivating layer that was activated by this processor
+
+[00:01:23.716,461] <dbg> zmk: update_layer_state: Layer 1 deactivated
+
+[00:01:24.032,745] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:24.032,806] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.032,836] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.032,928] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.033,020] <dbg> zmk: set_layer_state: layer_changed: layer 1 state 1 locked 0
+
+[00:01:24.033,050] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_layer_state_changed
+
+[00:01:24.033,050] <dbg> zmk: update_layer_state: Layer 1 activated
+
+[00:01:24.043,212] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014862 length 8
+
+[00:01:24.043,304] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.043,304] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.043,395] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x20014818 length 8
+
+[00:01:24.043,487] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.043,518] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.043,579] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:24.043,640] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.043,670] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.043,762] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.043,792] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/1
+
+[00:01:24.043,823] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:24.043,853] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:24.043,914] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.044,006] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.044,036] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 1/1
+
+[00:01:24.044,128] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:24.044,158] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:24.047,790] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:24.047,882] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.047,912] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.048,034] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.048,431] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:24.048,492] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.048,522] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.048,614] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.048,645] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 2/0
+
+[00:01:24.048,706] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:24.048,736] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:24.062,927] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:24.062,988] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.063,018] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.063,385] <dbg> zmk: peripheral_input_event_notify_cb: [INPUT EVENT] data 0x200148ac length 8
+
+[00:01:24.063,446] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 2
+
+[00:01:24.063,446] <dbg> zmk: zmk_input_split_report_peripheral_event: Got peripheral event for 0!
+
+[00:01:24.063,598] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.063,751] <dbg> zmk: apply_config: LISTENER INDEX: 0
+
+[00:01:24.063,781] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 1/1
+
+[00:01:24.063,842] <dbg> zmk: zmk_hid_mouse_scroll_set: Mouse scroll set to 0/0
+
+[00:01:24.063,842] <dbg> zmk: zmk_hid_mouse_movement_set: Mouse movement set to 0/0
+
+[00:01:24.863,891] <dbg> zmk: set_layer_state: layer_changed: layer 1 state 0 locked 0
+
+[00:01:24.863,922] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_layer_state_changed
+
+[00:01:24.863,952] <dbg> zmk: handle_layer_state_changed: Deactivating layer that was activated by this processor
+
+[00:01:24.863,983] <dbg> zmk: update_layer_state: Layer 1 deactivated
+
+[00:01:29.305,328] <dbg> zmk: split_central_notify_func: [NOTIFICATION] data 0x200148ac length 16
+
+[00:01:29.305,389] <dbg> zmk: split_central_notify_func: data
+
+                              00 00 80 00 00 00 00 00  00 00 00 00 00 00 00 00 |........ ........
+
+[00:01:29.305,450] <dbg> zmk: peripheral_event_work_callback: Trigger key position state change of type 0
+
+[00:01:29.305,480] <dbg> zmk: handle_state_changed_dispatcher: Dispatching handle_position_state_changed
+
+[00:01:29.305,511] <dbg> zmk: handle_position_state_changed: Position excluded, continuing
+
+[00:01:29.305,511] <dbg> zmk: position_state_changed_listener: 23 bubble (no undecided hold_tap active)
+
+[00:01:29.305,603] <dbg> zmk: zmk_keymap_apply_position_state: layer_id: 0 position: 23, binding name: mod_tap
+
+[00:01:29.305,694] <dbg> zmk: on_hold_tap_binding_pressed: 23 new undecided hold_tap
+
