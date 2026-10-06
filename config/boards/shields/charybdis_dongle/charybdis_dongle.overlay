@@ -215,5 +215,5 @@
 // Настройки авто-слоя мыши — идентичны основному варианту.
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <30 31 32 36 47 48 53 54>;
+    excluded-positions = <24 30 31 32 33 36 42 47 49 50 53>;
 };

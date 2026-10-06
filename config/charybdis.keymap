@@ -128,6 +128,9 @@
         // Layer 1: MOUSE — авто-слой мыши (AML).
         // Поднимается сам при движении трекбола, гаснет по таймауту или по нажатию
         // не-исключённой клавиши. Настройка — &zip_temp_layer в charybdis_right.overlay.
+        // H = ПКМ, J = ЛКМ, N = средняя; удержание K = snipe, удержание L = scroll.
+        // K/L обязаны стоять в excluded-positions, иначе нажатие погасит этот
+        // слой раньше, чем &mo успеет сработать, и напечатается буква.
         //
         // ВАЖНО: индекс этого слоя обязан оставаться НИЖЕ snipe(2)/scroll(3)/caret(5).
         // Драйвер трекбола смотрит только на самый верхний активный слой, поэтому
@@ -137,7 +140,7 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mo 2   &mo 3   &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans  &trans  &trans  &trans
                         &trans  &trans  &trans    &trans     &trans
                                 &trans  &trans    &trans
