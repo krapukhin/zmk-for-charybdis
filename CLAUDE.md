@@ -36,7 +36,7 @@ To flash: put the board into bootloader mode (double-tap reset), drag the `.uf2`
 
 Note: `zmk-for-charybdis-Charybdis_4x6 original/` at the repo root is a frozen copy of the original seller firmware, kept only as a reference for diffing against upstream defaults. It is not built and should not be edited.
 
-Note: `notes/` holds archived historical docs (seller manual, early spec drafts, an old ASCII cheatsheet). They describe earlier keymap revisions and are **not** accurate for the current firmware — see `notes/README.md`. Don't cite them as current behaviour; the hardware sections of `notes/instruction.md` (flashing, switch replacement) do still apply. The one live file there is `notes/check_keymap.py` (see Known Gotchas).
+Note: `notes/` holds archived historical docs (seller manual, early spec drafts, an old ASCII cheatsheet). They describe earlier keymap revisions and are **not** accurate for the current firmware — see `notes/README.md`. Don't cite them as current behaviour; the hardware sections of `notes/instruction.md` (flashing, switch replacement) do still apply. Live files there: `notes/check_keymap.py` (see Known Gotchas), `notes/LAYOUT_V2_PLAN.md` and `notes/LAYOUT_V2_CHANGELOG.md` (layout v2 rationale, what moved where, deviations from the plan).
 
 Note: comments in `charybdis.keymap` and the `.conf` files are written in a mix of Russian and (occasionally) Chinese — expect this when grepping for context rather than assuming English-only comments.
 
@@ -81,7 +81,7 @@ Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision l
 
 Caret mode converts trackball movement into arrow key presses — roll to move the text cursor in any editor/terminal. Implemented in the vendored PMW3610 driver (`pmw3610.c`, inside `pmw3610_report_data()` CURSOR branch).
 
-- Activated by layer 5 (`caret_layer`) — declared in overlay: `caret-layers = <5>;`
+- Activated by layer 4 (`nav_layer`, NAV — hold left thumb 50) — declared in overlay: `caret-layers = <4>;`. The thumb is a layer-tap, and ball motion is not a key event, so NAV (and caret) engages only after `tapping-term-ms` (200 ms) of holding — press the thumb slightly before rolling.
 - Sensitivity: `CONFIG_PMW3610_CARET_TICK=20` in `charybdis_right.conf` (lower = more responsive)
 - Runs at `SNIPE_CPI` (200), not the normal cursor CPI
 - Accumulates delta X/Y until threshold, then sends arrow key press/release via `raise_zmk_keycode_state_changed_from_encoded()`
@@ -90,21 +90,23 @@ The accumulator works exactly like the scroll one: **the threshold is subtracted
 
 ### Auto Mouse Layer — layer index is load-bearing
 
-Trackball motion automatically raises layer 1 (`mouse_layer`, clicks on H/J/K), which drops again 800 ms after the ball stops. Implemented with ZMK's upstream `&zip_temp_layer` input processor, wired up in `charybdis_right.overlay`:
+Trackball motion automatically raises layer 1 (`mouse_layer`: H = right click, J = left, N = middle; **hold K = snipe, hold L = scroll** via `&mo`), which drops again 800 ms after the ball stops. Implemented with ZMK's upstream `&zip_temp_layer` input processor, wired up in `charybdis_right.overlay`:
 
 ```dts
 &trackball_listener { input-processors = <&zip_temp_layer 1 800>; };
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <30 31 32 36 47 48 53 54>;
+    excluded-positions = <24 30 31 32 33 36 42 47 49 53>;
 };
 ```
 
-**Invariant — do not break this:** the auto mouse layer's index must stay **lower** than `snipe`/`scroll`/`caret`. The vendored driver picks the trackball mode from `zmk_keymap_highest_layer_active()` (`get_input_mode_for_current_layer()` in `pmw3610.c`) — *only* the topmost active layer. Give the mouse layer a higher index and holding `D` for scroll leaves the mouse layer on top, so the driver never leaves MOVE mode and scroll/snipe/caret silently stop working while the ball is moving. Nothing fails at build time; it only shows up in the hand. The same trap applies to the driver's own `automouse-layer` property, which is deliberately left disabled (`-1`).
+**Invariant — do not break this:** the auto mouse layer's index must stay **lower** than `snipe`/`scroll`/`caret`. The vendored driver picks the trackball mode from `zmk_keymap_highest_layer_active()` (`get_input_mode_for_current_layer()` in `pmw3610.c`) — *only* the topmost active layer. Give the mouse layer a higher index and holding `L` for scroll (or NAV for caret) leaves the mouse layer on top, so the driver never leaves MOVE mode and scroll/snipe/caret silently stop working while the ball is moving. Nothing fails at build time; it only shows up in the hand. The same trap applies to the driver's own `automouse-layer` property, which is deliberately left disabled (`-1`).
 
-`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks plus Shift/GUI/Ctrl/Alt, so that shift-click and cmd-click survive.
+`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks (30 H, 31 J, 42 N), the snipe/scroll holders (32 K, 33 L), both Shifts (36, 47) and Ctrl/Esc (24), Cmd (49), Alt (53) — so shift/cmd/ctrl/alt-click survive. **K and L must stay in the list:** otherwise pressing them dismisses the mouse layer before `&mo` resolves, and the key types a letter. The layer thumbs (50/51/54/55), Space and Enter deliberately dismiss it. The list is duplicated in `charybdis_dongle.overlay`; `check_keymap.py` compares the two.
 
-Tuning: raise the 800 ms timeout for more clicking comfort, lower it if `H`/`J`/`K` stay clicks too long when you resume typing. `require-prior-idle-ms` guards the other direction — brushing the ball mid-sentence.
+**Clicks are duplicated on SNIPE and SCROLL, deliberately.** The snipe override (and the dongle's scroll/caret overrides) has no `process-next`, so while it is active `&zip_temp_layer` does not run and its timer is not refreshed — after 0.8 s of aiming the mouse layer drops. Without its own H/J/N clicks, J under a held K would then type `j`. Do not "simplify" those layers to all-`&trans`.
+
+Tuning: raise the 800 ms timeout for more clicking comfort, lower it if `H`/`J`/`K`/`L` stay mouse keys too long when you resume typing. `require-prior-idle-ms` guards the other direction — brushing the ball mid-sentence.
 
 ### Scroll Mode — accumulator carries its remainder
 
@@ -169,35 +171,41 @@ ZMK introduced a board variant system. The nice_nano board must be specified as 
 
 ### Layer Map
 
-| Index | Name | Activation |
-|-------|------|-----------|
-| 0 | QWERTY | Default |
-| 1 | mouse_layer | **Automatic** — raised by trackball motion (see Auto Mouse Layer below) |
-| 2 | snipe-layers | `lt 2` on F, J, COMMA (snipe trackball mode) |
-| 3 | scroll-layers | `lt 3` on D, K, DOT (scroll trackball mode) |
-| 4 | BT_layers | `lt 4` on B (Bluetooth channel management) |
-| 5 | caret_layer | `lt 5` on S, L (trackball moves text cursor) |
-| 6 | corne_1 | `mo 6` on left thumb (3rd key) — HJKL → arrow keys, vim-style |
-| 7 | corne_2 | `mo 7` on right thumb (1st key) — HJKL → mouse move/click/scroll, no trackball needed |
+Layout v2 (Oct 2026, branch `layout-v2`). Indices are `#define`d at the top of `charybdis.keymap` (`BASE` … `FUN`, plus `LANG_KEY`); layer nodes are named `base_layer` … `fun_layer` with `display-name = "BASE"` etc.
 
-Trackball layer modes are declared in the overlay:
-```dts
-scroll-layers = <3>;
-snipe-layers = <2>;
-caret-layers = <5>;
+| Index | Name | Activation | Content |
+|-------|------|-----------|---------|
+| 0 | BASE | default | QWERTY, plain letters |
+| 1 | MOUSE | **automatic** — ball motion (`&zip_temp_layer 1 800`) | H/J/N clicks, `&mo SNIPE` on K, `&mo SCROLL` on L |
+| 2 | SNIPE | hold K while MOUSE is up | slow cursor; only H/J/N clicks, rest `&trans` |
+| 3 | SCROLL | hold L while MOUSE is up | ball → wheel; only H/J/N clicks, rest `&trans` |
+| 4 | NAV | hold 50 (left thumb, tap = Tab) | arrows on HJKL, Home/PgDn/PgUp/End above, Cmd/Opt+arrow below; S/D/F = Alt/Cmd/Shift; **ball = caret** |
+| 5 | SYM | hold 51 (right thumb, tap = Backspace) | brackets/operators left hand; `&` `\|` `\` `%` `` ` `` `-` `#` `@` `!` `$` right; macros `->` `:=` on N/M |
+| 6 | NUM | hold 55 (right thumb, tap = Enter) | numpad left (W E R / S D F / X C V = 7 8 9 / 4 5 6 / 1 2 3), mods right |
+| 7 | FUN | hold 54 (left thumb, tap = `LANG_KEY`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, `&bootloader` (Z, left half only), `&studio_unlock` |
+
+**Invariants (all checked by `notes/check_keymap.py`):**
+- MOUSE (1) is below SNIPE/SCROLL/NAV — see Auto Mouse Layer.
+- Driver `snipe-layers = <2>`, `scroll-layers = <3>`, `caret-layers = <4>` in `charybdis_right.overlay`; the dongle's `snipe_scaler`/`scroll_mapper`/`caret_proc` use the same numbers. Overlays cannot see the keymap's `#define`s (they are preprocessed earlier), so the numbers are literal there.
+- Every `#define` matches the `display-name` of the layer at that index.
+- **No `&lt`/`&mt` on letter positions of BASE (13–22, 25–34, 37–46).** A hold-tap on a letter emits the tap only on release — that was the "mushy letters" problem layout v2 removed. Layers live on thumbs only.
+- The key that activates a layer is `&trans` in that layer.
+
+**Do not name a layer node after its `#define`.** `NAV { … }` would be macro-expanded to `4 { … }` by the C preprocessor; the build might even pass, but Studio would show numeric names. Hence lowercase node names + `display-name`.
+
+### Thumb Keys, Modifiers, Shift
+
+```
+left thumbs:  48 Space   49 Cmd   50 NAV/Tab        right thumbs: 51 SYM/Bspc   52 Space
+              53 Alt     54 FUN/LANG_KEY                          55 NUM/Enter
+outer column: 12 Tab, 24 Ctrl/Esc (&mt), 36/47 Shift (tap-dance); 23 = [, 35 = ' (no right-hand mods)
 ```
 
-Layers 6/7 (`corne_1`/`corne_2`) are unrelated to the trackball — they're momentary (`&mo`) layers added later ("similar to corne" commit) that mimic mouse-less navigation/mouse-emulation from the maintainer's Corne keyboard, activated purely from the thumb cluster.
-
-### Home Row & Thumb Keys
-
-Row 2 (home row) is entirely `&lt` (layer-tap) into trackball modes — there are no home-row modifiers:
-- Left home row: `A` (plain), `S` → caret (layer 5), `D` → scroll (layer 3), `F` → snipe (layer 2)
-- Right home row: `J` → snipe (layer 2), `K` → scroll (layer 3), `L` → caret (layer 5), `;` (plain)
-- While the auto mouse layer is up, `J`/`K` are clicks rather than layer-taps — snipe/scroll stay reachable from the left hand (`F`/`D`)
-- Thumbs are plain `&kp` (not hold-tap): left = GUI, SPACE, CTRL, ALT; right = SPACE, ENTER — plus `&mo 6`/`&mo 7` on the remaining two thumb keys for the corne_1/corne_2 layers above.
-
-`&lt` is configured with `tapping-term-ms=200`, `quick-tap-ms=130`, `require-prior-idle-ms=40`. The keymap also declares an `&mt` (mod-tap) behavior block with the same tuning, but as of the current keymap no binding actually uses `&mt` — it's dead configuration from an earlier layout revision (thumb mod-taps were replaced with plain keypresses).
+- `&lt` (thumbs only): `balanced`, `tapping-term-ms=200`, `quick-tap-ms=175`, **no `require-prior-idle-ms`** — with it, SYM pressed right after a letter would resolve as a Backspace tap instead of the layer. The old value 40 was there for layer-taps on letters, which no longer exist.
+- `&mt` (only 24 Ctrl/Esc): `balanced`, 200, 175. If Ctrl+C rolls come out as `Esc c`, switch to `hold-preferred`.
+- Shifts are `td_shift_l`/`td_shift_r` tap-dances: hold or with another key = Shift (resolves immediately on interrupt), double tap = `&caps_word`. A lone held Shift reaches the host after 200 ms.
+- `LANG_KEY` is `LC(SPACE)` — macOS "previous input source". The keyboard is also used with Ubuntu via DeskHop, where the default is Super+Space; change the one `#define` if needed.
+- Combos (`-` U+I, `=` I+O, `]` O+P, `\` [+', studio unlock `` ` ``+Bspc) are `layers = <BASE>`, so they do not fire while any other layer — including the auto mouse layer — is on top. The four symbol combos have `require-prior-idle-ms = 100`, `timeout-ms = 40`.
 
 ### Trackball CPI Settings
 
@@ -250,11 +258,13 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 - **Tune acceleration**: edit `CONFIG_PMW3610_ACCEL_*` in `config/boards/shields/charybdis/charybdis_right.conf`
 - **Disable acceleration**: set `CONFIG_PMW3610_ACCEL_ENABLED=n` in `charybdis_right.conf`
 - **Add a combo**: add a `combo_*` block in the `combos` section of `charybdis.keymap`
-- **Add/modify a layer**: add a new layer entry in `keymap {}` in `charybdis.keymap` and update the layer index references in the overlay if it's a trackball mode layer
+- **Add/modify a layer**: add a node `xxx_layer { display-name = "XXX"; bindings = <…>; }` in `keymap {}` and a matching `#define XXX n` at the top; if it shifts indices, update the overlays (both sets) and run `notes/check_keymap.py`. Changing the number or order of layers needs `settings_reset` on every device of the set.
 - **Toggle debug logging**: `CONFIG_ZMK_USB_LOGGING` and the log-level configs at the bottom of `charybdis_right.conf` — commented out by default. All three `LOG_DBG` calls in the driver sit inside `pmw3610_report_data()`, i.e. the 125 Hz hot path, so leaving DBG on costs a string format per poll while the ball moves. With `ZMK_LOG_LEVEL_DBG` off they are compiled out entirely. Re-enable only while debugging.
 - **Enable RGB underglow**: uncomment the `CONFIG_ZMK_RGB_UNDERGLOW` block in `config/charybdis.conf`
 
 ## Architecture Decisions
+
+- 2026-10 Layout v2: **layer-taps moved off letters onto the thumbs**; snipe/scroll became `&mo` inside the auto mouse layer (hold K/L), caret moved to NAV. Typing never waits on a hold-tap decision anymore. Rollout was staged (combos/Caps Word → K/L on MOUSE → mods → layers) so each step could be got used to. (Layer Map / Thumb Keys sections)
 
 - 2026-09 Dongle variant lives in a **separate shield directory with duplicated matrix/layout**, not a shared dtsi with conditionals — a broken dongle build must not be able to reach the working direct-BLE build. (Dongle Variant section)
 - 2026-09 Caret on the dongle is a **custom input processor**, not the driver's caret — processors run on whichever device holds the keymap, which is the only place keycodes can be raised. Two implementations now coexist and must be kept in sync. (Dongle Variant section)
@@ -266,7 +276,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 
 Most gotchas are documented where they bite, in the topical sections above. The ones most likely to be hit on the next edit:
 
-- **Layer numbers are duplicated in four places** and the build does not check them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working. **Run `python3 notes/check_keymap.py` after any keymap or overlay edit and after pulling a bot commit** — it cross-checks all four, plus 56 bindings per layer, `&lt`/`&mo` targets, mouse-below-modes and identical `excluded-positions` in both sets. Which keymap layer plays which trackball role is matched by node name (`ROLE_LAYERS` at the top of the script) — update that table if a layer is renamed.
+- **Layer numbers are duplicated in four places** and the build does not check them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working. **Run `python3 notes/check_keymap.py` after any keymap or overlay edit and after pulling a bot commit** — it cross-checks all four, plus 56 bindings per layer, `&lt`/`&mo` targets, `#define` ↔ `display-name`, plain letters on BASE, holder keys transparent in their layer, mouse-below-modes and identical `excluded-positions` in both sets. Which keymap layer plays which trackball role is matched by node name (`ROLE_LAYERS` at the top of the script) — update that table if a layer is renamed.
 - **A layer-scoped input processor cannot suppress an event by returning `ZMK_INPUT_PROC_STOP`** — `filter_with_input_config()` discards the override's return value. Zero `event->value` instead. (Dongle Variant section)
 - **`ZMK_KEYBOARD_NAME` must be ≤15 characters** — `BT_DEVICE_NAME_MAX` is 16 and the Zephyr assert is strict. "Charybdis Dongle" (16) fails to build with an opaque `_Static_assert` in `hci_core.c`.
 - **`zmk,input-split` nodes need a `splits { #address-cells=<1>; #size-cells=<0>; }` parent** — a `@0`/`reg=<0>` node directly under `/` fails at cmake with no useful message.
@@ -275,7 +285,9 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 
 ## Current State
 
-- **Last completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
+- **In progress (Oct 2026): layout v2 on branch `layout-v2`**, plan in `notes/LAYOUT_V2_PLAN.md`, what moved where in `notes/LAYOUT_V2_CHANGELOG.md`. Stage 1 (combo idle guard, Caps Word, `\` combo) is flashed and in use. Stages 2–4 (K/L snipe/scroll on MOUSE, Mac-style mods, thumb layers + renumbering) are committed and pass `check_keymap.py`, **not yet built in CI or tried on hardware**. Flashing stage 4 needs `settings_reset` on every device of the set (layer count 9 → 8). `Charybdis_4x6` stays the rollback firmware; merge via PR after about a week of use.
+- **Open questions for layout v2:** middle click on N (kept) vs M (plan); `LANG_KEY` for Ubuntu (plan's Ctrl+Space is a macOS shortcut); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
+- **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
 - **Trackball tuning currently:** `CPI=600`, accel `75/1400/600` quadratic, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `60` (dongle processor).
 - **Battery:** right half's reported charge is a constant ~24 % and not a measurement (see Battery Level Logging); only the left half's number is real.

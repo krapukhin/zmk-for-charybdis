@@ -69,7 +69,9 @@ Caret mode turns the trackball into arrow keys — roll the ball to move the tex
 
 Roll left/right to move character by character, up/down to move line by line. Particularly useful for Vim users or precise text editing.
 
-**Implementation:** `caret-layers = <5>` in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay). Sensitivity is controlled by `CONFIG_PMW3610_CARET_TICK=20` in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf) (lower = more responsive).
+**How to use:** hold the left thumb key 50 (NAV layer) and roll the ball. On the same layer S/D/F are Alt/Cmd/Shift, so Shift + ball selects text and Alt + ball jumps by words.
+
+**Implementation:** `caret-layers = <4>` in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay). Sensitivity is controlled by `CONFIG_PMW3610_CARET_TICK=20` in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf) (lower = more responsive).
 
 ### How to add caret mode to your own ZMK trackball build
 
@@ -84,9 +86,9 @@ The caret mode logic is built into the vendored PMW3610 driver. To port:
 
 ## Auto Mouse Layer
 
-Moving the trackball automatically raises a mouse layer with click buttons under `H` / `J` / `K` (right / left / middle). It drops again 800 ms after the ball stops, so the keys go back to being letters. No key is held — you roll the ball, click, and keep typing.
+Moving the trackball automatically raises a mouse layer: `H` = right click, `J` = left click, `N` = middle click, **hold `K` = snipe, hold `L` = scroll**. It drops again 800 ms after the ball stops (or as soon as you press a letter), so the keys go back to being letters. Nothing is held to get there — you roll the ball, click, and keep typing. While the ball has not moved, `K` and `L` are plain letters with no delay.
 
-Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-processors/temp-layer) input processor, configured in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay):
+Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-processors/temp-layer) input processor, configured in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay) (and identically in the dongle overlay):
 
 ```dts
 &trackball_listener {
@@ -95,26 +97,30 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <30 31 32 36 47 48 53 54>;
+    excluded-positions = <24 30 31 32 33 36 42 47 49 53>;
 };
 ```
 
 **Tuning:**
 - Not enough time to click after aiming -> raise the `800` timeout to 1200–1500
-- `H`/`J`/`K` stay clicks too long when you resume typing -> lower it to 400–600
+- `H`/`J`/`K`/`L` stay mouse keys too long when you resume typing -> lower it to 400–600
 - Layer pops up while touch-typing -> raise `require-prior-idle-ms` to 300
 
-### Two traps worth knowing
+### Traps worth knowing
 
-**1. The layer index is load-bearing.** The auto mouse layer must sit at a *lower* index than the snipe / scroll / caret layers. The PMW3610 driver selects the trackball mode from `zmk_keymap_highest_layer_active()` — only the topmost active layer. Put the mouse layer above them and holding `D` for scroll leaves the mouse layer on top, so the driver never leaves cursor mode and scroll / snipe / caret quietly stop working while the ball is moving. Nothing fails at build time. That is why the mouse layer is index 1 and everything else shifted up.
+**1. The layer index is load-bearing.** The auto mouse layer must sit at a *lower* index than the snipe / scroll / NAV (caret) layers. The PMW3610 driver selects the trackball mode from `zmk_keymap_highest_layer_active()` — only the topmost active layer. Put the mouse layer above them and holding `L` for scroll leaves the mouse layer on top, so the driver never leaves cursor mode and scroll / snipe / caret quietly stop working while the ball is moving. Nothing fails at build time. That is why the mouse layer is index 1.
 
-**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger) plus Shift / GUI / Ctrl / Alt (so shift-click and cmd-click survive). Space and Enter are deliberately left out: pressing space means you're back to typing.
+**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger), the snipe/scroll holders `K`/`L`, both Shifts and Ctrl / Cmd / Alt (so modifier-clicks survive). `K` and `L` *must* be listed — otherwise pressing them dismisses the layer before `&mo` resolves and you get a letter. Space, Enter and the layer thumbs are deliberately left out: pressing space means you're back to typing.
+
+**3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and its timer isn't refreshed — after 0.8 s of careful aiming the mouse layer is gone. If the snipe layer were all-transparent, `J` under a held `K` would then type `j`. So snipe and scroll carry their own `H`/`J`/`N` clicks.
+
+**4. No `require-prior-idle-ms` on the thumb layer-taps.** It is great for layer-taps on letters, but on a thumb it means "if a letter was typed just before, resolve as tap": hold SYM right after a letter and you get a Backspace instead of the symbol layer.
 
 ### How to add this to your own ZMK trackball build
 
-1. Add a mouse layer to your keymap at an index **below** your trackball-mode layers — everything on it `&trans` except the click keys
+1. Add a mouse layer to your keymap at an index **below** your trackball-mode layers — everything on it `&trans` except the click keys (and `&mo` into your mode layers, if you want them here)
 2. Point the processor at it: `input-processors = <&zip_temp_layer N 800>;` on your input listener
-3. Set `excluded-positions` to your click keys plus your modifiers, and `require-prior-idle-ms` to ~200
+3. Set `excluded-positions` to your click keys, any `&mo` keys on that layer and your modifiers, and `require-prior-idle-ms` to ~200
 4. Make sure `#include <input/processors.dtsi>` is in your overlay
 
 If your driver has its own automouse (the PMW3610 one does, via `automouse-layer`), leave it disabled — running both at once conflicts.
@@ -141,23 +147,23 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 
 ## Features
 
-- **8 layers** — QWERTY base, auto mouse, Snipe, Scroll, Bluetooth, Caret, plus two Corne-style auxiliary layers (arrow-key nav and mouse emulation via HJKL, no trackball needed)
+- **8 layers, all on the thumbs** — BASE, auto mouse, snipe, scroll, NAV, SYM, NUM, FUN. No layer-taps or mod-taps on letters, so typing never waits on a hold-tap decision
+- **Mac-style modifiers** — Cmd under the left thumb, Ctrl/Esc on the left pinky, Shift on both pinkies; double-tap Shift for Caps Word
 - **Pointer acceleration** — plateau-style acceleration in the PMW3610 driver
-- **Home-row layer-taps** — `S`/`D`/`F` and `J`/`K`/`L` hold into trackball modes (caret/scroll/snipe); modifiers live on the thumb cluster, not the home row
-- **4 trackball modes** — normal cursor, scroll wheel, precision snipe, and text caret control
-- **Auto mouse layer** — moving the ball raises a click layer automatically, no key held
+- **4 trackball modes** — normal cursor, scroll wheel, precision snipe, and text caret
+- **Auto mouse layer** — moving the ball raises a click layer automatically; hold `K`/`L` on it for snipe/scroll
 - **Vendored PMW3610 driver** — works with the 3-wire SDIO hardware wiring found on this keyboard
-- **Combos** for brackets, `=`/`-`, and a ZMK Studio unlock
-- **ZMK Studio** support on the right half for live keymap editing over USB
+- **Combos** for `-` `=` `]` `\`, guarded against firing while typing, and a ZMK Studio unlock
+- **ZMK Studio** support for live keymap editing over USB
 - RGB underglow support (disabled by default)
 
 ---
 
 ## Keymap
 
-> The keymap is actively edited both by hand and via ZMK Studio (commits from `keymap-editor[bot]`) — `config/charybdis.keymap` is always the source of truth; this section is a snapshot of it.
+> The keymap is edited both by hand and via the keymap editor (commits from `keymap-editor[bot]`) — `config/charybdis.keymap` is always the source of truth; this section is a snapshot of it. Run `python3 notes/check_keymap.py` after any change: it checks layer numbers across the keymap and both overlays.
 
-### Base Layer (QWERTY)
+### Base Layer
 
 ```
 ┌──────┬──────┬──────┬──────┬──────┬──────┐       ┌──────┬──────┬──────┬──────┬──────┬──────┐
@@ -165,41 +171,27 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │ TAB  │  Q   │  W   │  E   │  R   │  T   │       │  Y   │  U   │  I   │  O   │  P   │  [   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│ CAPS │  A   │ S[5] │ D[3] │ F[2] │  G   │       │  H   │ J[2] │ K[3] │ L[5] │  ;   │  '   │
+│CTL/ES│  A   │  S   │  D   │  F   │  G   │       │  H   │  J   │  K   │  L   │  ;   │  '   │
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
-│SHIFT │  Z   │  X   │  C   │  V   │ B[4] │       │  N   │  M   │ ,[2] │ .[3] │  /   │SHIFT │
+│SHIFT*│  Z   │  X   │  C   │  V   │  B   │       │  N   │  M   │  ,   │  .   │  /   │SHIFT*│
 └──────┴──────┴──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┴──────┴──────┴──────┘
-                      │ GUI  │SPACE │MO(6) │       │MO(7) │SPACE │
-                      └──────┼──────┼──────┤       ├──────┼──────┘
-                             │ CTRL │ ALT  │       │ENTER │
-                             └──────┴──────┘       └──────┘
+                     │SPACE │ CMD  │ NAV  │       │ SYM  │SPACE │
+                     │      │      │ /TAB │       │/BKSP │      │
+                     └──────┼──────┼──────┤       ├──────┼──────┘
+                            │ ALT  │ FUN  │       │ NUM  │
+                            │      │/LANG │       │/ENTR │
+                            └──────┴──────┘       └──────┘
 ```
 
-`[N]` = hold to activate layer N (see [Layer Reference](#layer-reference)). `MO(6)`/`MO(7)` hold into the two Corne-style auxiliary layers.
+- `CTL/ES` — hold = Ctrl, tap = Esc. `SHIFT*` — hold = Shift, double tap = Caps Word (`MY_CONST`, a space ends it).
+- `NAV/TAB`, `SYM/BKSP`, `FUN/LANG`, `NUM/ENTR` — hold = layer, tap = the key. `LANG` is `Ctrl+Space` (macOS: previous input source); it is one `#define LANG_KEY` in the keymap.
+- Cmd (left thumb) + Space (right thumb) = Spotlight, as on a Mac.
+- The auto mouse layer is not on any key — the trackball raises it.
 
-Layer 1 is missing from this diagram on purpose — it's the auto mouse layer, raised by the trackball rather than by a key.
+### Thumb keys and tap/hold tuning
 
----
-
-### Home Row & Thumb Keys
-
-Home row carries no modifiers anymore — it's entirely layer-taps into trackball modes:
-
-```
-Left hand                     Right hand
-┌─────┬─────┬─────┬─────┐    ┌─────┬─────┬─────┬─────┐
-│  A  │  S  │  D  │  F  │    │  J  │  K  │  L  │  ;  │
-│  —  │Caret│Scrl │Snipe│    │Snipe│Scrl │Caret│  —  │
-└─────┴─────┴─────┴─────┘    └─────┴─────┴─────┴─────┘
-```
-
-Modifiers instead live on the thumb cluster as plain key presses (not hold-taps): left thumb = `GUI`, `SPACE`, `CTRL`, `ALT`; right thumb = `SPACE`, `ENTER`. The two remaining thumb keys hold into the Corne-nav / Corne-mouse layers below.
-
-Layer-tap keys (`&lt`) are configured with `tap-preferred` flavor, `tapping-term-ms = 200`, `require-prior-idle-ms = 40`.
-
-> Note: the keymap still declares an `&mt` (mod-tap) behavior config block at the top of the file, but no binding uses it anymore — it's dead configuration left over from an earlier layout revision.
-
----
+- Layer thumbs (`&lt`): `balanced` flavor, `tapping-term-ms = 200`, `quick-tap-ms = 175` (tap then hold = auto-repeat of Backspace/Enter), no `require-prior-idle-ms` (see trap 4 above).
+- Ctrl/Esc (`&mt`): `balanced`, 200, 175. If Ctrl+C sometimes comes out as `Esc c`, switch it to `hold-preferred`.
 
 ### Combos (simultaneous keypresses)
 
@@ -207,118 +199,102 @@ Layer-tap keys (`&lt`) are configured with `tap-preferred` flavor, `tapping-term
 |------|--------|-------|
 | `U` + `I` | `-` | |
 | `I` + `O` | `=` | |
-| `O` + `P` | `]` | |
+| `O` + `P` | `]` | gives `ъ` in the Russian layout |
+| `[` + `'` | `\` | gives `ё` in the macOS "Russian" layout |
 | `` ` `` + `BKSP` | ZMK Studio unlock | Lets ZMK Studio write keymap changes over USB |
 
----
+The four symbol combos need a short pause before them: they don't fire within 100 ms of another (non-modifier) key, so rolls like `-tion` or `stop` stay letters. All combos work on the base layer only — not while NAV/SYM/… or the auto mouse layer is on top.
 
 ### Layer Reference
 
 | # | Name | How to activate | Description |
 |---|------|----------------|-------------|
-| 0 | QWERTY | — | Base layer |
-| 1 | **Auto mouse** | **Automatic** — moving the trackball | **Clicks appear under H/J/K; drops 800 ms after the ball stops** |
-| 2 | Snipe | Hold `F` / `J` / `,` | Trackball precision mode; F-keys and bracket pairs on top rows |
-| 3 | Scroll | Hold `D` / `K` / `.` | Trackball → scroll wheel + arrow keys |
-| 4 | Bluetooth | Hold `B` | BT channel management |
-| 5 | **Caret** | Hold `S` / `L` | **Trackball moves text cursor**; top row doubles as media/brightness keys |
-| 6 | Corne-nav | Hold left thumb, 3rd key (`MO(6)`) | HJKL → arrow keys (vim-style navigation) |
-| 7 | Corne-mouse | Hold right thumb, 1st key (`MO(7)`) | HJKL → mouse movement, with click/scroll on the rows above and below |
-
----
+| 0 | BASE | — | QWERTY, plain letters |
+| 1 | **MOUSE** | **Automatic** — moving the trackball | Clicks on `H`/`J`/`N`, hold `K` = snipe, hold `L` = scroll; drops 800 ms after the ball stops |
+| 2 | SNIPE | Hold `K` while the mouse layer is up | Precision cursor; clicks stay on `H`/`J`/`N` |
+| 3 | SCROLL | Hold `L` while the mouse layer is up | Ball → scroll wheel; clicks stay on `H`/`J`/`N` |
+| 4 | **NAV** | Hold left thumb 50 (tap = Tab) | Arrows on HJKL, Home/End/PgUp/PgDn, word/line jumps; **ball moves the text cursor** |
+| 5 | SYM | Hold right thumb 51 (tap = Backspace) | Brackets and operators, `->` and `:=` macros |
+| 6 | NUM | Hold right thumb 55 (tap = Enter) | Numpad on the left hand, modifiers on the right |
+| 7 | FUN | Hold left thumb 54 (tap = language) | F1–F12, Bluetooth, media, brightness, bootloader |
 
 ### Trackball Modes
-
-The PMW3610 trackball on the right half has four operating modes, selected by the active layer:
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
 | **Normal** | default | Mouse cursor with acceleration (600 CPI, up to 3600 on a fast roll); raises the auto mouse layer |
-| **Snipe** | Hold `F` / `J` / `,` | Low-speed precision (200 CPI halved to 100 effective) for exact cursor placement |
-| **Scroll** | Hold `D` / `K` / `.` | Ball controls scroll wheel; layer also has arrow keys |
-| **Caret** | Hold `S` / `L` | **Ball moves the text cursor (arrow keys)** |
+| **Snipe** | Move the ball, then hold `K` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
+| **Scroll** | Move the ball, then hold `L` | Ball controls the scroll wheel |
+| **Caret** | Hold left thumb 50 (NAV), then roll | **Ball moves the text cursor (arrow keys)**. The thumb is a layer-tap, so press it a moment before rolling |
 
----
+### Mouse Layer (automatic)
 
-### Snipe Layer (hold `F`, `J`, or `,`)
+```
+┌────┬────┬────┬────┬────┬────┐  ┌─────┬─────┬─────┬─────┬────┬────┐
+│    │    │    │    │    │    │  │RClk │LClk │SNIPE│SCROL│    │    │   ← H J K L (hold K / L)
+├────┼────┼────┼────┼────┼────┤  ├─────┼─────┼─────┼─────┼────┼────┤
+│    │    │    │    │    │    │  │MClk │     │     │     │    │    │   ← N
+└────┴────┴────┴────┴────┴────┘  └─────┴─────┴─────┴─────┴────┴────┘
+                         (home row and bottom row only; everything else types normally)
+```
+
+### NAV Layer (hold left thumb 50)
+
+```
+┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
+│    │ ⌘` │⌘⇧[ │⌘⇧] │    │    │  │Home│PgDn│PgUp│End │ ⌥⌫ │ ⌘⌫ │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │    │ ⌥  │ ⌘  │ ⇧  │    │  │ ←  │ ↓  │ ↑  │ →  │Del │    │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │    │    │    │    │    │  │ ⌘← │ ⌥← │ ⌥→ │ ⌘→ │    │    │
+└────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
+                         ball = text cursor (caret mode)
+```
+
+``⌘` `` next window, `⌘⇧[` / `⌘⇧]` previous / next tab. `⌥⌫` deletes a word, `⌘⌫` the line up to the cursor. Home sits above ←, End above →, PgDn above ↓, PgUp above ↑; the row below jumps by line (⌘←/⌘→) and word (⌥←/⌥→).
+
+### SYM Layer (hold right thumb 51)
+
+```
+┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
+│    │ ~  │ {  │ [  │ ]  │ }  │  │ &  │ |  │ \  │ %  │ `  │    │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │ :  │ _  │ (  │ )  │ =  │  │ -  │ #  │ @  │ !  │ $  │    │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │ |  │ <  │ >  │ *  │ +  │  │ -> │ := │    │    │    │    │
+└────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
+```
+
+### NUM Layer (hold right thumb 55)
+
+```
+┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
+│    │ [  │ 7  │ 8  │ 9  │ ]  │  │    │    │    │    │    │    │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │ ;  │ 4  │ 5  │ 6  │ =  │  │    │ ⇧  │ ⌘  │ ⌥  │ ⌃  │    │
+├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
+│    │ ~  │ 1  │ 2  │ 3  │ /  │  │    │    │    │    │    │    │
+└────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
+                 thumbs: 0  -  ·  |  .
+```
+
+Thumbs on NUM: `0` (48), `-` (49), `.` (53).
+
+### FUN Layer (hold left thumb 54)
 
 ```
 ┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
 │ F1 │ F2 │ F3 │ F4 │ F5 │ F6 │  │ F7 │ F8 │ F9 │F10 │F11 │F12 │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │ <  │ {  │ [  │ (  │TAB │  │⌘⌫  │ )  │ ]  │ }  │ >  │ ]  │
+│    │BT0 │BT1 │BT2 │BT3 │BT4 │  │Prev│Play│Next│Vol-│Vol+│    │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │    │    │    │    │    │  │RClk│LClk│    │    │    │ \  │
+│    │CLR*│    │CLR │    │BT→ │  │Bri-│Bri+│Mute│    │    │    │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │    │    │    │    │    │  │    │    │    │    │    │    │
+│    │Boot│    │    │    │    │  │    │    │    │    │    │Stud│
 └────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
-                              thumbs: — — —  |  RClk LClk
 ```
 
-### Scroll Layer (hold `D`, `K`, or `.`)
-
-```
-┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
-│      │      │      │      │      │      │  │      │      │      │      │  -   │  =   │
-├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
-│      │      │      │      │      │      │  │ Home │ PgUp │SCRL↑ │      │      │  ]   │
-├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
-│      │      │      │      │      │      │  │  ←   │  ↓   │  ↑   │  →   │      │  \   │
-├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
-│      │      │      │      │      │      │  │ End  │ PgDn │SCRL↓ │      │      │      │
-└──────┴──────┴──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┴──────┴──────┴──────┘
-                      │  ↑   │  →   │      │  │      │
-                      └──────┼──────┼──────┤  ├──────┘
-                             │  ←   │  ↓   │  │
-                             └──────┴──────┘  └──────┘
-```
-
-### Bluetooth Layer (hold `B`)
-
-| Key combo | Action |
-|-----------|--------|
-| `B` + `1`-`5` | Switch to BT channel 1-5 |
-| `B` + `A` | Clear ALL pairings |
-| `B` + `C` | Clear current channel pairing |
-| `B` + `N` | Next BT channel |
-
-### Caret Layer (hold `S` or `L`)
-
-Top row doubles as media/brightness controls while the trackball drives the text cursor; every other key stays transparent (the keyboard types normally):
-
-```
-┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
-│ Bri- │ Bri+ │⇧Home │Search│ Mute │ Vol- │  │ Vol+ │ Prev │ Play │ Next │      │      │
-└──────┴──────┴──────┴──────┴──────┴──────┘  └──────┴──────┴──────┴──────┴──────┴──────┘
-```
-
-See [Caret Mode](#caret-mode--trackball-as-text-cursor) below for how the trackball itself behaves on this layer.
-
-### Corne-nav Layer (hold left thumb, 3rd key)
-
-HJKL become arrow keys, vim-style — lets you navigate without reaching for the trackball:
-
-```
-┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
-│      │      │      │      │      │      │  │  ←   │  ↓   │  ↑   │  →   │      │      │
-└──────┴──────┴──────┴──────┴──────┴──────┘  └──────┴──────┴──────┴──────┴──────┴──────┘
-                                                          thumbs: — — —  |  ⌥Space —
-```
-
-### Corne-mouse Layer (hold right thumb, 1st key)
-
-Mouse emulation without the trackball — HJKL move the cursor, with clicks and scroll on the rows above/below:
-
-```
-┌──────┬──────┬──────┬──────┬──────┬──────┐  ┌──────┬──────┬──────┬──────┬──────┬──────┐
-│      │      │      │      │      │      │  │ Home │LClk  │SCRL↑ │PgUp  │SCRL←│      │
-├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
-│      │      │      │      │      │      │  │  ←   │  ↓   │  ↑   │  →   │      │      │
-├──────┼──────┼──────┼──────┼──────┼──────┤  ├──────┼──────┼──────┼──────┼──────┼──────┤
-│      │      │      │      │      │      │  │ End  │RClk  │SCRL↓ │PgDn  │SCRL→│      │
-└──────┴──────┴──────┴──────┴──────┴──────┘  └──────┴──────┴──────┴──────┴──────┴──────┘
-                              thumbs: — ⌘Space —  |  — —
-```
+`BT0`–`BT4` select a Bluetooth profile, `BT→` next profile, `CLR` clears the current profile, **`CLR*` clears all pairings**. `Boot` puts the *left* half into the bootloader (the key lives on the left half); `Stud` is ZMK Studio unlock.
 
 ---
 
@@ -343,6 +319,8 @@ zmk-pmw3610-driver-main/                    # Vendored PMW3610 driver (local cop
 ├── src/pmw3610.c                           #   driver + acceleration logic
 build.yaml                                  # GitHub Actions build matrix
 .github/workflows/build.yml                 # CI workflow
+notes/check_keymap.py                       # Static check: layer numbers across keymap + both overlays
+notes/LAYOUT_V2_PLAN.md, LAYOUT_V2_CHANGELOG.md  # Layout v2 plan and what moved where
 ```
 
 ---
@@ -377,7 +355,7 @@ Both firmware sets are built from every push, but they are **mutually exclusive*
 ### What you lose in dongle mode
 
 - ~~Caret mode~~ — **recovered.** It is not the driver's caret (that one only runs on a central), but a custom input processor, `zmk,input-processor-caret`, living in the vendored module. Processors run on whichever device holds the keymap, so on the dongle it works. Same logic as the driver's version, including the threshold-subtraction and axis-lock fixes. Threshold is `60` rather than `20`, because events arrive at 600 CPI here instead of the driver's 200 CPI snipe rate.
-- **Switching between 5 BT devices.** Inherent to a dongle: you are wired to one host. The `BT_layers` layer becomes pointless.
+- **Switching between 5 BT devices.** Inherent to a dongle: you are wired to one host. The Bluetooth keys on the FUN layer become pointless.
 - **ZMK Studio moves to the dongle**, since that is now the central. The right half no longer exposes it.
 - **Snipe becomes software scaling** rather than a hardware CPI change — the sensor's CPI cannot be set from the dongle. Speed has to be re-tuned.
 - **Scroll uses ZMK's stock X/Y-to-wheel mapper** instead of the driver's `SCROLL_TICK` accumulator. Also needs re-tuning.

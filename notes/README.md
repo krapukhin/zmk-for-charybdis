@@ -12,7 +12,9 @@
 | [`instruction.md`](instruction.md) | Инструкция продавца к Charybdis 4x6 (прошивка, сопряжение BT, замена свитчей, оригинальная раскладка с MO(1)/MO(2), DPI 2000) | Устарело: слои и CPI давно другие. Разделы про железо (замена свитчей, вход в бутлоадер) актуальны |
 | [`initial_prompt.md`](initial_prompt.md) | Черновик ТЗ на кастомизацию: 7 слоёв с `symbols_layer` и `hyper_layer`, home row mods A=Ctrl/S=Alt/…, встроенный драйвер Zephyr | Устарело: этих слоёв нет, home row mods убраны, драйвер вендорится локально |
 | [`cheatsheet.md`](cheatsheet.md) | ASCII-шпаргалка по раскладке (слои 0–4: QWERTY / SNIPE / SCROLL / F-KEYS / BLUETOOTH) | Устарело: соответствует ещё более ранней версии, чем `initial_prompt.md` |
-| [`check_keymap.py`](check_keymap.py) | Статическая проверка раскладки: 56 биндингов в слое, ссылки на слои, номера слоёв в overlay'ях обоих комплектов | **Актуально** — единственный живой файл здесь, запускать после правок keymap/overlay |
+| [`check_keymap.py`](check_keymap.py) | Статическая проверка раскладки: 56 биндингов в слое, ссылки на слои, номера слоёв в overlay'ях обоих комплектов, `#define` ↔ `display-name`, чистые буквы на BASE | **Актуально** — запускать после правок keymap/overlay |
+| [`LAYOUT_V2_PLAN.md`](LAYOUT_V2_PLAN.md) | План перехода на раскладку v2 (слои на больших пальцах) | **Актуально** как обоснование; отступления от него — в changelog |
+| [`LAYOUT_V2_CHANGELOG.md`](LAYOUT_V2_CHANGELOG.md) | Что ушло и куда при переходе на v2, отступления от плана, открытые вопросы | **Актуально** |
 
 Картинки из `instruction.md` лежат в [`../attachments/`](../attachments/) и используют
 синтаксис Obsidian `![[...]]` — они отображаются в Obsidian-vault, но не рендерятся на GitHub.
