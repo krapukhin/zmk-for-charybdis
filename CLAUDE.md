@@ -10,12 +10,12 @@ This is a ZMK firmware configuration for the Charybdis 4x6 split ergonomic keybo
 
 Builds are handled exclusively via **GitHub Actions** — there is no local build setup. Push changes to trigger a build, or use the "Run workflow" button on the Actions tab.
 
-The workflow (`build.yaml`) compiles three firmware artifacts:
-- `charybdis_left` — left half
-- `charybdis_right` — right half
-- `settings_reset` — used to clear pairing data before re-flashing
+The workflow (`build.yaml`) compiles **seven** artifacts — two mutually exclusive firmware sets plus resets:
+- Direct BLE set: `charybdis_left`, `charybdis_right` (right = central)
+- Dongle set: `charybdis_left_dongle`, `charybdis_right_dongle`, `charybdis_dongle` (XIAO = central)
+- `settings_reset` ×2 — one per board (`nice_nano` for halves, `xiao_ble` for the dongle); **not interchangeable**
 
-To flash: put the nice!nano into bootloader mode (double-tap reset), drag the `.uf2` file onto the mounted drive. **Always flash `settings_reset` to both halves first, then flash left/right firmware.**
+To flash: put the board into bootloader mode (double-tap reset), drag the `.uf2` file onto the mounted drive. **Always flash the matching `settings_reset` first.** Never mix halves from the two sets — their split roles differ. See the Dongle Variant section for the pairing order.
 
 ## Architecture
 
@@ -31,7 +31,8 @@ To flash: put the nice!nano into bootloader mode (double-tap reset), drag the `.
 | `config/boards/shields/charybdis/charybdis_right.conf` | Kconfig for right half: PMW3610 driver + acceleration settings |
 | `config/boards/shields/charybdis/charybdis.dtsi` | Shared Devicetree: matrix transform, kscan GPIO rows |
 | `config/charybdis.json` | Physical key layout definition consumed by ZMK Studio / keymap editors |
-| `zmk-pmw3610-driver-main/` | Vendored PMW3610 driver (local copy, not fetched via west) |
+| `zmk-pmw3610-driver-main/` | Vendored PMW3610 driver (local copy, not fetched via west). Also hosts two unrelated pieces that ride along because the module is already injected everywhere: `src/input_processor_caret.c` and `src/battery_log.c` |
+| `config/boards/shields/charybdis_dongle/` | Dongle variant shields — deliberately independent copies, see Dongle Variant section |
 
 Note: `zmk-for-charybdis-Charybdis_4x6 original/` at the repo root is a frozen copy of the original seller firmware, kept only as a reference for diffing against upstream defaults. It is not built and should not be edited.
 
@@ -146,6 +147,22 @@ There are now **two caret implementations**: the driver's (used by variant 1, ga
 
 Threshold differs between the two by design: the driver uses `CARET_TICK=20` at `SNIPE_CPI=200`, the processor uses `60` at the normal 600 CPI. Both land near 2.5 mm of ball travel per arrow.
 
+### Battery Level Logging on the Dongle
+
+Over USB there is no way to see the halves' charge: ZMK exposes battery via BAS, a Bluetooth service, so neither `bluetoothctl` nor `upower` show anything when the host talks to the dongle. `zmk-pmw3610-driver-main/src/battery_log.c` (enabled by `CONFIG_ZMK_BATTERY_LOG=y` in `charybdis_dongle.conf`) subscribes to `zmk_peripheral_battery_state_changed` and prints one INFO line per change, caching the last value per half so a single line always shows both: `BATTERY  0:24%  1:97%`. Read it with `cat /dev/ttyACM0` on the host the dongle is plugged into.
+
+Three non-obvious requirements, all documented inline in `charybdis_dongle.conf`:
+
+- **`CONFIG_ZMK_LOGGING_MINIMAL=y` is mandatory.** With USB logging on, ZMK defaults `ZMK_LOG_LEVEL` to DEBUG for everything, and the dongle then logs every pointer event at 125 Hz — the battery lines drown. `LOGGING_MINIMAL` suppresses ZMK's debug output; our module registers with an explicit `LOG_LEVEL_INF` so its lines survive.
+- **`ZMK_BATTERY_REPORTING` must stay enabled even though the dongle has no battery.** `app/CMakeLists.txt` gates `src/events/battery_state_changed.c` on it, and that file defines the event types both our logger and ZMK's own `split/central.c` link against. The dongle's own reading is nonsense (USB-powered ADC read 4148 mV → "94%"), so the self-battery subscription is behind `CONFIG_ZMK_BATTERY_LOG_SELF` and left off.
+- **`BATTERY_LEVEL_PROXY` is deliberately off.** It republishes charge as a separate BAS service — only useful if the dongle itself connects over BLE — and ZMK issue #3095 reports a build error when FETCHING and PROXY are both on with three or more split parts.
+
+**The right half's reading is bogus — do not act on it.** Verified 2026-09-15: the right half (`0` in the log) has reported 23–25 % continuously since at least Sept 3, through a full charge and through plugging USB straight into it. On USB it jumps to 100 % like the left, but within one 60 s report after unplugging it is back at ~24 % (≈ 3.64 V by ZMK's linear `lithium_ion_mv_to_pct`) — a real cell just off the charger sits at ≥ 4.1 V for hours. So its `VDDH` ADC responds to the charger but is not measuring the battery; most likely the controller in that half is a nice!nano clone whose power path isolates `VDDH` from the cell (the SuperMini family routes its divider to P0.24, a non-analog pin, so there is no firmware fix — only a solder mod). The left half (`1`) is honest: 96–100 % a week after a full charge. Treat the right half as having no charge indication, and charge both halves together. This also retires the earlier worry that `PERIPHERAL_PREF_LATENCY=0` was draining the right half to 24 % — that number was never a measurement.
+
+Index → side mapping is **not** left/right by construction: `zmk_ble_put_peripheral_addr()` in `split/bluetooth/central.c` pins a slot to the first bonded address and persists it in settings, so `0` is whichever half paired first after `settings_reset`. Here it happens to be the right; re-check after any re-pairing by plugging USB into one half and waiting ≥ 90 s (`ZMK_BATTERY_REPORT_INTERVAL=60`, and a line is printed only on change).
+
+Reading the log on this Linux host needs the dongle plugged **directly** into the machine — through DeskHop only HID is forwarded, the CDC ports never appear. The dongle enumerates two ACM ports (`if00` = log, `if03` = Studio RPC); the user is not in `dialout`, so `sudo timeout 60 cat /dev/ttyACM0`.
+
 ### ZMK Board Variant — Breaking Change
 
 ZMK introduced a board variant system. The nice_nano board must be specified as `nice_nano@2.0.0/nrf52840/zmk` in `build.yaml` (not just `nice_nano@2.0.0`). The `/zmk` variant sets `CONFIG_ZMK_BLE=y` which is required for split BLE. Without it, builds fail with linker errors about `ZMK_SPLIT_ROLE_CENTRAL`.
@@ -236,3 +253,31 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 - **Add/modify a layer**: add a new layer entry in `keymap {}` in `charybdis.keymap` and update the layer index references in the overlay if it's a trackball mode layer
 - **Toggle debug logging**: `CONFIG_ZMK_USB_LOGGING` and the log-level configs at the bottom of `charybdis_right.conf` — commented out by default. All three `LOG_DBG` calls in the driver sit inside `pmw3610_report_data()`, i.e. the 125 Hz hot path, so leaving DBG on costs a string format per poll while the ball moves. With `ZMK_LOG_LEVEL_DBG` off they are compiled out entirely. Re-enable only while debugging.
 - **Enable RGB underglow**: uncomment the `CONFIG_ZMK_RGB_UNDERGLOW` block in `config/charybdis.conf`
+
+## Architecture Decisions
+
+- 2026-09 Dongle variant lives in a **separate shield directory with duplicated matrix/layout**, not a shared dtsi with conditionals — a broken dongle build must not be able to reach the working direct-BLE build. (Dongle Variant section)
+- 2026-09 Caret on the dongle is a **custom input processor**, not the driver's caret — processors run on whichever device holds the keymap, which is the only place keycodes can be raised. Two implementations now coexist and must be kept in sync. (Dongle Variant section)
+- 2026-09 Battery visibility over USB is solved by a **tiny event-subscriber logging module** rather than the PROXY option — PROXY only helps over BLE and has a known 3-part build bug. (Battery Level Logging section)
+- 2026-08 Pointer speed below CPI's floor goes through **`&zip_xy_scaler` with `track-remainders`**, never `CPI_DIVIDOR` — the divisor truncates before the remainder accumulator and reintroduces slow-speed stiction. (Trackball CPI Settings section)
+- 2026-08 All three trackball accumulators (cursor remainder, scroll, caret) **subtract the threshold and carry the remainder** instead of zeroing — zeroing produced inverse acceleration, up to 77% loss on a fast flick. (Scroll Mode / Caret Mode sections)
+
+## Known Gotchas
+
+Most gotchas are documented where they bite, in the topical sections above. The ones most likely to be hit on the next edit:
+
+- **Layer numbers are duplicated in four places** and nothing checks them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working.
+- **A layer-scoped input processor cannot suppress an event by returning `ZMK_INPUT_PROC_STOP`** — `filter_with_input_config()` discards the override's return value. Zero `event->value` instead. (Dongle Variant section)
+- **`ZMK_KEYBOARD_NAME` must be ≤15 characters** — `BT_DEVICE_NAME_MAX` is 16 and the Zephyr assert is strict. "Charybdis Dongle" (16) fails to build with an opaque `_Static_assert` in `hci_core.c`.
+- **`zmk,input-split` nodes need a `splits { #address-cells=<1>; #size-cells=<0>; }` parent** — a `@0`/`reg=<0>` node directly under `/` fails at cmake with no useful message.
+- **CI's board-variant check produces a false error when the build fails earlier** — "board is not set up for ZMK" just means `.config` was never written. Look above `Configuring incomplete` for the real cause.
+- **Check DeskHop's own acceleration before tuning firmware** — a whole round of CPI tuning was spent cancelling out a second acceleration stage that lived in the KVM.
+
+## Current State
+
+- **Last completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
+- **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
+- **Trackball tuning currently:** `CPI=600`, accel `75/1400/600` quadratic, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `60` (dongle processor).
+- **Battery:** right half's reported charge is a constant ~24 % and not a measurement (see Battery Level Logging); only the left half's number is real.
+- **Working tree:** two old serial logs (`battery_charibdis.txt`, `battery log.txt`) are committed to the repo root and are cleanup candidates for `notes/`.
+- **Key files:** `build.yaml`, `config/charybdis.keymap`, `config/boards/shields/charybdis/charybdis_right.{overlay,conf}`, `config/boards/shields/charybdis_dongle/charybdis_dongle.{overlay,conf}`, `zmk-pmw3610-driver-main/src/{pmw3610.c,input_processor_caret.c,battery_log.c}`.
