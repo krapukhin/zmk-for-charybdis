@@ -165,7 +165,7 @@
     //   30 31 42 — клики H/J/N, иначе клик гасил бы слой под собой
     //   32 33    — K/L: держатели snipe/scroll (&mo на слое мыши)
     //   36 47    — LShift / RShift            -> shift+клик
-    //   24 49 50 53 — Alt(хол)/Esc, Alt, Ctrl, GUI -> alt/ctrl/cmd+клик
+    //   24 49 50 53 — Ctrl(хол)/Esc, Cmd, Ctrl, Alt -> ctrl/cmd/alt+клик
     // Space (48, 52) и Enter (55) намеренно НЕ исключены: нажал пробел — вернулся к печати.
     // Список продублирован в charybdis_dongle.overlay; check_keymap.py сверяет оба.
     excluded-positions = <24 30 31 32 33 36 42 47 49 50 53>;

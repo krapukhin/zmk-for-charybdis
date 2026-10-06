@@ -4,21 +4,13 @@
 #include <dt-bindings/zmk/pointing.h>
 
 &mt {
-    // Тап (Enter) уходит по ОТПУСКАНИЮ, хол (Ctrl) — после 200 мс удержания.
-    // Отложенность тапа неустранима: пока клавиша нажата, поведение не знает,
-    // тап это или хол. На практике отпускание наступает через ~50 мс, незаметно.
-
+    // Сейчас &mt — это Ctrl/Esc на мизинце (24) и RAlt/Enter (55).
+    // balanced: хол, если другая клавиша нажата И отпущена за время удержания —
+    // Ctrl+C перекатом срабатывает, а быстрый Esc -> буква остаётся Esc.
+    // Если Ctrl+C будет давать "Esc c" — flavor = "hold-preferred" (план, тюнинг).
+    flavor = "balanced";
     tapping-term-ms = <200>;
-    quick-tap-ms = <130>;   // тап + повторное нажатие в это окно = снова тап
-    // (нужно, чтобы Enter подряд не превращался в Ctrl)
-
-    flavor = "tap-preferred";
-
-    // require-prior-idle-ms НЕ задан намеренно. С ним тап разрешался мгновенно,
-    // если предыдущая клавиша была нажата <40 мс назад, и ждал отпускания в
-    // остальных случаях — Enter отзывался по-разному в зависимости от того, что
-    // было до него. Осталась только эта настройка у &lt ниже, там она к месту:
-    // защищает от случайного входа в слои трекбола при быстром наборе.
+    quick-tap-ms = <175>;   // тап + повтор в это окно = автоповтор тапа
 };
 
 &lt {
@@ -116,12 +108,12 @@
 
         QWERTY {
             bindings = <
-&kp GRAVE            &kp N1   &kp N2   &kp N3     &kp N4        &kp N5              &kp N6               &kp N7     &kp N8     &kp N9   &kp N0           &kp BACKSPACE
-&mt LCTRL TAB        &kp Q    &kp W    &kp E      &kp R         &kp T               &kp Y                &kp U      &kp I      &kp O    &kp P            &mt RIGHT_CONTROL LEFT_BRACKET
-&mt LEFT_ALT ESCAPE  &lt 5 A  &lt 3 S  &lt 2 D    &lt 5 F       &kp G               &kp H                &kp J      &lt 2 K    &lt 3 L  &lt 5 SEMICOLON  &mt RIGHT_ALT SQT
-&td_shift_l          &kp Z    &kp X    &kp C      &kp V         &lt 4 B             &kp N                &kp M      &kp COMMA  &kp DOT  &kp FSLH         &td_shift_r
-                                       &kp SPACE  &kp LEFT_ALT  &kp LEFT_CONTROL    &lt 8 BACKSPACE      &kp SPACE
-                                                  &kp LEFT_GUI  &mo 7               &mt RIGHT_ALT ENTER
+&kp GRAVE      &kp N1   &kp N2   &kp N3     &kp N4    &kp N5              &kp N6               &kp N7     &kp N8     &kp N9   &kp N0           &kp BACKSPACE
+&kp TAB        &kp Q    &kp W    &kp E      &kp R     &kp T               &kp Y                &kp U      &kp I      &kp O    &kp P            &kp LBKT
+&mt LCTRL ESC  &lt 5 A  &lt 3 S  &lt 2 D    &lt 5 F   &kp G               &kp H                &kp J      &lt 2 K    &lt 3 L  &lt 5 SEMICOLON  &kp SQT
+&td_shift_l    &kp Z    &kp X    &kp C      &kp V     &lt 4 B             &kp N                &kp M      &kp COMMA  &kp DOT  &kp FSLH         &td_shift_r
+                                 &kp SPACE  &kp LGUI  &kp LEFT_CONTROL    &lt 8 BACKSPACE      &kp SPACE
+                                            &kp LALT  &mo 7               &mt RIGHT_ALT ENTER
             >;
         };
 
