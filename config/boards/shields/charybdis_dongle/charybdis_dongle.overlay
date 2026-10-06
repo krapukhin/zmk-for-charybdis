@@ -160,7 +160,7 @@
      * арифметическое и от раскладки не зависит.
      *
      * Номера слоёв должны совпадать с config/charybdis.keymap:
-     *   1 = mouse_layer, 2 = snipe, 3 = scroll
+     *   1 = MOUSE, 2 = SNIPE, 3 = SCROLL, 4 = NAV (caret)
      */
     trackball_listener: trackball_listener {
         compatible = "zmk,input-listener";
@@ -206,7 +206,7 @@
         // Caret: движение шара -> стрелки. Процессор съедает событие, так что
         // курсор в этом режиме не двигается — как и в прямом BLE-режиме.
         caret_proc {
-            layers = <5>;
+            layers = <4>;   // NAV — удержание 50
             input-processors = <&zip_caret 60>;
         };
     };
@@ -215,5 +215,5 @@
 // Настройки авто-слоя мыши — идентичны основному варианту.
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <24 30 31 32 33 36 42 47 49 50 53>;
+    excluded-positions = <24 30 31 32 33 36 42 47 49 53>;
 };

@@ -58,9 +58,11 @@
         reg = <0>;
         spi-max-frequency = <2000000>;
         irq-gpios = <&gpio0 6 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        // Номера = SNIPE/SCROLL/NAV из #define в charybdis.keymap (сюда они не видны —
+        // overlay препроцессируется раньше keymap). check_keymap.py сверяет.
         scroll-layers = <3>;
         snipe-layers = <2>;
-        caret-layers = <5>;
+        caret-layers = <4>;   // NAV: удержание 50 + шар = текстовый курсор
         // automouse-layer драйвера намеренно НЕ включаем (default -1):
         // AML реализован через upstream &zip_temp_layer ниже, два сразу включать нельзя.
     };
@@ -165,8 +167,9 @@
     //   30 31 42 — клики H/J/N, иначе клик гасил бы слой под собой
     //   32 33    — K/L: держатели snipe/scroll (&mo на слое мыши)
     //   36 47    — LShift / RShift            -> shift+клик
-    //   24 49 50 53 — Ctrl(хол)/Esc, Cmd, Ctrl, Alt -> ctrl/cmd/alt+клик
+    //   24 49 53 — Ctrl(хол)/Esc, Cmd, Alt  -> ctrl/cmd/alt+клик
     // Space (48, 52) и Enter (55) намеренно НЕ исключены: нажал пробел — вернулся к печати.
+    // Слоевые большие пальцы (50 NAV, 51 SYM, 54 FUN, 55 NUM) тоже гасят слой мыши.
     // Список продублирован в charybdis_dongle.overlay; check_keymap.py сверяет оба.
-    excluded-positions = <24 30 31 32 33 36 42 47 49 50 53>;
+    excluded-positions = <24 30 31 32 33 36 42 47 49 53>;
 };

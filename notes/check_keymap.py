@@ -10,9 +10,10 @@
   * &zip_temp_layer и layer-scoped процессоры в charybdis_dongle.overlay.
 
 Дополнительно: в каждом слое ровно 56 биндингов, &lt/&mo/&tog/&to/&sl
-ссылаются на существующие слои, авто-слой мыши ниже режимов трекбола,
-automouse-layer драйвера выключен, excluded-positions одинаковы в обоих
-комплектах прошивки.
+ссылаются на существующие слои, #define совпадают с display-name слоёв,
+буквы базового слоя — чистые &kp, клавиша-держатель слоя прозрачна в нём,
+авто-слой мыши ниже режимов трекбола, automouse-layer драйвера выключен,
+excluded-positions одинаковы в обоих комплектах прошивки.
 
 Запуск из любого места:  python3 notes/check_keymap.py [корень репозитория]
 Код выхода 0 — всё сходится, 1 — есть ошибки (список печатается).
@@ -32,10 +33,14 @@ KEYS = 56
 # Переименовал слой (или это сделал keymap-editor[bot]) — поправь здесь.
 ROLE_LAYERS = {
     "mouse": "mouse_layer",
-    "snipe": "snipe-layers",
-    "scroll": "scroll-layers",
-    "caret": "caret_layer",
+    "snipe": "snipe_layer",
+    "scroll": "scroll_layer",
+    "caret": "nav_layer",
 }
+
+# Позиции букв и знаков препинания базового слоя: только чистые &kp, без
+# &lt/&mt — иначе буква уходит только по отпусканию («ватные» буквы).
+LETTER_POSITIONS = list(range(13, 23)) + list(range(25, 35)) + list(range(37, 47))
 
 # Свойства драйвера в charybdis_right.overlay -> роль.
 DRIVER_PROPS = {"snipe-layers": "snipe", "scroll-layers": "scroll", "caret-layers": "caret"}
@@ -143,6 +148,29 @@ for i, (name, _, tokens) in enumerate(layers):
             v = resolve(m.group(2), defines)
             if v is None or not 0 <= v < len(layers):
                 errors.append(f"keymap: слой {i} {name}, позиция {pos}: '{tok}' — нет такого слоя")
+
+# #define ИМЯ N должен указывать на слой с display-name ИМЯ на месте N.
+display = [dn for _, dn, _ in layers]
+for name, value in defines.items():
+    if name in display:
+        v = resolve(value, {})
+        if v is None or v >= len(layers) or display[v] != name:
+            got = display[v] if v is not None and v < len(layers) else "—"
+            errors.append(f"keymap: #define {name} {value}, но слой {value} — {got}; слой {name} стоит на {display.index(name)}")
+
+if layers:
+    base = layers[0][2]
+    bad = [f"{p}:{base[p]}" for p in LETTER_POSITIONS if p < len(base) and not base[p].startswith("&kp ")]
+    if bad:
+        errors.append(f"keymap: на буквенных позициях базового слоя не &kp: {bad}")
+
+# Клавиша, включающая слой, в самом этом слое должна быть &trans.
+for i, (name, _, tokens) in enumerate(layers):
+    for pos, tok in enumerate(tokens):
+        m = re.match(r"&(lt|mo)\s+(\S+)", tok)
+        v = resolve(m.group(2), defines) if m else None
+        if v is not None and 0 <= v < len(layers) and pos < len(layers[v][2]) and layers[v][2][pos] != "&trans":
+            errors.append(f"keymap: {name}[{pos}] '{tok}' включает слой {v}, а там на {pos} не &trans: {layers[v][2][pos]}")
 
 idx = {}
 for role, node in ROLE_LAYERS.items():
