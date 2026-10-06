@@ -32,22 +32,32 @@
     combos {
         compatible = "zmk,combos";
 
-        // Скобки — одновременное нажатие соседних клавиш
+        // Скобки — одновременное нажатие соседних клавиш.
+        //
+        // require-prior-idle-ms: комбо не срабатывает, если меньше 100 мс назад
+        // была нажата другая (не-модификатор) клавиша. Защита от ложных
+        // срабатываний при наборе: I+O — это английское "-tion", O+P — "op".
+        // Нужно «сделать паузу» перед комбо; Shift перед ним не мешает.
+        // timeout-ms 40 вместо 50: нажатия с разносом 40–50 мс теперь
+        // считаются перекатом двух букв, а не комбо.
 
         combo_rbrace {
-            timeout-ms = <50>;
+            timeout-ms = <40>;
+            require-prior-idle-ms = <100>;
             key-positions = <21 22>;  // O + P
             bindings = <&kp RBKT>;    // ]
         };
 
         combo_equal {
-            timeout-ms = <50>;
+            timeout-ms = <40>;
+            require-prior-idle-ms = <100>;
             key-positions = <20 21>;  // I + O
             bindings = <&kp EQUAL>;    // =
         };
 
         combo_minus {
-            timeout-ms = <50>;
+            timeout-ms = <40>;
+            require-prior-idle-ms = <100>;
             key-positions = <19 20>;  // U + I
             bindings = <&kp MINUS>;    // -
         };
