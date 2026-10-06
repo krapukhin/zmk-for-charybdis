@@ -36,7 +36,7 @@ To flash: put the board into bootloader mode (double-tap reset), drag the `.uf2`
 
 Note: `zmk-for-charybdis-Charybdis_4x6 original/` at the repo root is a frozen copy of the original seller firmware, kept only as a reference for diffing against upstream defaults. It is not built and should not be edited.
 
-Note: `notes/` holds archived historical docs (seller manual, early spec drafts, an old ASCII cheatsheet). They describe earlier keymap revisions and are **not** accurate for the current firmware — see `notes/README.md`. Don't cite them as current behaviour; the hardware sections of `notes/instruction.md` (flashing, switch replacement) do still apply.
+Note: `notes/` holds archived historical docs (seller manual, early spec drafts, an old ASCII cheatsheet). They describe earlier keymap revisions and are **not** accurate for the current firmware — see `notes/README.md`. Don't cite them as current behaviour; the hardware sections of `notes/instruction.md` (flashing, switch replacement) do still apply. The one live file there is `notes/check_keymap.py` (see Known Gotchas).
 
 Note: comments in `charybdis.keymap` and the `.conf` files are written in a mix of Russian and (occasionally) Chinese — expect this when grepping for context rather than assuming English-only comments.
 
@@ -266,7 +266,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 
 Most gotchas are documented where they bite, in the topical sections above. The ones most likely to be hit on the next edit:
 
-- **Layer numbers are duplicated in four places** and nothing checks them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working.
+- **Layer numbers are duplicated in four places** and the build does not check them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working. **Run `python3 notes/check_keymap.py` after any keymap or overlay edit and after pulling a bot commit** — it cross-checks all four, plus 56 bindings per layer, `&lt`/`&mo` targets, mouse-below-modes and identical `excluded-positions` in both sets. Which keymap layer plays which trackball role is matched by node name (`ROLE_LAYERS` at the top of the script) — update that table if a layer is renamed.
 - **A layer-scoped input processor cannot suppress an event by returning `ZMK_INPUT_PROC_STOP`** — `filter_with_input_config()` discards the override's return value. Zero `event->value` instead. (Dongle Variant section)
 - **`ZMK_KEYBOARD_NAME` must be ≤15 characters** — `BT_DEVICE_NAME_MAX` is 16 and the Zephyr assert is strict. "Charybdis Dongle" (16) fails to build with an opaque `_Static_assert` in `hci_core.c`.
 - **`zmk,input-split` nodes need a `splits { #address-cells=<1>; #size-cells=<0>; }` parent** — a `@0`/`reg=<0>` node directly under `/` fails at cmake with no useful message.
