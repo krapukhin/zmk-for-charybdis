@@ -102,7 +102,7 @@ Trackball motion automatically raises layer 1 (`mouse_layer`: H = right click, J
 
 **Invariant — do not break this:** the auto mouse layer's index must stay **lower** than `snipe`/`scroll`/`caret`. The vendored driver picks the trackball mode from `zmk_keymap_highest_layer_active()` (`get_input_mode_for_current_layer()` in `pmw3610.c`) — *only* the topmost active layer. Give the mouse layer a higher index and holding `L` for scroll (or NAV for caret) leaves the mouse layer on top, so the driver never leaves MOVE mode and scroll/snipe/caret silently stop working while the ball is moving. Nothing fails at build time; it only shows up in the hand. The same trap applies to the driver's own `automouse-layer` property, which is deliberately left disabled (`-1`).
 
-`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks (30 H, 31 J, 42 N), the snipe/scroll holders (32 K, 33 L), both Shifts (36, 47) and Ctrl/Esc (24), Cmd (49), Alt (53) — so shift/cmd/ctrl/alt-click survive. **K and L must stay in the list:** otherwise pressing them dismisses the mouse layer before `&mo` resolves, and the key types a letter. The layer thumbs (50/51/54/55), Space and Enter deliberately dismiss it. The list is duplicated in `charybdis_dongle.overlay`; `check_keymap.py` compares the two.
+`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks (30 H, 31 J, 42 N), the snipe/scroll holders (32 K, 33 L), both Shifts (36, 47) and Ctrl/Esc (24), Cmd (49), Alt (53) — so shift/cmd/ctrl/alt-click survive. **K and L must stay in the list:** otherwise pressing them dismisses the mouse layer before `&mo` resolves, and the key types a letter. The layer thumbs (50/54/55), Backspace/Hyper (51), Space and Enter deliberately dismiss it. The list is duplicated in `charybdis_dongle.overlay`; `check_keymap.py` compares the two.
 
 **Clicks are duplicated on SNIPE and SCROLL, deliberately.** The snipe override (and the dongle's scroll/caret overrides) has no `process-next`, so while it is active `&zip_temp_layer` does not run and its timer is not refreshed — after 0.8 s of aiming the mouse layer drops. Without its own H/J/N clicks, J under a held K would then type `j`. Do not "simplify" those layers to all-`&trans`.
 
@@ -180,9 +180,8 @@ Layout v2 (Oct 2026, branch `layout-v2`). Indices are `#define`d at the top of `
 | 2 | SNIPE | hold K while MOUSE is up | slow cursor; only H/J/N clicks, rest `&trans` |
 | 3 | SCROLL | hold L while MOUSE is up | ball → wheel; only H/J/N clicks, rest `&trans` |
 | 4 | NAV | hold 50 (left thumb, tap = Tab) | arrows on HJKL, Home/PgDn/PgUp/End above, Cmd/Opt+arrow below; S/D/F = Alt/Cmd/Shift; **ball = caret** |
-| 5 | SYM | hold 51 (right thumb, tap = Backspace) | brackets/operators left hand; `&` `\|` `\` `%` `` ` `` `-` `#` `@` `!` `$` right; macros `->` `:=` on N/M |
-| 6 | NUM | hold 55 (right thumb, tap = Enter) | numpad left (W E R / S D F / X C V = 7 8 9 / 4 5 6 / 1 2 3), mods right |
-| 7 | FUN | hold 54 (left thumb, tap = `LANG_KEY`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, `&bootloader` (Z, left half only), `&studio_unlock` |
+| 5 | NUM | hold 55 (right thumb, tap = Enter) | numpad left (W E R / S D F / X C V = 7 8 9 / 4 5 6 / 1 2 3), mods right |
+| 6 | FUN | hold 54 (left thumb, tap = `LANG_KEY`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, `&bootloader` (Z, left half only), `&studio_unlock` |
 
 **Invariants (all checked by `notes/check_keymap.py`):**
 - MOUSE (1) is below SNIPE/SCROLL/NAV — see Auto Mouse Layer.
@@ -196,12 +195,14 @@ Layout v2 (Oct 2026, branch `layout-v2`). Indices are `#define`d at the top of `
 ### Thumb Keys, Modifiers, Shift
 
 ```
-left thumbs:  48 Space   49 Cmd   50 NAV/Tab        right thumbs: 51 SYM/Bspc   52 Space
+left thumbs:  48 Space   49 Cmd   50 NAV/Tab        right thumbs: 51 Bspc/Hyper 52 Space
               53 Alt     54 FUN/LANG_KEY                          55 NUM/Enter
 outer column: 12 Tab, 24 Ctrl/Esc (&mt), 36/47 Shift (tap-dance); 23 = [, 35 = ' (no right-hand mods)
 ```
 
-- `&lt` (thumbs only): `balanced`, `tapping-term-ms=200`, `quick-tap-ms=175`, **no `require-prior-idle-ms`** — with it, SYM pressed right after a letter would resolve as a Backspace tap instead of the layer. The old value 40 was there for layer-taps on letters, which no longer exist.
+- `&lt` (thumbs only): `balanced`, `tapping-term-ms=200`, `quick-tap-ms=175`, **no `require-prior-idle-ms`** — with it, a layer thumb pressed right after a letter would resolve as its tap (Tab/Enter) instead of the layer. The old value 40 was there for layer-taps on letters, which no longer exist.
+- 51 is `hyper_bspc` (own hold-tap): tap = Backspace, hold = **Hyper** (`#define HYPER LS(LA(LC(LGUI)))` = Ctrl+Alt+Shift+Super), used for app-launch shortcuts — Hyper+T etc. as custom shortcuts in GNOME on Ubuntu, BetterTouchTool on the Mac. Not Right Alt: on this Ubuntu `Alt_R` and `Alt_L` are both `mod1`, GNOME cannot tell them apart, so RAlt+T would also fire from the left Alt (53) and clash with Alt+letter menu mnemonics. Unlike the layer thumbs it **does** have `require-prior-idle-ms = 150`: Backspace right after a letter resolves instantly as Backspace (and auto-repeats if held), so a typing roll cannot turn into Hyper+letter and launch an app. A modifier-keycode base (LGUI) makes ZMK treat all four mods as explicit, so they stay held while the next key is pressed.
+- The Ubuntu machine has `ctrl:swap_lwin_lctl` in its XKB options (so the keyboard's Cmd on 49 acts as Ctrl there, Mac-style). Hyper contains both, so it is unaffected.
 - `&mt` (only 24 Ctrl/Esc): `balanced`, 200, 175. If Ctrl+C rolls come out as `Esc c`, switch to `hold-preferred`.
 - Shifts are `td_shift_l`/`td_shift_r` tap-dances: hold or with another key = Shift (resolves immediately on interrupt), double tap = `&caps_word`. A lone held Shift reaches the host after 200 ms.
 - `LANG_KEY` is `LC(SPACE)` — macOS "previous input source". The keyboard is also used with Ubuntu via DeskHop, where the default is Super+Space; change the one `#define` if needed.
@@ -264,6 +265,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 
 ## Architecture Decisions
 
+- 2026-10 SYM layer dropped after a day of use — symbols are typed from their touch-typing positions (Shift + number row, NUM). Its thumb (51) became Backspace/**Hyper** for app-launch shortcuts; Hyper rather than Right Alt because Linux cannot tell left and right Alt apart. (Thumb Keys section)
 - 2026-10 Layout v2: **layer-taps moved off letters onto the thumbs**; snipe/scroll became `&mo` inside the auto mouse layer (hold K/L), caret moved to NAV. Typing never waits on a hold-tap decision anymore. Rollout was staged (combos/Caps Word → K/L on MOUSE → mods → layers) so each step could be got used to. (Layer Map / Thumb Keys sections)
 
 - 2026-09 Dongle variant lives in a **separate shield directory with duplicated matrix/layout**, not a shared dtsi with conditionals — a broken dongle build must not be able to reach the working direct-BLE build. (Dongle Variant section)
@@ -285,7 +287,8 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 
 ## Current State
 
-- **In progress (Oct 2026): layout v2 on branch `layout-v2`**, plan in `notes/LAYOUT_V2_PLAN.md`, what moved where in `notes/LAYOUT_V2_CHANGELOG.md`. Stage 1 (combo idle guard, Caps Word, `\` combo) is flashed and in use. Stages 2–4 (K/L snipe/scroll on MOUSE, Mac-style mods, thumb layers + renumbering) are committed and pass `check_keymap.py`, **not yet built in CI or tried on hardware**. Flashing stage 4 needs `settings_reset` on every device of the set (layer count 9 → 8). `Charybdis_4x6` stays the rollback firmware; merge via PR after about a week of use.
+- **Layout v2 is merged into `Charybdis_4x6`** (Oct 2026) and in use on the dongle set; plan in `notes/LAYOUT_V2_PLAN.md`, what moved where in `notes/LAYOUT_V2_CHANGELOG.md`. Rollback point = `6fe26fa` (last commit before v2). Follow-up: SYM layer removed, 51 = Backspace/Hyper (7 layers now).
+- **Next on the host side:** Hyper+letter app-launch shortcuts on Ubuntu — GNOME custom shortcuts to start with, the "Run or raise" extension if focus-or-launch is wanted.
 - **Open questions for layout v2:** middle click on N (kept) vs M (plan); `LANG_KEY` for Ubuntu (plan's Ctrl+Space is a macOS shortcut); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
 - **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.

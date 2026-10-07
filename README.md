@@ -114,7 +114,7 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 
 **3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and its timer isn't refreshed — after 0.8 s of careful aiming the mouse layer is gone. If the snipe layer were all-transparent, `J` under a held `K` would then type `j`. So snipe and scroll carry their own `H`/`J`/`N` clicks.
 
-**4. No `require-prior-idle-ms` on the thumb layer-taps.** It is great for layer-taps on letters, but on a thumb it means "if a letter was typed just before, resolve as tap": hold SYM right after a letter and you get a Backspace instead of the symbol layer.
+**4. No `require-prior-idle-ms` on the thumb layer-taps.** It is great for layer-taps on letters, but on a thumb it means "if a letter was typed just before, resolve as tap": hold NUM right after a letter and you get an Enter instead of the number layer. (The Backspace/Hyper thumb is the deliberate exception — there, resolving as Backspace right after typing is exactly what you want.)
 
 ### How to add this to your own ZMK trackball build
 
@@ -147,8 +147,9 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 
 ## Features
 
-- **8 layers, all on the thumbs** — BASE, auto mouse, snipe, scroll, NAV, SYM, NUM, FUN. No layer-taps or mod-taps on letters, so typing never waits on a hold-tap decision
+- **7 layers, all on the thumbs** — BASE, auto mouse, snipe, scroll, NAV, NUM, FUN. No layer-taps or mod-taps on letters, so typing never waits on a hold-tap decision
 - **Mac-style modifiers** — Cmd under the left thumb, Ctrl/Esc on the left pinky, Shift on both pinkies; double-tap Shift for Caps Word
+- **Hyper key** on the right thumb (hold Backspace) for app-launch shortcuts
 - **Pointer acceleration** — plateau-style acceleration in the PMW3610 driver
 - **4 trackball modes** — normal cursor, scroll wheel, precision snipe, and text caret
 - **Auto mouse layer** — moving the ball raises a click layer automatically; hold `K`/`L` on it for snipe/scroll
@@ -175,8 +176,8 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 ├──────┼──────┼──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┼──────┼──────┼──────┤
 │SHIFT*│  Z   │  X   │  C   │  V   │  B   │       │  N   │  M   │  ,   │  .   │  /   │SHIFT*│
 └──────┴──────┴──────┼──────┼──────┼──────┤       ├──────┼──────┼──────┴──────┴──────┴──────┘
-                     │SPACE │ CMD  │ NAV  │       │ SYM  │SPACE │
-                     │      │      │ /TAB │       │/BKSP │      │
+                     │SPACE │ CMD  │ NAV  │       │ BKSP │SPACE │
+                     │      │      │ /TAB │       │/HYPR │      │
                      └──────┼──────┼──────┤       ├──────┼──────┘
                             │ ALT  │ FUN  │       │ NUM  │
                             │      │/LANG │       │/ENTR │
@@ -184,13 +185,15 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 ```
 
 - `CTL/ES` — hold = Ctrl, tap = Esc. `SHIFT*` — hold = Shift, double tap = Caps Word (`MY_CONST`, a space ends it).
-- `NAV/TAB`, `SYM/BKSP`, `FUN/LANG`, `NUM/ENTR` — hold = layer, tap = the key. `LANG` is `Ctrl+Space` (macOS: previous input source); it is one `#define LANG_KEY` in the keymap.
+- `NAV/TAB`, `FUN/LANG`, `NUM/ENTR` — hold = layer, tap = the key.
+- `BKSP/HYPR` — tap = Backspace, hold = Hyper (Ctrl+Alt+Shift+Super) for app-launch shortcuts such as Hyper+T. Right after typing a letter it is always Backspace, so a fast roll cannot launch an app. `LANG` is `Ctrl+Space` (macOS: previous input source); it is one `#define LANG_KEY` in the keymap.
 - Cmd (left thumb) + Space (right thumb) = Spotlight, as on a Mac.
 - The auto mouse layer is not on any key — the trackball raises it.
 
 ### Thumb keys and tap/hold tuning
 
-- Layer thumbs (`&lt`): `balanced` flavor, `tapping-term-ms = 200`, `quick-tap-ms = 175` (tap then hold = auto-repeat of Backspace/Enter), no `require-prior-idle-ms` (see trap 4 above).
+- Layer thumbs (`&lt`): `balanced` flavor, `tapping-term-ms = 200`, `quick-tap-ms = 175` (tap then hold = auto-repeat of Tab/Enter), no `require-prior-idle-ms` (see trap 4 above).
+- Backspace/Hyper (`hyper_bspc`): same, plus `require-prior-idle-ms = 150`. To repeat Backspace after a pause: tap, then press and hold.
 - Ctrl/Esc (`&mt`): `balanced`, 200, 175. If Ctrl+C sometimes comes out as `Esc c`, switch it to `hold-preferred`.
 
 ### Combos (simultaneous keypresses)
@@ -203,7 +206,7 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 | `[` + `'` | `\` | gives `ё` in the macOS "Russian" layout |
 | `` ` `` + `BKSP` | ZMK Studio unlock | Lets ZMK Studio write keymap changes over USB |
 
-The four symbol combos need a short pause before them: they don't fire within 100 ms of another (non-modifier) key, so rolls like `-tion` or `stop` stay letters. All combos work on the base layer only — not while NAV/SYM/… or the auto mouse layer is on top.
+The four symbol combos need a short pause before them: they don't fire within 100 ms of another (non-modifier) key, so rolls like `-tion` or `stop` stay letters. All combos work on the base layer only — not while NAV/NUM/FUN or the auto mouse layer is on top.
 
 ### Layer Reference
 
@@ -214,9 +217,8 @@ The four symbol combos need a short pause before them: they don't fire within 10
 | 2 | SNIPE | Hold `K` while the mouse layer is up | Precision cursor; clicks stay on `H`/`J`/`N` |
 | 3 | SCROLL | Hold `L` while the mouse layer is up | Ball → scroll wheel; clicks stay on `H`/`J`/`N` |
 | 4 | **NAV** | Hold left thumb 50 (tap = Tab) | Arrows on HJKL, Home/End/PgUp/PgDn, word/line jumps; **ball moves the text cursor** |
-| 5 | SYM | Hold right thumb 51 (tap = Backspace) | Brackets and operators, `->` and `:=` macros |
-| 6 | NUM | Hold right thumb 55 (tap = Enter) | Numpad on the left hand, modifiers on the right |
-| 7 | FUN | Hold left thumb 54 (tap = language) | F1–F12, Bluetooth, media, brightness, bootloader |
+| 5 | NUM | Hold right thumb 55 (tap = Enter) | Numpad on the left hand, modifiers on the right |
+| 6 | FUN | Hold left thumb 54 (tap = language) | F1–F12, Bluetooth, media, brightness, bootloader |
 
 ### Trackball Modes
 
@@ -252,18 +254,6 @@ The four symbol combos need a short pause before them: they don't fire within 10
 ```
 
 ``⌘` `` next window, `⌘⇧[` / `⌘⇧]` previous / next tab. `⌥⌫` deletes a word, `⌘⌫` the line up to the cursor. Home sits above ←, End above →, PgDn above ↓, PgUp above ↑; the row below jumps by line (⌘←/⌘→) and word (⌥←/⌥→).
-
-### SYM Layer (hold right thumb 51)
-
-```
-┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
-│    │ ~  │ {  │ [  │ ]  │ }  │  │ &  │ |  │ \  │ %  │ `  │    │
-├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │ :  │ _  │ (  │ )  │ =  │  │ -  │ #  │ @  │ !  │ $  │    │
-├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │ |  │ <  │ >  │ *  │ +  │  │ -> │ := │    │    │    │    │
-└────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
-```
 
 ### NUM Layer (hold right thumb 55)
 
