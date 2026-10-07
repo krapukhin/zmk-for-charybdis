@@ -216,9 +216,9 @@ The four symbol combos need a short pause before them: they don't fire within 10
 | 1 | **MOUSE** | **Automatic** — moving the trackball | Clicks on `H`/`J`/`N`, hold `K` = snipe, hold `L` = scroll; drops 800 ms after the ball stops |
 | 2 | SNIPE | Hold `K` while the mouse layer is up | Precision cursor; clicks stay on `H`/`J`/`N` |
 | 3 | SCROLL | Hold `L` while the mouse layer is up | Ball → scroll wheel; clicks stay on `H`/`J`/`N` |
-| 4 | **NAV** | Hold left thumb 50 (tap = Tab) | Arrows on HJKL, Home/End/PgUp/PgDn, word/line jumps; **ball moves the text cursor** |
+| 4 | **NAV** | Hold left thumb 50 (tap = Tab) | Arrows on HJKL, Home/End/PgUp/PgDn, word jumps, tabs, window tiling, VS Code back/forward; **ball moves the text cursor** |
 | 5 | NUM | Hold right thumb 55 (tap = Enter) | Numpad on the left hand, modifiers on the right |
-| 6 | FUN | Hold left thumb 54 (tap = language) | F1–F12, Bluetooth, media, brightness, bootloader |
+| 6 | FUN | Hold left thumb 54 (tap = language) | F1–F12, Bluetooth, media, brightness, Print Screen, bootloader |
 
 ### Trackball Modes
 
@@ -242,18 +242,23 @@ The four symbol combos need a short pause before them: they don't fire within 10
 
 ### NAV Layer (hold left thumb 50)
 
+Shortcuts are written for **Ubuntu**, where the keyboard is used most of the time (GNOME has `ctrl:swap_lwin_lctl`, so the keymap sends them through `U_CTRL()` / `U_SUPER()` macros).
+
 ```
 ┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
-│    │ ⌘` │⌘⇧[ │⌘⇧] │    │    │  │Home│PgDn│PgUp│End │ ⌥⌫ │ ⌘⌫ │
+│    │Win`│Tab←│Tab→│    │    │  │Home│PgDn│PgUp│End │^⌫  │^Del│
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │    │ ⌥  │ ⌘  │ ⇧  │    │  │ ←  │ ↓  │ ↑  │ →  │Del │    │
+│    │Back│Alt │Ctrl│Shft│Fwd │  │ ←  │ ↓  │ ↑  │ →  │Del │    │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │    │    │    │    │    │  │ ⌘← │ ⌥← │ ⌥→ │ ⌘→ │    │    │
+│    │Win←│Max │Win→│Mon←│Mon→│  │^Hom│ ^← │ ^→ │^End│    │    │
 └────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
                          ball = text cursor (caret mode)
 ```
 
-``⌘` `` next window, `⌘⇧[` / `⌘⇧]` previous / next tab. `⌥⌫` deletes a word, `⌘⌫` the line up to the cursor. Home sits above ←, End above →, PgDn above ↓, PgUp above ↑; the row below jumps by line (⌘←/⌘→) and word (⌥←/⌥→).
+- Right hand: arrows on HJKL; Home / PgDn / PgUp / End above them; below — start of file, word left, word right, end of file. `^⌫` / `^Del` delete a word left / right.
+- ``Win` `` — next window of the same app (Super+`` ` ``). `Tab←` / `Tab→` previous / next tab (Ctrl+PgUp / PgDn — Chrome, VS Code, WezTerm). `Back` / `Fwd` — VS Code go back / forward (Ctrl+Alt+- / Ctrl+Shift+-).
+- `Alt` / `Ctrl` / `Shft` are held with the ball: Shift + ball selects text, Ctrl + ball jumps by words, Alt + ball in VS Code moves lines up/down.
+- `Win←` / `Win→` tile the window to the left / right half, `Max` toggles maximize, `Mon←` / `Mon→` move it to the left / right monitor.
 
 ### NUM Layer (hold right thumb 55)
 
@@ -276,7 +281,7 @@ Thumbs on NUM: `0` (48), `-` (49), `.` (53).
 ┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐
 │ F1 │ F2 │ F3 │ F4 │ F5 │ F6 │  │ F7 │ F8 │ F9 │F10 │F11 │F12 │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
-│    │BT0 │BT1 │BT2 │BT3 │BT4 │  │Prev│Play│Next│Vol-│Vol+│    │
+│    │BT0 │BT1 │BT2 │BT3 │BT4 │  │Prev│Play│Next│Vol-│Vol+│PrSc│
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
 │    │CLR*│    │CLR │    │BT→ │  │Bri-│Bri+│Mute│    │    │    │
 ├────┼────┼────┼────┼────┼────┤  ├────┼────┼────┼────┼────┼────┤
@@ -284,7 +289,7 @@ Thumbs on NUM: `0` (48), `-` (49), `.` (53).
 └────┴────┴────┴────┴────┴────┘  └────┴────┴────┴────┴────┴────┘
 ```
 
-`BT0`–`BT4` select a Bluetooth profile, `BT→` next profile, `CLR` clears the current profile, **`CLR*` clears all pairings**. `Boot` puts the *left* half into the bootloader (the key lives on the left half); `Stud` is ZMK Studio unlock.
+`BT0`–`BT4` select a Bluetooth profile, `BT→` next profile, `CLR` clears the current profile, **`CLR*` clears all pairings**. `PrSc` is Print Screen (GNOME's screenshot UI). `Boot` puts the *left* half into the bootloader (the key lives on the left half); `Stud` is ZMK Studio unlock.
 
 ---
 

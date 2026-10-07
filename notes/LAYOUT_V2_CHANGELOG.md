@@ -77,9 +77,28 @@
 - 51: тап — Backspace, удержание — **Hyper** (Ctrl+Alt+Shift+Super) под запуск приложений (Hyper+T → Telegram и т.п.). Отдельный hold-tap `hyper_bspc` с `require-prior-idle-ms = 150`: сразу после буквы — всегда Backspace.
 - Почему не правый Alt, как в BetterTouchTool на маке: на Ubuntu `Alt_R` и `Alt_L` — один модификатор (`mod1`), GNOME их не различает; RAlt+T срабатывал бы и от левого Alt и конфликтовал с Alt-мнемониками меню.
 
+## NAV под Ubuntu, окна, Print Screen (октябрь 2026)
+
+DeskHop заменён обычным KVM, клавиатура ~95 % времени на Ubuntu. Слой NAV был задуман под macOS и на Ubuntu (с её `ctrl:swap_lwin_lctl`) делал не то: ⌘←/→ прыгали по словам, ⌥←/→ в Chrome листали историю, ⌘` открывал терминал VS Code, ⌘⇧[ ] сворачивали код.
+
+| Клавиша NAV | Было (macOS) | Стало (Ubuntu) |
+|---|---|---|
+| Q | ⌘` следующее окно | Super+` — следующее окно той же программы |
+| W / E | ⌘⇧[ / ⌘⇧] вкладки | Ctrl+PgUp / Ctrl+PgDn — вкладка назад / вперёд |
+| A / G | — | VS Code: назад / вперёд по коду (Ctrl+Alt+- / Ctrl+Shift+-) |
+| P / [ | ⌥⌫ / ⌘⌫ | Ctrl+Backspace / Ctrl+Delete — удалить слово влево / вправо |
+| N , M , ',' , . | ⌘← ⌥← ⌥→ ⌘→ | Ctrl+Home, Ctrl+←, Ctrl+→, Ctrl+End |
+| Z / X / C | — | окно влево / развернуть-восстановить / вправо (Super+←, Alt+F10, Super+→) |
+| V / B | — | окно на левый / правый монитор (Super+Shift+← / →) |
+
+FUN + `[` — Print Screen (раньше в раскладке её не было вовсе; P занята Vol+).
+
+В keymap сочетания для Ubuntu записаны через `U_CTRL()` / `U_SUPER()`: из-за обмена Ctrl/Win клавиатурный Cmd приходит в Ubuntu как Ctrl, а Ctrl — как Super.
+
 ## Открытые вопросы
 
-- `LANG_KEY` = Ctrl+Space — шорткат macOS. На Ubuntu (через DeskHop) по умолчанию Super+Space.
+- ~~`LANG_KEY` на Ubuntu~~ — работает: из-за обмена Ctrl/Win Ubuntu видит Super+Space, это её переключение раскладки.
+- Ускорение мыши в GNOME (`accel-profile 'default'`) теперь складывается с ускорением в прошивке — DeskHop его больше не обходит.
 - Средняя кнопка: N или M.
 - Шорткаты Hyper+буква на Ubuntu ещё не настроены.
 - Комбо ограничены `layers = <BASE>` — пока поднят авто-слой мыши (0.8 с после движения шара), они не срабатывают.

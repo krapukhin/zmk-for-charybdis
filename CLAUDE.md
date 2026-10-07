@@ -163,7 +163,7 @@ Three non-obvious requirements, all documented inline in `charybdis_dongle.conf`
 
 Index → side mapping is **not** left/right by construction: `zmk_ble_put_peripheral_addr()` in `split/bluetooth/central.c` pins a slot to the first bonded address and persists it in settings, so `0` is whichever half paired first after `settings_reset`. Here it happens to be the right; re-check after any re-pairing by plugging USB into one half and waiting ≥ 90 s (`ZMK_BATTERY_REPORT_INTERVAL=60`, and a line is printed only on change).
 
-Reading the log on this Linux host needs the dongle plugged **directly** into the machine — through DeskHop only HID is forwarded, the CDC ports never appear. The dongle enumerates two ACM ports (`if00` = log, `if03` = Studio RPC); the user is not in `dialout`, so `sudo timeout 60 cat /dev/ttyACM0`.
+Reading the log on this Linux host needs the dongle plugged **directly** into the machine — through a KVM (DeskHop earlier, a plain KVM since Oct 2026) only HID is typically forwarded, the CDC ports never appear. The dongle enumerates two ACM ports (`if00` = log, `if03` = Studio RPC); the user is not in `dialout`, so `sudo timeout 60 cat /dev/ttyACM0`.
 
 ### ZMK Board Variant — Breaking Change
 
@@ -179,9 +179,9 @@ Layout v2 (Oct 2026, branch `layout-v2`). Indices are `#define`d at the top of `
 | 1 | MOUSE | **automatic** — ball motion (`&zip_temp_layer 1 800`) | H/J/N clicks, `&mo SNIPE` on K, `&mo SCROLL` on L |
 | 2 | SNIPE | hold K while MOUSE is up | slow cursor; only H/J/N clicks, rest `&trans` |
 | 3 | SCROLL | hold L while MOUSE is up | ball → wheel; only H/J/N clicks, rest `&trans` |
-| 4 | NAV | hold 50 (left thumb, tap = Tab) | arrows on HJKL, Home/PgDn/PgUp/End above, Cmd/Opt+arrow below; S/D/F = Alt/Cmd/Shift; **ball = caret** |
+| 4 | NAV | hold 50 (left thumb, tap = Tab) | **Ubuntu-native.** Right: arrows on HJKL, Home/PgDn/PgUp/End above, file start / word ← / word → / file end below, P/[ = delete word left/right, ; = Del. Left: Q next window of the app, W/E tab prev/next, A/G VS Code back/forward, S/D/F = Alt/Ctrl/Shift, Z/X/C window left / toggle maximize / right, V/B window to left/right monitor. **Ball = caret** |
 | 5 | NUM | hold 55 (right thumb, tap = Enter) | numpad left (W E R / S D F / X C V = 7 8 9 / 4 5 6 / 1 2 3), mods right |
-| 6 | FUN | hold 54 (left thumb, tap = `LANG_KEY`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, `&bootloader` (Z, left half only), `&studio_unlock` |
+| 6 | FUN | hold 54 (left thumb, tap = `LANG_KEY`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, Print Screen on `[`, `&bootloader` (Z, left half only), `&studio_unlock` |
 
 **Invariants (all checked by `notes/check_keymap.py`):**
 - MOUSE (1) is below SNIPE/SCROLL/NAV — see Auto Mouse Layer.
@@ -202,10 +202,10 @@ outer column: 12 Tab, 24 Ctrl/Esc (&mt), 36/47 Shift (tap-dance); 23 = [, 35 = '
 
 - `&lt` (thumbs only): `balanced`, `tapping-term-ms=200`, `quick-tap-ms=175`, **no `require-prior-idle-ms`** — with it, a layer thumb pressed right after a letter would resolve as its tap (Tab/Enter) instead of the layer. The old value 40 was there for layer-taps on letters, which no longer exist.
 - 51 is `hyper_bspc` (own hold-tap): tap = Backspace, hold = **Hyper** (`#define HYPER LS(LA(LC(LGUI)))` = Ctrl+Alt+Shift+Super), used for app-launch shortcuts — Hyper+T etc. as custom shortcuts in GNOME on Ubuntu, BetterTouchTool on the Mac. Not Right Alt: on this Ubuntu `Alt_R` and `Alt_L` are both `mod1`, GNOME cannot tell them apart, so RAlt+T would also fire from the left Alt (53) and clash with Alt+letter menu mnemonics. Unlike the layer thumbs it **does** have `require-prior-idle-ms = 150`: Backspace right after a letter resolves instantly as Backspace (and auto-repeats if held), so a typing roll cannot turn into Hyper+letter and launch an app. A modifier-keycode base (LGUI) makes ZMK treat all four mods as explicit, so they stay held while the next key is pressed.
-- The Ubuntu machine has `ctrl:swap_lwin_lctl` in its XKB options (so the keyboard's Cmd on 49 acts as Ctrl there, Mac-style). Hyper contains both, so it is unaffected.
+- **The keyboard is used ~95 % on Ubuntu** (via a plain KVM; macOS the rest). Ubuntu has `ctrl:swap_lwin_lctl` set in GNOME (`dconf /org/gnome/desktop/input-sources/xkb-options`, i.e. Tweaks → additional layout options): the keyboard's LGUI arrives as **Ctrl** and LCTRL as **Super**. So Cmd on 49 is Ctrl on Ubuntu and Cmd on macOS — copy/paste work the same on both. Firmware shortcuts aimed at Ubuntu are written with `U_CTRL(k)` (= `LG(k)`) and `U_SUPER(k)` (= `LC(k)`), defined at the top of the keymap — **NAV depends on this swap**; if it is ever removed, those two macros are the only thing to flip. Hyper contains both mods, so it is unaffected.
 - `&mt` (only 24 Ctrl/Esc): `balanced`, 200, 175. If Ctrl+C rolls come out as `Esc c`, switch to `hold-preferred`.
 - Shifts are `td_shift_l`/`td_shift_r` tap-dances: hold or with another key = Shift (resolves immediately on interrupt), double tap = `&caps_word`. A lone held Shift reaches the host after 200 ms.
-- `LANG_KEY` is `LC(SPACE)` — macOS "previous input source". The keyboard is also used with Ubuntu via DeskHop, where the default is Super+Space; change the one `#define` if needed.
+- `LANG_KEY` is `LC(SPACE)` and works on **both** systems: macOS sees Ctrl+Space (previous input source); Ubuntu, through the swap, sees Super+Space = its `switch-input-source`.
 - Combos (`-` U+I, `=` I+O, `]` O+P, `\` [+', studio unlock `` ` ``+Bspc) are `layers = <BASE>`, so they do not fire while any other layer — including the auto mouse layer — is on top. The four symbol combos have `require-prior-idle-ms = 100`, `timeout-ms = 40`.
 
 ### Trackball CPI Settings
@@ -214,9 +214,7 @@ outer column: 12 Tab, 24 Ctrl/Esc (&mt), 36/47 Shift (tap-dance); 23 = [, 35 = '
 
 Also note `SNIPE_CPI` cannot go below 200 — that is the sensor's floor. Halving snipe is only possible via the scaler.
 
-The keyboard is used through a **DeskHop** USB KVM, which hands the host absolute coordinates — that bypasses the OS pointer-speed sliders on both macOS and Ubuntu, so `CONFIG_PMW3610_CPI` is the only place cursor speed can be adjusted.
-
-**Check DeskHop's own acceleration setting before tuning anything here.** It has its own, and while it was on, the firmware was being tuned to cancel out a second acceleration stage — CPI got dragged 1200 → 600 and a `&zip_xy_scaler` was added on top, none of which was really about the keyboard. With DeskHop's acceleration off, the values reverted cleanly to the pre-DeskHop set.
+**Since Oct 2026 the keyboard goes through a plain KVM, not DeskHop — so the OS pointer settings apply again.** DeskHop handed the host absolute coordinates, which bypassed the OS speed/acceleration; the current CPI and acceleration were tuned in that setup. Now Ubuntu sees an ordinary relative mouse, and GNOME's own acceleration (`org.gnome.desktop.peripherals.mouse accel-profile`, `'default'` = adaptive at the time of the switch) stacks on top of the firmware curve. **Check the OS acceleration before tuning anything here** — set it to flat (Settings → Mouse → Mouse Acceleration off) so the firmware is the only acceleration stage. The same lesson was learnt once with DeskHop's own acceleration: CPI got dragged 1200 → 600 and a scaler was added to cancel out a second stage that had nothing to do with the keyboard.
 
 Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sensor register is `cpi / 200`, so **CPI is quantised to multiples of 200** — a value like 1100 silently becomes 1000.
 
@@ -235,7 +233,7 @@ Current settings in `charybdis_right.conf`:
 
 ### Bluetooth
 
-- 5 BT channels selectable via `BT_SEL 0–4` in BT layer
+- 5 BT channels selectable via `BT_SEL 0–4` on the FUN layer (Q–T)
 - `BT_CLR` clears current channel, `BT_CLR_ALL` clears all pairings
 - Deep sleep disabled: `CONFIG_ZMK_SLEEP=n`
 - TX power boosted: `CONFIG_BT_CTLR_TX_PWR_PLUS_8=y`
@@ -283,13 +281,13 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 - **`ZMK_KEYBOARD_NAME` must be ≤15 characters** — `BT_DEVICE_NAME_MAX` is 16 and the Zephyr assert is strict. "Charybdis Dongle" (16) fails to build with an opaque `_Static_assert` in `hci_core.c`.
 - **`zmk,input-split` nodes need a `splits { #address-cells=<1>; #size-cells=<0>; }` parent** — a `@0`/`reg=<0>` node directly under `/` fails at cmake with no useful message.
 - **CI's board-variant check produces a false error when the build fails earlier** — "board is not set up for ZMK" just means `.config` was never written. Look above `Configuring incomplete` for the real cause.
-- **Check DeskHop's own acceleration before tuning firmware** — a whole round of CPI tuning was spent cancelling out a second acceleration stage that lived in the KVM.
+- **Check the host's own pointer acceleration before tuning firmware** — a whole round of CPI tuning was once spent cancelling out a second acceleration stage that lived in the KVM (DeskHop). Since the switch to a plain KVM, GNOME's acceleration profile is that second stage.
 
 ## Current State
 
 - **Layout v2 is merged into `Charybdis_4x6`** (Oct 2026) and in use on the dongle set; plan in `notes/LAYOUT_V2_PLAN.md`, what moved where in `notes/LAYOUT_V2_CHANGELOG.md`. Rollback point = `6fe26fa` (last commit before v2). Follow-up: SYM layer removed, 51 = Backspace/Hyper (7 layers now).
-- **Next on the host side:** Hyper+letter app-launch shortcuts on Ubuntu — GNOME custom shortcuts to start with, the "Run or raise" extension if focus-or-launch is wanted.
-- **Open questions for layout v2:** middle click on N (kept) vs M (plan); `LANG_KEY` for Ubuntu (plan's Ctrl+Space is a macOS shortcut); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
+- **Host side (Ubuntu):** Hyper+letter app shortcuts live in the GNOME extension **Run or raise** (`~/.config/run-or-raise/shortcuts.conf`; reload = disable/enable the extension): C VS Code, J Chrome, W WezTerm, D DBeaver, F Claude desktop, L LOOP, T Telegram. The extension's default example bindings (Super+F/R/Y/E…) were removed; the original file is `shortcuts.conf.bak`.
+- **Open questions for layout v2:** middle click on N (kept) vs M (plan); GNOME pointer acceleration is still `'default'` (adaptive) — to be switched to flat now that DeskHop is gone; F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
 - **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
 - **Trackball tuning currently:** `CPI=600`, accel `75/1400/600` quadratic, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `60` (dongle processor).

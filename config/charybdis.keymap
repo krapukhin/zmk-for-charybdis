@@ -23,6 +23,13 @@
 // модификатор (LGUI), поэтому ZMK держит все четыре как явные модификаторы.
 #define HYPER LS(LA(LC(LGUI)))
 
+// Клавиатура в основном на Ubuntu (через обычный KVM). Там включён ctrl:swap_lwin_lctl
+// (GNOME Tweaks, dconf /org/gnome/desktop/input-sources/xkb-options): клавиатурный
+// LGUI приходит в систему как Ctrl, LCTRL — как Super. Поэтому Cmd на большом пальце (49)
+// работает как Ctrl, а сочетания, адресованные Ubuntu, пишутся через эти макросы:
+#define U_CTRL(k)  LG(k)
+#define U_SUPER(k) LC(k)
+
 &mt {
     // &mt используется только на 24: Ctrl на удержании, Esc на тап.
     // balanced: хол, если другая клавиша нажата И отпущена за время удержания —
@@ -212,19 +219,24 @@
             >;
         };
 
-        // 4 NAV (удержание 50) — стрелки на HJKL, Home/PgDn/PgUp/End над ними, прыжки
-        // Cmd/Opt+стрелка под ними. Шар в этом слое двигает текстовый курсор (caret-layers).
-        // S/D/F = Alt/Cmd/Shift — выделение и прыжки по словам шаром.
+        // 4 NAV (удержание 50), сочетания под Ubuntu (см. U_CTRL/U_SUPER вверху).
+        // Правая рука: стрелки на HJKL, Home/PgDn/PgUp/End над ними; ниже — начало файла,
+        // слово ←, слово →, конец файла; P/[ — удалить слово влево/вправо; ; — Del.
+        // Левая рука: Q — следующее окно той же программы (Super+`), W/E — вкладка
+        // назад/вперёд (Ctrl+PgUp/PgDn), A/G — VS Code назад/вперёд по коду,
+        // S/D/F — Alt/Ctrl/Shift (шар + F выделяет, шар + D прыгает по словам),
+        // Z/X/C — окно влево / развернуть-восстановить / вправо, V/B — на левый/правый монитор.
+        // Шар в этом слое двигает текстовый курсор (caret-layers).
 
         nav_layer {
             display-name = "NAV";
             bindings = <
-&trans  &trans         &trans            &trans            &trans     &trans    &trans        &trans        &trans         &trans         &trans        &trans
-&trans  &kp LG(GRAVE)  &kp LG(LS(LBKT))  &kp LG(LS(RBKT))  &trans     &trans    &kp HOME      &kp PG_DN     &kp PG_UP      &kp END        &kp LA(BSPC)  &kp LG(BSPC)
-&trans  &trans         &kp LALT          &kp LGUI          &kp LSHFT  &trans    &kp LEFT      &kp DOWN      &kp UP         &kp RIGHT      &kp DEL       &trans
-&trans  &trans         &trans            &trans            &trans     &trans    &kp LG(LEFT)  &kp LA(LEFT)  &kp LA(RIGHT)  &kp LG(RIGHT)  &trans        &trans
-                                         &trans            &trans     &trans    &trans        &trans
-                                                           &trans     &trans    &trans
+&trans  &trans                 &trans             &trans              &trans                 &trans                    &trans            &trans            &trans             &trans           &trans            &trans
+&trans  &kp U_SUPER(GRAVE)     &kp U_CTRL(PG_UP)  &kp U_CTRL(PG_DN)   &trans                 &trans                    &kp HOME          &kp PG_DN         &kp PG_UP          &kp END          &kp U_CTRL(BSPC)  &kp U_CTRL(DEL)
+&trans  &kp U_CTRL(LA(MINUS))  &kp LALT           &kp LGUI            &kp LSHFT              &kp U_CTRL(LS(MINUS))     &kp LEFT          &kp DOWN          &kp UP             &kp RIGHT        &kp DEL           &trans
+&trans  &kp U_SUPER(LEFT)      &kp LA(F10)        &kp U_SUPER(RIGHT)  &kp U_SUPER(LS(LEFT))  &kp U_SUPER(LS(RIGHT))    &kp U_CTRL(HOME)  &kp U_CTRL(LEFT)  &kp U_CTRL(RIGHT)  &kp U_CTRL(END)  &trans            &trans
+                                                  &trans              &trans                 &trans                    &trans            &trans
+                                                                      &trans                 &trans                    &trans
             >;
         };
 
@@ -242,14 +254,14 @@
             >;
         };
 
-        // 6 FUN (удержание 54) — F1–F12, Bluetooth, медиа, яркость, bootloader (Z — левая
-        // половина), studio_unlock.
+        // 6 FUN (удержание 54) — F1–F12, Bluetooth, медиа, яркость, Print Screen на [,
+        // bootloader (Z — левая половина), studio_unlock.
 
         fun_layer {
             display-name = "FUN";
             bindings = <
 &kp F1  &kp F2          &kp F3        &kp F4        &kp F5        &kp F6          &kp F7        &kp F8        &kp F9      &kp F10       &kp F11       &kp F12
-&trans  &bt BT_SEL 0    &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &kp C_PREV    &kp C_PP      &kp C_NEXT  &kp C_VOL_DN  &kp C_VOL_UP  &trans
+&trans  &bt BT_SEL 0    &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &kp C_PREV    &kp C_PP      &kp C_NEXT  &kp C_VOL_DN  &kp C_VOL_UP  &kp PSCRN
 &trans  &bt BT_CLR_ALL  &trans        &bt BT_CLR    &trans        &bt BT_NXT      &kp C_BRI_DN  &kp C_BRI_UP  &kp K_MUTE  &trans        &trans        &trans
 &trans  &bootloader     &trans        &trans        &trans        &trans          &trans        &trans        &trans      &trans        &trans        &studio_unlock
                                       &trans        &trans        &trans          &trans        &trans
