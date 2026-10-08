@@ -171,42 +171,43 @@ ZMK introduced a board variant system. The nice_nano board must be specified as 
 
 ### Layer Map
 
-Layout v2 (Oct 2026, branch `layout-v2`). Indices are `#define`d at the top of `charybdis.keymap` (`BASE` … `FUN`, plus `LANG_KEY`); layer nodes are named `base_layer` … `fun_layer` with `display-name = "BASE"` etc.
+Layout v2 (Oct 2026). Layer nodes are named `base_layer` … `fun_layer` with `display-name = "BASE"` etc.; layer numbers are written **literally** in bindings (`&lt 4 TAB`), see the no-macros rule below.
 
 | Index | Name | Activation | Content |
 |-------|------|-----------|---------|
 | 0 | BASE | default | QWERTY, plain letters |
-| 1 | MOUSE | **automatic** — ball motion (`&zip_temp_layer 1 800`) | H/J/N clicks, `&mo SNIPE` on K, `&mo SCROLL` on L |
+| 1 | MOUSE | **automatic** — ball motion (`&zip_temp_layer 1 800`) | H/J/N clicks, `&mo 2` (SNIPE) on K, `&mo 3` (SCROLL) on L |
 | 2 | SNIPE | hold K while MOUSE is up | slow cursor; only H/J/N clicks, rest `&trans` |
 | 3 | SCROLL | hold L while MOUSE is up | ball → wheel; only H/J/N clicks, rest `&trans` |
 | 4 | NAV | hold 50 (left thumb, tap = Tab) | **Ubuntu-native.** Right: arrows on HJKL, Home/PgDn/PgUp/End above, file start / word ← / word → / file end below, P/[ = delete word left/right, ; = Del. Left: Q next window of the app, W/E tab prev/next, A/G VS Code back/forward, S/D/F = Alt/Ctrl/Shift, Z/X/C window left / toggle maximize / right, V/B window to left/right monitor. **Ball = caret** |
 | 5 | NUM | hold 55 (right thumb, tap = Enter) | numpad left (W E R / S D F / X C V = 7 8 9 / 4 5 6 / 1 2 3), mods right |
-| 6 | FUN | hold 54 (left thumb, tap = `LANG_KEY`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, Print Screen on `[`, `&bootloader` (Z, left half only), `&studio_unlock` |
+| 6 | FUN | hold 54 (left thumb, tap = language, `LC(SPACE)`) | F1–F12 on the number row, BT select/clear on the left, media/brightness on the right, Print Screen on `[`, `&bootloader` (Z, left half only), `&studio_unlock` |
 
 **Invariants (all checked by `notes/check_keymap.py`):**
 - MOUSE (1) is below SNIPE/SCROLL/NAV — see Auto Mouse Layer.
-- Driver `snipe-layers = <2>`, `scroll-layers = <3>`, `caret-layers = <4>` in `charybdis_right.overlay`; the dongle's `snipe_scaler`/`scroll_mapper`/`caret_proc` use the same numbers. Overlays cannot see the keymap's `#define`s (they are preprocessed earlier), so the numbers are literal there.
-- Every `#define` matches the `display-name` of the layer at that index.
+- Driver `snipe-layers = <2>`, `scroll-layers = <3>`, `caret-layers = <4>` in `charybdis_right.overlay`; the dongle's `snipe_scaler`/`scroll_mapper`/`caret_proc` use the same numbers. Numbers are literal everywhere.
+- Layer holders lead where they should (`HOLDER_TARGETS` in the script, matched by `display-name`): BASE 50 → NAV, 55 → NUM, 54 → FUN; MOUSE 32 (K) → SNIPE, 33 (L) → SCROLL.
+- **No `#define` in the keymap** (see below).
 - **No `&lt`/`&mt` on letter positions of BASE (13–22, 25–34, 37–46).** A hold-tap on a letter emits the tap only on release — that was the "mushy letters" problem layout v2 removed. Layers live on thumbs only.
 - The key that activates a layer is `&trans` in that layer.
 
-**Do not name a layer node after its `#define`.** `NAV { … }` would be macro-expanded to `4 { … }` by the C preprocessor; the build might even pass, but Studio would show numeric names. Hence lowercase node names + `display-name`.
+**No preprocessor macros in `charybdis.keymap` — not even layer-index `#define`s.** The keymap editor (nickcoutsos.github.io/keymap-editor) does not parse them (its author's wiki: "I don't support … parsing keymaps that use these macros") and simply stops displaying the keymap. Layout v2 briefly used `#define BASE 0 …`, `LANG_KEY`, `HYPER`, `U_CTRL()`/`U_SUPER()` and the editor went blank; they were replaced by literal values (preprocessed output verified byte-identical). What they meant is now a comment block at the top of the keymap. ZMK's own modifier functions (`LG()`, `LC()`, `LS()`, `LA()`) are fine — the editor understands those. `check_keymap.py` fails on any `#define`.
 
 ### Thumb Keys, Modifiers, Shift
 
 ```
 left thumbs:  48 Space   49 Cmd   50 NAV/Tab        right thumbs: 51 Bspc/Hyper 52 Space
-              53 Alt     54 FUN/LANG_KEY                          55 NUM/Enter
+              53 Alt     54 FUN/Lang                              55 NUM/Enter
 outer column: 12 Tab, 24 Ctrl/Esc (&mt), 36/47 Shift (tap-dance); 23 = [, 35 = ' (no right-hand mods)
 ```
 
 - `&lt` (thumbs only): `balanced`, `tapping-term-ms=200`, `quick-tap-ms=175`, **no `require-prior-idle-ms`** — with it, a layer thumb pressed right after a letter would resolve as its tap (Tab/Enter) instead of the layer. The old value 40 was there for layer-taps on letters, which no longer exist.
-- 51 is `hyper_bspc` (own hold-tap): tap = Backspace, hold = **Hyper** (`#define HYPER LS(LA(LC(LGUI)))` = Ctrl+Alt+Shift+Super), used for app-launch shortcuts — Hyper+T etc. as custom shortcuts in GNOME on Ubuntu, BetterTouchTool on the Mac. Not Right Alt: on this Ubuntu `Alt_R` and `Alt_L` are both `mod1`, GNOME cannot tell them apart, so RAlt+T would also fire from the left Alt (53) and clash with Alt+letter menu mnemonics. Unlike the layer thumbs it **does** have `require-prior-idle-ms = 150`: Backspace right after a letter resolves instantly as Backspace (and auto-repeats if held), so a typing roll cannot turn into Hyper+letter and launch an app. A modifier-keycode base (LGUI) makes ZMK treat all four mods as explicit, so they stay held while the next key is pressed.
-- **The keyboard is used ~95 % on Ubuntu** (via a plain KVM; macOS the rest). Ubuntu has `ctrl:swap_lwin_lctl` set in GNOME (`dconf /org/gnome/desktop/input-sources/xkb-options`, i.e. Tweaks → additional layout options): the keyboard's LGUI arrives as **Ctrl** and LCTRL as **Super**. So Cmd on 49 is Ctrl on Ubuntu and Cmd on macOS — copy/paste work the same on both. Firmware shortcuts aimed at Ubuntu are written with `U_CTRL(k)` (= `LG(k)`) and `U_SUPER(k)` (= `LC(k)`), defined at the top of the keymap — **NAV depends on this swap**; if it is ever removed, those two macros are the only thing to flip. Hyper contains both mods, so it is unaffected.
+- 51 is `hyper_bspc` (own hold-tap): tap = Backspace, hold = **Hyper** (`LS(LA(LC(LGUI)))` = Ctrl+Alt+Shift+Super), used for app-launch shortcuts — Hyper+T etc. as custom shortcuts in GNOME on Ubuntu, BetterTouchTool on the Mac. Not Right Alt: on this Ubuntu `Alt_R` and `Alt_L` are both `mod1`, GNOME cannot tell them apart, so RAlt+T would also fire from the left Alt (53) and clash with Alt+letter menu mnemonics. Unlike the layer thumbs it **does** have `require-prior-idle-ms = 150`: Backspace right after a letter resolves instantly as Backspace (and auto-repeats if held), so a typing roll cannot turn into Hyper+letter and launch an app. A modifier-keycode base (LGUI) makes ZMK treat all four mods as explicit, so they stay held while the next key is pressed.
+- **The keyboard is used ~95 % on Ubuntu** (via a plain KVM; macOS the rest). Ubuntu has `ctrl:swap_lwin_lctl` set in GNOME (`dconf /org/gnome/desktop/input-sources/xkb-options`, i.e. Tweaks → additional layout options): the keyboard's LGUI arrives as **Ctrl** and LCTRL as **Super**. So Cmd on 49 is Ctrl on Ubuntu and Cmd on macOS — copy/paste work the same on both. Firmware shortcuts aimed at Ubuntu are therefore written as `LG(k)` for Ctrl+k and `LC(k)` for Super+k (explained in the comment block at the top of the keymap) — **NAV depends on this swap**; if it is ever removed, every `LG(`/`LC(` in NAV has to be swapped. Hyper contains both mods, so it is unaffected.
 - `&mt` (only 24 Ctrl/Esc): `balanced`, 200, 175. If Ctrl+C rolls come out as `Esc c`, switch to `hold-preferred`.
 - Shifts are `td_shift_l`/`td_shift_r` tap-dances: hold or with another key = Shift (resolves immediately on interrupt), double tap = `&caps_word`. A lone held Shift reaches the host after 200 ms.
-- `LANG_KEY` is `LC(SPACE)` and works on **both** systems: macOS sees Ctrl+Space (previous input source); Ubuntu, through the swap, sees Super+Space = its `switch-input-source`.
-- Combos (`-` U+I, `=` I+O, `]` O+P, `\` [+', studio unlock `` ` ``+Bspc) are `layers = <BASE>`, so they do not fire while any other layer — including the auto mouse layer — is on top. The four symbol combos have `require-prior-idle-ms = 100`, `timeout-ms = 40`.
+- The language key (tap 54) is `LC(SPACE)` and works on **both** systems: macOS sees Ctrl+Space (previous input source); Ubuntu, through the swap, sees Super+Space = its `switch-input-source`.
+- Combos (`-` U+I, `=` I+O, `]` O+P, `\` [+', studio unlock `` ` ``+Bspc) are `layers = <0>` (BASE only), so they do not fire while any other layer — including the auto mouse layer — is on top. The four symbol combos have `require-prior-idle-ms = 100`, `timeout-ms = 40`.
 
 ### Trackball CPI Settings
 
@@ -257,7 +258,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 - **Tune acceleration**: edit `CONFIG_PMW3610_ACCEL_*` in `config/boards/shields/charybdis/charybdis_right.conf`
 - **Disable acceleration**: set `CONFIG_PMW3610_ACCEL_ENABLED=n` in `charybdis_right.conf`
 - **Add a combo**: add a `combo_*` block in the `combos` section of `charybdis.keymap`
-- **Add/modify a layer**: add a node `xxx_layer { display-name = "XXX"; bindings = <…>; }` in `keymap {}` and a matching `#define XXX n` at the top; if it shifts indices, update the overlays (both sets) and run `notes/check_keymap.py`. Changing the number or order of layers needs `settings_reset` on every device of the set.
+- **Add/modify a layer**: add a node `xxx_layer { display-name = "XXX"; bindings = <…>; }` in `keymap {}` (no `#define` — the keymap editor cannot parse macros); if it shifts indices, update the overlays (both sets) and run `notes/check_keymap.py`. Changing the number or order of layers needs `settings_reset` on every device of the set.
 - **Toggle debug logging**: `CONFIG_ZMK_USB_LOGGING` and the log-level configs at the bottom of `charybdis_right.conf` — commented out by default. All three `LOG_DBG` calls in the driver sit inside `pmw3610_report_data()`, i.e. the 125 Hz hot path, so leaving DBG on costs a string format per poll while the ball moves. With `ZMK_LOG_LEVEL_DBG` off they are compiled out entirely. Re-enable only while debugging.
 - **Enable RGB underglow**: uncomment the `CONFIG_ZMK_RGB_UNDERGLOW` block in `config/charybdis.conf`
 
@@ -276,7 +277,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 
 Most gotchas are documented where they bite, in the topical sections above. The ones most likely to be hit on the next edit:
 
-- **Layer numbers are duplicated in four places** and the build does not check them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working. **Run `python3 notes/check_keymap.py` after any keymap or overlay edit and after pulling a bot commit** — it cross-checks all four, plus 56 bindings per layer, `&lt`/`&mo` targets, `#define` ↔ `display-name`, plain letters on BASE, holder keys transparent in their layer, mouse-below-modes and identical `excluded-positions` in both sets. Which keymap layer plays which trackball role is matched by node name (`ROLE_LAYERS` at the top of the script) — update that table if a layer is renamed.
+- **Layer numbers are duplicated in four places** and the build does not check them: driver `*-layers` in `charybdis_right.overlay`, the snipe scaler override in the same file, the four layer overrides in `charybdis_dongle.overlay`, and the keymap order itself. `keymap-editor[bot]` can renumber layers without touching the overlays; the build still passes and a mode silently stops working. **Run `python3 notes/check_keymap.py` after any keymap or overlay edit and after pulling a bot commit** — it cross-checks all four, plus 56 bindings per layer, `&lt`/`&mo` targets, layer holders leading to the right layer by `display-name`, no `#define`, plain letters on BASE, holder keys transparent in their layer, mouse-below-modes and identical `excluded-positions` in both sets. Which keymap layer plays which trackball role is matched by node name (`ROLE_LAYERS` at the top of the script) — update that table if a layer is renamed.
 - **A layer-scoped input processor cannot suppress an event by returning `ZMK_INPUT_PROC_STOP`** — `filter_with_input_config()` discards the override's return value. Zero `event->value` instead. (Dongle Variant section)
 - **`ZMK_KEYBOARD_NAME` must be ≤15 characters** — `BT_DEVICE_NAME_MAX` is 16 and the Zephyr assert is strict. "Charybdis Dongle" (16) fails to build with an opaque `_Static_assert` in `hci_core.c`.
 - **`zmk,input-split` nodes need a `splits { #address-cells=<1>; #size-cells=<0>; }` parent** — a `@0`/`reg=<0>` node directly under `/` fails at cmake with no useful message.

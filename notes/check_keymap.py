@@ -10,7 +10,8 @@
   * &zip_temp_layer и layer-scoped процессоры в charybdis_dongle.overlay.
 
 Дополнительно: в каждом слое ровно 56 биндингов, &lt/&mo/&tog/&to/&sl
-ссылаются на существующие слои, #define совпадают с display-name слоёв,
+ссылаются на существующие слои, держатели слоёв ведут в нужные слои
+(HOLDER_TARGETS, по display-name), в keymap нет #define (keymap editor),
 буквы базового слоя — чистые &kp, клавиша-держатель слоя прозрачна в нём,
 авто-слой мыши ниже режимов трекбола, automouse-layer драйвера выключен,
 excluded-positions одинаковы в обоих комплектах прошивки.
@@ -41,6 +42,17 @@ ROLE_LAYERS = {
 # Позиции букв и знаков препинания базового слоя: только чистые &kp, без
 # &lt/&mt — иначе буква уходит только по отпусканию («ватные» буквы).
 LETTER_POSITIONS = list(range(13, 23)) + list(range(25, 35)) + list(range(37, 47))
+
+# Куда должны вести клавиши-держатели слоёв: (display-name слоя, позиция) ->
+# display-name целевого слоя. Номера в keymap записаны буквально (без #define),
+# поэтому именно эта таблица ловит сдвиг слоёв: &lt 4 TAB должен вести в NAV.
+HOLDER_TARGETS = {
+    ("BASE", 50): "NAV",
+    ("BASE", 55): "NUM",
+    ("BASE", 54): "FUN",
+    ("MOUSE", 32): "SNIPE",
+    ("MOUSE", 33): "SCROLL",
+}
 
 # Свойства драйвера в charybdis_right.overlay -> роль.
 DRIVER_PROPS = {"snipe-layers": "snipe", "scroll-layers": "scroll", "caret-layers": "caret"}
@@ -149,14 +161,23 @@ for i, (name, _, tokens) in enumerate(layers):
             if v is None or not 0 <= v < len(layers):
                 errors.append(f"keymap: слой {i} {name}, позиция {pos}: '{tok}' — нет такого слоя")
 
-# #define ИМЯ N должен указывать на слой с display-name ИМЯ на месте N.
+# Макросы препроцессора запрещены: keymap editor (nickcoutsos) их не разбирает
+# и перестаёт показывать раскладку. Всё пишется буквально.
+for name in defines:
+    errors.append(f"keymap: #define {name} — keymap editor не понимает макросы, запиши значение буквально")
+
 display = [dn for _, dn, _ in layers]
-for name, value in defines.items():
-    if name in display:
-        v = resolve(value, {})
-        if v is None or v >= len(layers) or display[v] != name:
-            got = display[v] if v is not None and v < len(layers) else "—"
-            errors.append(f"keymap: #define {name} {value}, но слой {value} — {got}; слой {name} стоит на {display.index(name)}")
+for (layer_dn, pos), target in HOLDER_TARGETS.items():
+    if layer_dn not in display:
+        errors.append(f"keymap: нет слоя с display-name '{layer_dn}' — поправь HOLDER_TARGETS")
+        continue
+    tokens = layers[display.index(layer_dn)][2]
+    tok = tokens[pos] if pos < len(tokens) else ""
+    m = re.match(r"&(lt|mo)\s+(\S+)", tok)
+    v = resolve(m.group(2), {}) if m else None
+    got = display[v] if v is not None and 0 <= v < len(layers) else None
+    if got != target:
+        errors.append(f"keymap: {layer_dn}[{pos}] '{tok}' должен вести в {target}, а ведёт в {got or '—'}")
 
 if layers:
     base = layers[0][2]

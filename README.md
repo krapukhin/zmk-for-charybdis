@@ -186,7 +186,7 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 
 - `CTL/ES` — hold = Ctrl, tap = Esc. `SHIFT*` — hold = Shift, double tap = Caps Word (`MY_CONST`, a space ends it).
 - `NAV/TAB`, `FUN/LANG`, `NUM/ENTR` — hold = layer, tap = the key.
-- `BKSP/HYPR` — tap = Backspace, hold = Hyper (Ctrl+Alt+Shift+Super) for app-launch shortcuts such as Hyper+T. Right after typing a letter it is always Backspace, so a fast roll cannot launch an app. `LANG` is `Ctrl+Space` (macOS: previous input source); it is one `#define LANG_KEY` in the keymap.
+- `BKSP/HYPR` — tap = Backspace, hold = Hyper (Ctrl+Alt+Shift+Super) for app-launch shortcuts such as Hyper+T. Right after typing a letter it is always Backspace, so a fast roll cannot launch an app. `LANG` is `Ctrl+Space`: macOS switches to the previous input source, Ubuntu (through its Ctrl/Win swap) sees Super+Space and switches layout.
 - Cmd (left thumb) + Space (right thumb) = Spotlight, as on a Mac.
 - The auto mouse layer is not on any key — the trackball raises it.
 
@@ -242,7 +242,7 @@ The four symbol combos need a short pause before them: they don't fire within 10
 
 ### NAV Layer (hold left thumb 50)
 
-Shortcuts are written for **Ubuntu**, where the keyboard is used most of the time (GNOME has `ctrl:swap_lwin_lctl`, so the keymap sends them through `U_CTRL()` / `U_SUPER()` macros).
+Shortcuts are written for **Ubuntu**, where the keyboard is used most of the time (GNOME has `ctrl:swap_lwin_lctl`, so in the keymap `LG(x)` means Ctrl+x and `LC(x)` means Super+x on Ubuntu).
 
 ```
 ┌────┬────┬────┬────┬────┬────┐  ┌────┬────┬────┬────┬────┬────┐

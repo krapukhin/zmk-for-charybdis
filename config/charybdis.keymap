@@ -3,32 +3,27 @@
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/pointing.h>
 
-// Индексы слоёв = порядок узлов в keymap {} ниже. check_keymap.py сверяет,
-// что каждый #define совпадает с display-name слоя на этом месте.
-#define BASE   0
-#define MOUSE  1
-#define SNIPE  2
-#define SCROLL 3
-#define NAV    4
-#define NUM    5
-#define FUN    6
-
-// Переключение языка — тап 54. Control-Space на macOS = предыдущий источник ввода.
-// На Ubuntu по умолчанию Super+Space — тогда заменить на LG(SPACE) здесь одном месте.
-#define LANG_KEY LC(SPACE)
-
-// Hyper = Ctrl+Alt+Shift+Super разом — на удержании 51. Сочетание, которое никто
-// не использует, поэтому Hyper+буква безопасно отдать под запуск приложений
-// (на Ubuntu — свои сочетания GNOME, на маке — BetterTouchTool). Базовый keycode —
-// модификатор (LGUI), поэтому ZMK держит все четыре как явные модификаторы.
-#define HYPER LS(LA(LC(LGUI)))
-
-// Клавиатура в основном на Ubuntu (через обычный KVM). Там включён ctrl:swap_lwin_lctl
-// (GNOME Tweaks, dconf /org/gnome/desktop/input-sources/xkb-options): клавиатурный
-// LGUI приходит в систему как Ctrl, LCTRL — как Super. Поэтому Cmd на большом пальце (49)
-// работает как Ctrl, а сочетания, адресованные Ubuntu, пишутся через эти макросы:
-#define U_CTRL(k)  LG(k)
-#define U_SUPER(k) LC(k)
+// В этом файле НЕТ #define и других макросов препроцессора — намеренно.
+// Keymap editor (nickcoutsos.github.io/keymap-editor) их не разбирает и перестаёт
+// показывать раскладку. Поэтому номера слоёв и сочетания записаны буквально:
+//
+//   слои: 0 BASE, 1 MOUSE, 2 SNIPE, 3 SCROLL, 4 NAV, 5 NUM, 6 FUN
+//         (номер = порядок узлов в keymap {}; check_keymap.py сверяет держатели
+//          слоёв и номера в overlay'ях по display-name)
+//
+//   LC(SPACE) на 54 — переключение языка. macOS видит Ctrl+Space (предыдущий
+//         источник ввода), Ubuntu из-за обмена Ctrl/Win — Super+Space (смена раскладки).
+//
+//   LS(LA(LC(LGUI))) на 51 — Hyper = Ctrl+Alt+Shift+Super разом, под запуск
+//         приложений (Ubuntu: расширение Run or raise; macOS: BetterTouchTool).
+//         Базовый keycode — модификатор (LGUI), поэтому ZMK держит все четыре как
+//         явные модификаторы, пока нажата следующая клавиша.
+//
+//   LG(…) / LC(…) в слоях для Ubuntu. Клавиатура в основном на Ubuntu (обычный KVM),
+//         там включён ctrl:swap_lwin_lctl (GNOME Tweaks, dconf
+//         /org/gnome/desktop/input-sources/xkb-options): клавиатурный LGUI приходит
+//         как Ctrl, LCTRL — как Super. Поэтому LG(x) = Ctrl+x на Ubuntu,
+//         LC(x) = Super+x. Cmd на большом пальце (49) там работает как Ctrl.
 
 &mt {
     // &mt используется только на 24: Ctrl на удержании, Esc на тап.
@@ -98,7 +93,7 @@
     combos {
         compatible = "zmk,combos";
 
-        // Все комбо работают только на BASE (layers = <BASE>).
+        // Все комбо работают только на BASE (layers = <0>).
         //
         // Скобки — одновременное нажатие соседних клавиш.
         //
@@ -113,7 +108,7 @@
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
             key-positions = <21 22>;  // O + P
-            layers = <BASE>;
+            layers = <0>;
             bindings = <&kp RBKT>;    // ]
         };
 
@@ -121,7 +116,7 @@
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
             key-positions = <20 21>;  // I + O
-            layers = <BASE>;
+            layers = <0>;
             bindings = <&kp EQUAL>;    // =
         };
 
@@ -129,7 +124,7 @@
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
             key-positions = <19 20>;  // U + I
-            layers = <BASE>;
+            layers = <0>;
             bindings = <&kp MINUS>;    // -
         };
 
@@ -140,14 +135,14 @@
             timeout-ms = <40>;
             require-prior-idle-ms = <100>;
             key-positions = <23 35>;  // [ + '
-            layers = <BASE>;
+            layers = <0>;
             bindings = <&kp BSLH>;    // \  (ё в «Русской»)
         };
 
         combo_studio_unlock {
             timeout-ms = <50>;
             key-positions = <0 11>;  // Grave + Backspace одновременно
-            layers = <BASE>;
+            layers = <0>;
             bindings = <&studio_unlock>;
         };
     };
@@ -166,8 +161,8 @@
 &kp TAB        &kp Q   &kp W   &kp E      &kp R     &kp T               &kp Y                   &kp U      &kp I      &kp O    &kp P     &kp LBKT
 &mt LCTRL ESC  &kp A   &kp S   &kp D      &kp F     &kp G               &kp H                   &kp J      &kp K      &kp L    &kp SEMI  &kp SQT
 &td_shift_l    &kp Z   &kp X   &kp C      &kp V     &kp B               &kp N                   &kp M      &kp COMMA  &kp DOT  &kp FSLH  &td_shift_r
-                               &kp SPACE  &kp LGUI  &lt NAV TAB         &hyper_bspc HYPER BSPC  &kp SPACE
-                                          &kp LALT  &lt FUN LANG_KEY    &lt NUM RET
+                               &kp SPACE  &kp LGUI  &lt 4 TAB         &hyper_bspc LS(LA(LC(LGUI))) BSPC  &kp SPACE
+                                          &kp LALT  &lt 6 LC(SPACE)    &lt 5 RET
             >;
         };
 
@@ -182,7 +177,7 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans      &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans      &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mo SNIPE  &mo SCROLL  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mo 2  &mo 3  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans     &trans      &trans  &trans
                         &trans  &trans  &trans    &trans     &trans
                                 &trans  &trans    &trans
@@ -219,7 +214,7 @@
             >;
         };
 
-        // 4 NAV (удержание 50), сочетания под Ubuntu (см. U_CTRL/U_SUPER вверху).
+        // 4 NAV (удержание 50), сочетания под Ubuntu: LG(x) = Ctrl+x, LC(x) = Super+x (см. вверху).
         // Правая рука: стрелки на HJKL, Home/PgDn/PgUp/End над ними; ниже — начало файла,
         // слово ←, слово →, конец файла; P/[ — удалить слово влево/вправо; ; — Del.
         // Левая рука: Q — следующее окно той же программы (Super+`), W/E — вкладка
@@ -232,9 +227,9 @@
             display-name = "NAV";
             bindings = <
 &trans  &trans                 &trans             &trans              &trans                 &trans                    &trans            &trans            &trans             &trans           &trans            &trans
-&trans  &kp U_SUPER(GRAVE)     &kp U_CTRL(PG_UP)  &kp U_CTRL(PG_DN)   &trans                 &trans                    &kp HOME          &kp PG_DN         &kp PG_UP          &kp END          &kp U_CTRL(BSPC)  &kp U_CTRL(DEL)
-&trans  &kp U_CTRL(LA(MINUS))  &kp LALT           &kp LGUI            &kp LSHFT              &kp U_CTRL(LS(MINUS))     &kp LEFT          &kp DOWN          &kp UP             &kp RIGHT        &kp DEL           &trans
-&trans  &kp U_SUPER(LEFT)      &kp LA(F10)        &kp U_SUPER(RIGHT)  &kp U_SUPER(LS(LEFT))  &kp U_SUPER(LS(RIGHT))    &kp U_CTRL(HOME)  &kp U_CTRL(LEFT)  &kp U_CTRL(RIGHT)  &kp U_CTRL(END)  &trans            &trans
+&trans  &kp LC(GRAVE)     &kp LG(PG_UP)  &kp LG(PG_DN)   &trans                 &trans                    &kp HOME          &kp PG_DN         &kp PG_UP          &kp END          &kp LG(BSPC)  &kp LG(DEL)
+&trans  &kp LG(LA(MINUS))  &kp LALT           &kp LGUI            &kp LSHFT              &kp LG(LS(MINUS))     &kp LEFT          &kp DOWN          &kp UP             &kp RIGHT        &kp DEL           &trans
+&trans  &kp LC(LEFT)      &kp LA(F10)        &kp LC(RIGHT)  &kp LC(LS(LEFT))  &kp LC(LS(RIGHT))    &kp LG(HOME)  &kp LG(LEFT)  &kp LG(RIGHT)  &kp LG(END)  &trans            &trans
                                                   &trans              &trans                 &trans                    &trans            &trans
                                                                       &trans                 &trans                    &trans
             >;
