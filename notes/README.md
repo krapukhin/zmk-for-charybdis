@@ -15,6 +15,8 @@
 | [`check_keymap.py`](check_keymap.py) | Статическая проверка раскладки: 56 биндингов в слое, ссылки на слои, номера слоёв в overlay'ях обоих комплектов, `#define` ↔ `display-name`, чистые буквы на BASE | **Актуально** — запускать после правок keymap/overlay |
 | [`LAYOUT_V2_PLAN.md`](LAYOUT_V2_PLAN.md) | План перехода на раскладку v2 (слои на больших пальцах) | **Актуально** как обоснование; отступления от него — в changelog |
 | [`LAYOUT_V2_CHANGELOG.md`](LAYOUT_V2_CHANGELOG.md) | Что ушло и куда при переходе на v2, отступления от плана, открытые вопросы | **Актуально** |
+| [`charybdis-cheatsheet.html`](charybdis-cheatsheet.html) | Шпаргалка по текущей раскладке: все слои клавиатурой, Hyper-приложения, трекбол, комбо. Открывается в браузере | **Актуально**, но генерируется — руками не править |
+| [`build_cheatsheet.py`](build_cheatsheet.py), [`charybdis-cheatsheet.template.html`](charybdis-cheatsheet.template.html) | Сборщик шпаргалки из `config/charybdis.keymap` и `~/.config/run-or-raise/shortcuts.conf` и её шаблон | **Актуально** — после правок раскладки: `python3 notes/build_cheatsheet.py` |
 
 Картинки из `instruction.md` лежат в [`../attachments/`](../attachments/) и используют
 синтаксис Obsidian `![[...]]` — они отображаются в Obsidian-vault, но не рендерятся на GitHub.

@@ -1,0 +1,470 @@
+<!--
+  Шаблон шпаргалки. Не редактировать сгенерированный notes/charybdis-cheatsheet.html —
+  править этот файл и пересобирать: python3 notes/build_cheatsheet.py
+  __DATA__ заменяется данными слоёв из config/charybdis.keymap и Hyper-приложений
+  из ~/.config/run-or-raise/shortcuts.conf.
+-->
+<title>Шпаргалка Charybdis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column of keyboard plates, one per layer; the two halves sit side by side and stack on narrow screens. */
+:root {
+  --bg: #E8EBF0;
+  --plate: #F5F6F8;
+  --cap: #FFFFFF;
+  --edge: #C3CAD5;
+  --line: #D3D8E0;
+  --ink: #1A2030;
+  --muted: #586174;
+  --faint: #9CA4B3;
+  --nav: #0D7765;
+  --num: #A05F00;
+  --fun: #9E2F67;
+  --mouse: #2857BD;
+  --hyper: #B83F1B;
+  --danger: #B3261E;
+  --on-accent: #FFFFFF;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "DejaVu Sans Mono", monospace;
+  --k: clamp(44px, 6.1vw, 58px);
+  --gap: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12151B; --plate: #191D25; --cap: #232934; --edge: #11141A; --line: #2E3542;
+    --ink: #E6E9EF; --muted: #A0A9B8; --faint: #5D6676;
+    --nav: #3CC0A8; --num: #E3A645; --fun: #E26CA8; --mouse: #74A0F2; --hyper: #F0835A; --danger: #F2766B;
+    --on-accent: #0E1116;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12151B; --plate: #191D25; --cap: #232934; --edge: #11141A; --line: #2E3542;
+  --ink: #E6E9EF; --muted: #A0A9B8; --faint: #5D6676;
+  --nav: #3CC0A8; --num: #E3A645; --fun: #E26CA8; --mouse: #74A0F2; --hyper: #F0835A; --danger: #F2766B;
+  --on-accent: #0E1116;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.55 var(--f-body);
+}
+.page {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 36px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ---------- header ---------- */
+.masthead { display: flex; flex-direction: column; gap: 10px; }
+.masthead .eyebrow {
+  font: 600 12px/1 var(--f-display);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+h1 {
+  font: 600 clamp(30px, 5vw, 44px)/1.05 var(--f-display);
+  margin: 0;
+  letter-spacing: -.01em;
+  text-wrap: balance;
+}
+.lede { margin: 0; max-width: 64ch; color: var(--muted); }
+.index { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.index a {
+  font: 600 13px/1 var(--f-display);
+  letter-spacing: .04em;
+  color: var(--ink);
+  text-decoration: none;
+  padding: 7px 11px 7px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--plate);
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.index a::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--dot, var(--faint));
+}
+.index a:hover { border-color: var(--dot, var(--edge)); }
+.index a:focus-visible, a:focus-visible { outline: 2px solid var(--mouse); outline-offset: 2px; }
+
+/* ---------- plates ---------- */
+.plate {
+  --layer: var(--ink);
+  background: var(--plate);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 22px clamp(14px, 3vw, 28px) 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.plate-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+.plate-head h2 {
+  margin: 0;
+  font: 600 24px/1.1 var(--f-display);
+  color: var(--layer);
+  letter-spacing: .01em;
+}
+.plate-head .idx {
+  font: 500 12px/1 var(--f-mono);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+.plate-head .how { flex-basis: 100%; margin: 0; color: var(--muted); max-width: 70ch; }
+.plate-head .how b { color: var(--ink); font-weight: 600; }
+
+/* ---------- keyboard ---------- */
+.board-wrap { overflow-x: auto; }
+.board {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px calc(var(--k) * 1.1);
+}
+.half {
+  display: grid;
+  grid-template-columns: repeat(6, var(--k));
+  grid-template-rows: repeat(4, minmax(calc(var(--k) * .86), auto)) 6px repeat(2, minmax(calc(var(--k) * .86), auto));
+  gap: var(--gap);
+}
+.cap {
+  position: relative;
+  border-radius: 7px;
+  background: var(--cap);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 -3px 0 var(--edge);
+  padding: 13px 3px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  text-align: center;
+  min-width: 0;
+}
+.cap .main {
+  font: 600 13px/1.05 var(--f-display);
+  color: var(--ink);
+  overflow-wrap: break-word;
+}
+/* Длинное слово без пробела (WezTerm, Telegram) мельче, чтобы не рвалось посередине. */
+.cap .main.long { font-size: calc(var(--k) * .19); }
+.cap .sub {
+  font: 500 9.5px/1.1 var(--f-display);
+  color: var(--muted);
+  letter-spacing: .01em;
+  overflow-wrap: anywhere;
+}
+.cap .pos {
+  position: absolute;
+  top: 3px; left: 5px;
+  font: 500 9px/1 var(--f-mono);
+  color: var(--faint);
+}
+.cap.trans {
+  background: transparent;
+  box-shadow: none;
+  border-style: dashed;
+}
+.cap.trans .pos { font-size: 10px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.cap.key .main { color: var(--layer); }
+.board.base .cap.key .main { color: var(--ink); }
+.cap.mod .main { color: var(--muted); }
+.cap.dual { box-shadow: inset 0 -3px 0 var(--to); }
+.cap.dual .sub { color: var(--to); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+.cap.danger .main, .cap.danger .sub { color: var(--danger); }
+.cap.held {
+  background: var(--layer);
+  border-color: var(--layer);
+  box-shadow: none;
+}
+.cap.held .main, .cap.held .sub, .cap.held .pos { color: var(--on-accent); }
+.cap.held .sub { font-weight: 600; }
+.cap.held .pos { opacity: .75; }
+.board.base .cap .pos { display: none; }
+.board.base .cap { padding-top: 6px; }
+
+/* ---------- notes, tables ---------- */
+.notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px 28px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.notes li { min-width: 0; padding-left: 14px; position: relative; color: var(--ink); }
+.notes li::before {
+  content: ""; position: absolute; left: 0; top: .62em;
+  width: 6px; height: 6px; border-radius: 2px; background: var(--layer);
+}
+.notes li span { color: var(--muted); }
+kbd, code {
+  font: 500 12.5px/1 var(--f-mono);
+  padding: 2px 5px 3px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--cap);
+  box-shadow: inset 0 -1px 0 var(--edge);
+  color: var(--ink);
+  white-space: nowrap;
+}
+code { box-shadow: none; }
+
+.modes { width: 100%; border-collapse: collapse; min-width: 520px; }
+.table-wrap { overflow-x: auto; }
+.modes th, .modes td { text-align: left; vertical-align: top; padding: 10px 12px; border-top: 1px solid var(--line); }
+.modes th {
+  font: 600 12px/1.2 var(--f-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  border-top: 0;
+}
+.modes td:first-child { font: 600 15px/1.3 var(--f-display); color: var(--layer); white-space: nowrap; }
+.modes td:last-child { color: var(--muted); }
+
+.combos { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.combo {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--cap);
+  min-width: 0;
+}
+.combo .plus { color: var(--faint); font: 500 13px/1 var(--f-mono); }
+.combo .arrow { color: var(--faint); margin-inline: 2px; }
+.combo .out { font: 600 18px/1 var(--f-mono); color: var(--layer); }
+.combo .what { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+
+.tips { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.tips li { display: grid; grid-template-columns: minmax(0, 15ch) minmax(0, 1fr); gap: 4px 18px; }
+.tips li strong { font: 600 15px/1.4 var(--f-display); }
+.tips li p { margin: 0; color: var(--muted); max-width: 66ch; }
+@media (max-width: 560px) {
+  .tips li { grid-template-columns: minmax(0, 1fr); }
+}
+
+footer { color: var(--faint); font-size: 13px; }
+footer code { font-size: 12px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .index a { transition: border-color .15s ease; }
+}
+</style>
+
+<main class="page">
+  <header class="masthead">
+    <span class="eyebrow">Charybdis 4x6 · раскладка v2 · Ubuntu</span>
+    <h1>Шпаргалка Charybdis</h1>
+    <p class="lede">Все слои и сочетания, которые мы добавили. Цветом залита клавиша, которую держишь, чтобы включить слой. Мелкая подпись в углу клавиши показывает, какая это клавиша на базовом слое.</p>
+    <nav class="index" aria-label="Разделы">
+      <a href="#base" style="--dot: var(--ink)">Базовый слой</a>
+      <a href="#hyper" style="--dot: var(--hyper)">Hyper: приложения</a>
+      <a href="#mouse" style="--dot: var(--mouse)">Трекбол</a>
+      <a href="#nav" style="--dot: var(--nav)">NAV</a>
+      <a href="#fun" style="--dot: var(--fun)">FUN</a>
+      <a href="#num" style="--dot: var(--num)">NUM</a>
+      <a href="#combos" style="--dot: var(--faint)">Комбо и Caps Word</a>
+      <a href="#tips" style="--dot: var(--faint)">Тонкости</a>
+    </nav>
+  </header>
+
+  <section class="plate" id="base">
+    <div class="plate-head">
+      <h2>Базовый слой</h2><span class="idx">слой 0</span>
+      <p class="how">Буквы печатаются сразу, без задержек. Все слои живут на больших пальцах: <b>тап</b> даёт клавишу, <b>удержание</b> включает слой (подписан цветом под клавишей).</p>
+    </div>
+    <div class="board-wrap"><div class="board base" data-layer="BASE"></div></div>
+    <ul class="notes" style="--layer: var(--ink)">
+      <li>Двойной тап <kbd>Shift</kbd> включает Caps Word: <code>my_const</code> → <code>MY_CONST</code>, пробел выключает.</li>
+      <li><kbd>Cmd</kbd> на большом пальце в Ubuntu работает как Ctrl: копировать, вставить и всё остальное как на маке.</li>
+      <li>Тап <kbd>Язык</kbd> переключает раскладку (в Ubuntu приходит как Super+Space).</li>
+      <li><kbd>Esc</kbd> слева от A: тап даёт Esc, удержание даёт Ctrl <span>(в Ubuntu это Super).</span></li>
+    </ul>
+  </section>
+
+  <section class="plate" id="hyper" style="--layer: var(--hyper)">
+    <div class="plate-head">
+      <h2>Hyper: приложения</h2><span class="idx">Ctrl+Alt+Shift+Super</span>
+      <p class="how">Держи <b>⌫</b> на правом большом и нажми букву. Если программа открыта, переключает на её окно, если нет, запускает. Работает через расширение GNOME Run or raise.</p>
+    </div>
+    <div class="board-wrap"><div class="board" data-layer="HYPER"></div></div>
+    <ul class="notes">
+      <li>Перед Hyper нужна короткая пауза в наборе. Сразу после буквы эта клавиша всегда работает как Backspace.</li>
+      <li>Новое приложение: строка в <code>~/.config/run-or-raise/shortcuts.conf</code>, затем выключить и включить расширение.</li>
+    </ul>
+  </section>
+
+  <section class="plate" id="mouse" style="--layer: var(--mouse)">
+    <div class="plate-head">
+      <h2>Трекбол и слой мыши</h2><span class="idx">слой 1, сам</span>
+      <p class="how">Слой поднимается сам, как только тронешь шар, и гаснет через <b>0,8 с</b> после остановки или от любой буквы.</p>
+    </div>
+    <div class="board-wrap"><div class="board" data-layer="MOUSE"></div></div>
+    <div class="table-wrap">
+      <table class="modes">
+        <thead><tr><th>Режим</th><th>Как включить</th><th>Что делает</th></tr></thead>
+        <tbody>
+          <tr><td>Курсор</td><td>просто катить шар</td><td>мышь с ускорением</td></tr>
+          <tr><td>Клики</td><td><kbd>H</kbd> <kbd>J</kbd> <kbd>N</kbd>, пока слой поднят</td><td>правая, левая, средняя; держишь J и катишь — перетаскивание</td></tr>
+          <tr><td>Snipe</td><td>тронуть шар, держать <kbd>K</kbd></td><td>медленный точный курсор; кликать J, не отпуская K</td></tr>
+          <tr><td>Scroll</td><td>тронуть шар, держать <kbd>L</kbd></td><td>шар крутит колесо</td></tr>
+          <tr style="--layer: var(--nav)"><td>Caret</td><td>держать <kbd>Tab</kbd> на левом большом, потом катить</td><td>шар двигает текстовый курсор; с <kbd>F</kbd> выделяет, с <kbd>D</kbd> прыгает по словам</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="plate" id="nav" style="--layer: var(--nav)">
+    <div class="plate-head">
+      <h2>NAV</h2><span class="idx">слой 4</span>
+      <p class="how">Держи <b>Tab</b> на левом большом. Справа навигация по тексту, слева вкладки, окна и VS Code. Шар в этом слое двигает текстовый курсор.</p>
+    </div>
+    <div class="board-wrap"><div class="board" data-layer="NAV"></div></div>
+    <ul class="notes">
+      <li><kbd>Окна</kbd> переключает между окнами одной программы <span>(Super+`)</span>.</li>
+      <li><kbd>← Вкл</kbd> <kbd>Вкл →</kbd> листают вкладки в Chrome, VS Code и WezTerm.</li>
+      <li><kbd>Назад</kbd> <kbd>Вперёд</kbd> ходят по истории переходов в VS Code, например после F12.</li>
+      <li><kbd>Окно ←</kbd> <kbd>Макс</kbd> <kbd>Окно →</kbd> ставят окно на половину экрана или разворачивают его.</li>
+      <li><kbd>Мон ←</kbd> <kbd>Мон →</kbd> переносят окно на левый (HDMI) или правый (DP) монитор.</li>
+      <li><kbd>Alt</kbd> <kbd>Ctrl</kbd> <kbd>Shift</kbd> держатся вместе с шаром или стрелками: Shift выделяет, Ctrl прыгает по словам, Alt в VS Code двигает строку.</li>
+    </ul>
+  </section>
+
+  <section class="plate" id="fun" style="--layer: var(--fun)">
+    <div class="plate-head">
+      <h2>FUN</h2><span class="idx">слой 6</span>
+      <p class="how">Держи <b>Язык</b> на левом большом. F-клавиши, Bluetooth, медиа, яркость и Print Screen.</p>
+    </div>
+    <div class="board-wrap"><div class="board" data-layer="FUN"></div></div>
+    <ul class="notes">
+      <li><kbd>PrtSc</kbd> открывает скриншоты GNOME.</li>
+      <li>Красным отмечено то, что нажимать осторожно: <kbd>BT ✕</kbd> на A стирает все сопряжения, <kbd>Boot</kbd> переводит левую половину в режим прошивки.</li>
+      <li>F12 «перейти к определению», F2 «переименовать», F5 «отладка» в VS Code.</li>
+    </ul>
+  </section>
+
+  <section class="plate" id="num" style="--layer: var(--num)">
+    <div class="plate-head">
+      <h2>NUM</h2><span class="idx">слой 5</span>
+      <p class="how">Держи <b>Enter</b> на правом большом. Цифровой блок под левой рукой, модификаторы под правой.</p>
+    </div>
+    <div class="board-wrap"><div class="board" data-layer="NUM"></div></div>
+  </section>
+
+  <section class="plate" id="combos" style="--layer: var(--ink)">
+    <div class="plate-head">
+      <h2>Комбо и Caps Word</h2>
+      <p class="how">Комбо — это две соседние клавиши, нажатые одновременно. Срабатывают после короткой паузы в наборе и только на базовом слое.</p>
+    </div>
+    <div class="combos">
+      <div class="combo"><kbd>U</kbd><span class="plus">+</span><kbd>I</kbd><span class="arrow">→</span><span class="out">-</span></div>
+      <div class="combo"><kbd>I</kbd><span class="plus">+</span><kbd>O</kbd><span class="arrow">→</span><span class="out">=</span></div>
+      <div class="combo"><kbd>O</kbd><span class="plus">+</span><kbd>P</kbd><span class="arrow">→</span><span class="out">]</span><span class="what">в русской раскладке «ъ»</span></div>
+      <div class="combo"><kbd>[</kbd><span class="plus">+</span><kbd>'</kbd><span class="arrow">→</span><span class="out">\</span><span class="what">в раскладке «Русская» на маке это «ё»</span></div>
+      <div class="combo"><kbd>`</kbd><span class="plus">+</span><kbd>⌫</kbd><span class="arrow">→</span><span class="out">Studio</span><span class="what">разблокировать ZMK Studio</span></div>
+      <div class="combo"><kbd>Shift</kbd><span class="plus">×2</span><span class="arrow">→</span><span class="out">ABC</span><span class="what">Caps Word до пробела</span></div>
+    </div>
+  </section>
+
+  <section class="plate" id="tips" style="--layer: var(--ink)">
+    <div class="plate-head"><h2>Тонкости</h2></div>
+    <ul class="tips">
+      <li><strong>Слои на пальцах</strong><p>NAV, NUM и FUN включаются через 0,2 с удержания или сразу, как только нажмёшь клавишу этого слоя. Для caret большой палец лучше зажать чуть раньше, чем крутить шар.</p></li>
+      <li><strong>Повтор Backspace и Enter</strong><p>После паузы в наборе: тапни и сразу зажми снова, клавиша будет повторяться. Простое удержание включает Hyper или NUM. Сразу после буквы Backspace повторяется и при обычном удержании.</p></li>
+      <li><strong>Слой мыши и буквы</strong><p>0,8 с после движения шара H, J, K, L и N работают как кнопки мыши. Любая другая буква сразу возвращает обычный набор.</p></li>
+      <li><strong>Если курсор странный</strong><p>Ускорение уже есть в прошивке. Ускорение мыши в настройках Ubuntu лучше выключить, иначе их два.</p></li>
+    </ul>
+  </section>
+
+  <footer>Собрано из <code>config/charybdis.keymap</code> и конфига Run or raise. После правок раскладки пересобрать: <code>python3 notes/build_cheatsheet.py</code></footer>
+</main>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById('data').textContent);
+  var legend = D.legend;
+  var THUMB = { 48: ['L', 6, 4], 49: ['L', 6, 5], 50: ['L', 6, 6], 51: ['R', 6, 1], 52: ['R', 6, 2], 53: ['L', 7, 5], 54: ['L', 7, 6], 55: ['R', 7, 1] };
+  var TARGET = { nav: '--nav', num: '--num', fun: '--fun', hyper: '--hyper', mouse: '--mouse' };
+
+  function place(p) {
+    if (p < 48) {
+      var r = Math.floor(p / 12) + 1, c = p % 12;
+      return c < 6 ? ['L', r, c + 1] : ['R', r, c - 5];
+    }
+    return THUMB[p];
+  }
+
+  function hyperCells() {
+    var cells = [];
+    for (var p = 0; p < 56; p++) cells.push(['', '', 'trans']);
+    Object.keys(D.hyper).forEach(function (letter) {
+      var p = legend.indexOf(letter);
+      if (p >= 0) cells[p] = [D.hyper[letter], '', 'key'];
+    });
+    cells[51] = ['', '', 'held'];
+    return cells;
+  }
+
+  function render(board) {
+    var name = board.getAttribute('data-layer');
+    var cells = name === 'HYPER' ? hyperCells() : D.layers[name];
+    var halves = { L: document.createElement('div'), R: document.createElement('div') };
+    halves.L.className = 'half';
+    halves.R.className = 'half';
+    cells.forEach(function (cell, p) {
+      var main = cell[0], sub = cell[1], kind = cell[2];
+      var at = place(p);
+      var cap = document.createElement('div');
+      var cls = kind.split(':')[0];
+      cap.className = 'cap ' + cls;
+      cap.style.gridRow = at[1];
+      cap.style.gridColumn = at[2];
+      if (kind.indexOf('dual:') === 0) cap.style.setProperty('--to', 'var(' + TARGET[kind.split(':')[1]] + ')');
+      if (cls === 'held') { main = legend[p]; sub = 'держать'; }
+      var pos = document.createElement('span');
+      pos.className = 'pos';
+      pos.textContent = legend[p];
+      cap.appendChild(pos);
+      if (main) {
+        var m = document.createElement('span');
+        m.className = main.length > 6 && main.indexOf(' ') < 0 ? 'main long' : 'main';
+        m.textContent = main;
+        cap.appendChild(m);
+      }
+      if (sub) {
+        var s = document.createElement('span');
+        s.className = 'sub';
+        s.textContent = sub;
+        cap.appendChild(s);
+      }
+      cap.title = cls === 'trans' ? legend[p] + ': как на базовом слое' : legend[p] + ': ' + [main, sub].filter(Boolean).join(' · ');
+      halves[at[0]].appendChild(cap);
+    });
+    board.setAttribute('role', 'img');
+    board.setAttribute('aria-label', 'Слой ' + name + ': ' + cells.map(function (c, p) {
+      return c[2] === 'trans' ? null : legend[p] + ' — ' + (c[2] === 'held' ? 'держать' : [c[0], c[1]].filter(Boolean).join(' '));
+    }).filter(Boolean).join('; '));
+    board.appendChild(halves.L);
+    board.appendChild(halves.R);
+  }
+
+  document.querySelectorAll('.board[data-layer]').forEach(render);
+})();
+</script>
