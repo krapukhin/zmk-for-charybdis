@@ -22,9 +22,9 @@ The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothste
 | speed, counts/ms | 3 | 5 | 8 | 10 |
 |---|---|---|---|---|
 | at 600 CPI, mm/s | 127 | 212 | 339 | 423 |
-| linear | 1.98 | 3.64 | 6.14 | 7.80 |
-| **quadratic** | 1.25 | 2.09 | 4.89 | 7.80 |
-| smoothstep | 1.44 | 3.25 | 6.76 | 7.80 |
+| linear | 2.07 | 3.71 | 6.16 | 7.80 |
+| **quadratic** | 1.35 | 2.17 | 4.93 | 7.80 |
+| smoothstep | 1.53 | 3.32 | 6.78 | 7.80 |
 
 Quadratic keeps the multiplier near the middle value well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
@@ -34,8 +34,8 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y
-CONFIG_PMW3610_ACCEL_MIN_MULT=40       # 0.4x for a barely moving ball
-CONFIG_PMW3610_ACCEL_MID_MULT=115      # 1.15x stable middle
+CONFIG_PMW3610_ACCEL_MIN_MULT=30       # 0.3x for a barely moving ball
+CONFIG_PMW3610_ACCEL_MID_MULT=125      # 1.25x stable middle
 CONFIG_PMW3610_ACCEL_SLOW_SPEED=75     # 0.75 counts/ms (~32 mm/s) — multiplier reaches the middle here
 CONFIG_PMW3610_ACCEL_LOW_SPEED=200     # 2.0 counts/ms (~85 mm/s) — acceleration starts above this
 CONFIG_PMW3610_ACCEL_HIGH_SPEED=1000   # 10.0 counts/ms (~423 mm/s) — above this, max acceleration
@@ -232,7 +232,7 @@ The four symbol combos need a short pause before them: they don't fire within 10
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with a slow zone and acceleration (690 effective CPI in the middle, ~240 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
+| **Normal** | default | Mouse cursor with a slow zone and acceleration (750 effective CPI in the middle, ~180 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
 | **Snipe** | Move the ball, then hold `K` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
 | **Scroll** | Move the ball, then hold `L` | Ball controls the scroll wheel |
 | **Caret** | Hold left thumb 50 (NAV), then roll | **Ball moves the text cursor (arrow keys)**. The thumb is a layer-tap, so press it a moment before rolling |
@@ -357,7 +357,7 @@ Both firmware sets are built from every push, but they are **mutually exclusive*
 
 ### What you lose in dongle mode
 
-- ~~Caret mode~~ — **recovered.** It is not the driver's caret (that one only runs on a central), but a custom input processor, `zmk,input-processor-caret`, living in the vendored module. Processors run on whichever device holds the keymap, so on the dongle it works. Same logic as the driver's version, including the threshold-subtraction and axis-lock fixes. Threshold is `69` rather than `20`, because events arrive at 600 CPI here instead of the driver's 200 CPI snipe rate, already multiplied by the middle of the acceleration curve (60 × 1.15).
+- ~~Caret mode~~ — **recovered.** It is not the driver's caret (that one only runs on a central), but a custom input processor, `zmk,input-processor-caret`, living in the vendored module. Processors run on whichever device holds the keymap, so on the dongle it works. Same logic as the driver's version, including the threshold-subtraction and axis-lock fixes. Threshold is `75` rather than `20`, because events arrive at 600 CPI here instead of the driver's 200 CPI snipe rate, already multiplied by the middle of the acceleration curve (60 × 1.25).
 - **Switching between 5 BT devices.** Inherent to a dongle: you are wired to one host. The Bluetooth keys on the FUN layer become pointless.
 - **ZMK Studio moves to the dongle**, since that is now the central. The right half no longer exposes it.
 - **Snipe becomes software scaling** rather than a hardware CPI change — the sensor's CPI cannot be set from the dongle. Speed has to be re-tuned.
