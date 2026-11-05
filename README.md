@@ -18,7 +18,7 @@ low < speed < high  ->  ramp from mid to max, shape selectable
 speed >= high       ->  multiplier = max
 ```
 
-The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothstep:
+The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothstep. A fourth option, `PMW3610_ACCEL_CURVE_POWER`, replaces the zones with one formula (see below):
 
 | speed, counts/ms | 3 | 5 | 8 | 10 |
 |---|---|---|---|---|
@@ -31,7 +31,9 @@ Quadratic keeps the multiplier near the middle value well past the low threshold
 
 Sub-pixel accumulation prevents precision loss on small deltas, and speed is calculated as counts/ms (delta / time between polls) for stable behavior regardless of polling rate.
 
-**Current settings** in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
+**Power curve.** `CONFIG_PMW3610_ACCEL_CURVE_POWER=y` uses `mult = max * (speed / high) ^ exp`, limited to a floor and `max`. It has no zones and no stable middle: the multiplier grows at every speed. This build currently has it switched on as an experiment (`POWER_EXP=85`, `POWER_MIN_MULT=15`). The zone values below stay in the config and take effect again with `CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC=y`.
+
+**Zone curve settings** in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y

@@ -81,7 +81,13 @@ Measured by running the real `apply_acceleration()` on steady motion at CPI 600:
 |---|---|---|---|---|---|---|---|---|---|
 | multiplier | 0.16–0.18 | 0.50 | 0.96 | 1.25 | 1.49 | 2.01 | 3.90 | 6.93 | 7.8 |
 
-The slow zone (Nov 2026) always uses smoothstep regardless of the selected curve: it is flat at both ends, so a crawl has a stable multiplier and there is no kink entering the plateau. Multipliers below 1 rely on the Q16.16 remainder below — fractions carry over, so slow motion does not stick. Goal: make aiming finer without holding the snipe key; whether snipe can go away entirely is still to be judged by hand.
+**Currently active: `PMW3610_ACCEL_CURVE_POWER`, an experiment since Nov 2026.** One formula, no zones: `mult = MAX × (speed / HIGH) ^ POWER_EXP`, limited to `POWER_MIN_MULT`…`MAX`. `POWER_EXP` = 85 and `POWER_MIN_MULT` = 15, fitted through the two points the user had already tuned (5 mm/s → 0.18, 423 mm/s → 7.8). The zone parameters stay in the config files but do nothing; **to go back, set `CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC=y` instead of `_POWER` in both `charybdis_right*.conf`**. It has no stable middle, so on the dongle set scroll and caret, which are compensated for a constant 1.25×, change with speed (about 1.6× more at 85 mm/s).
+
+| mm/s | 2–3 | 5 | 10 | 20 | 50 | 85 | 150 | 200 | 300 | 400 | 423+ |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| power curve | 0.15 | 0.18 | 0.33 | 0.59 | 1.27 | 1.99 | 3.23 | 4.12 | 5.82 | 7.43 | 7.8 |
+
+The table above that one is the zone curve. The slow zone (Nov 2026) always uses smoothstep regardless of the selected curve: it is flat at both ends, so a crawl has a stable multiplier and there is no kink entering the plateau. Multipliers below 1 rely on the Q16.16 remainder below — fractions carry over, so slow motion does not stick. Goal: make aiming finer without holding the snipe key; whether snipe can go away entirely is still to be judged by hand.
 
 Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision loss on small deltas. Speed is delta/dt for stability across variable polling rates.
 
@@ -303,7 +309,7 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 - **Open questions for layout v2:** middle click on N (kept) vs M (plan); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
 - **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
-- **Trackball tuning currently:** `CPI=600`, accel CRAWL `50`/`14`, MIN `30`, MID `125`, SLOW/LOW/HIGH `75/200/1000`, MAX `780`, quadratic, dongle scroll divisor `23`, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `75` (dongle processor).
+- **Trackball tuning currently:** `CPI=600`, **power curve being tried** (EXP `85`, floor `15`, HIGH `1000`, MAX `780`). Zone curve kept in the configs for going back: CRAWL `50`/`14`, MIN `30`, MID `125`, SLOW/LOW/HIGH `75/200/1000`, MAX `780`, quadratic. Dongle scroll divisor `23`, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `75` (dongle processor).
 - **Battery:** right half's reported charge is a constant ~24 % and not a measurement (see Battery Level Logging); only the left half's number is real.
 - **Working tree:** two old serial logs (`battery_charibdis.txt`, `battery log.txt`) are committed to the repo root and are cleanup candidates for `notes/`.
 - **Key files:** `build.yaml`, `config/charybdis.keymap`, `config/boards/shields/charybdis/charybdis_right.{overlay,conf}`, `config/boards/shields/charybdis_dongle/charybdis_dongle.{overlay,conf}`, `zmk-pmw3610-driver-main/src/{pmw3610.c,input_processor_caret.c,battery_log.c}`.

@@ -249,9 +249,10 @@ choice
   default PMW3610_ACCEL_CURVE_QUADRATIC
   depends on PMW3610_ACCEL_ENABLED
   help
-    Shape of the ramp between ACCEL_LOW_SPEED and ACCEL_HIGH_SPEED.
-    All three reach the same 1.0x at LOW and ACCEL_MAX_MULT at HIGH;
-    they differ in what happens in between.
+    Linear, quadratic and smoothstep shape the ramp between ACCEL_LOW_SPEED
+    and ACCEL_HIGH_SPEED: all three reach ACCEL_MID_MULT at LOW and
+    ACCEL_MAX_MULT at HIGH and differ in between. Power replaces the zones
+    with a single formula.
 
 config PMW3610_ACCEL_CURVE_LINEAR
   bool "Linear"
@@ -273,7 +274,33 @@ config PMW3610_ACCEL_CURVE_SMOOTHSTEP
     smooth at both thresholds — no point where acceleration visibly kicks
     in or hits the ceiling.
 
+config PMW3610_ACCEL_CURVE_POWER
+  bool "Power (one formula, no zones)"
+  help
+    mult = max * (speed / HIGH) ^ ACCEL_POWER_EXP, limited to the range from
+    ACCEL_POWER_MIN_MULT to ACCEL_MAX_MULT. There is no stable middle: the
+    multiplier grows at every speed. ACCEL_LOW_SPEED, SLOW_SPEED, MID_MULT,
+    MIN_MULT and CRAWL_* are not used.
+
 endchoice
+
+config PMW3610_ACCEL_POWER_EXP
+  int "Exponent of the power curve (x100)"
+  default 85
+  range 1 300
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Only used by PMW3610_ACCEL_CURVE_POWER. Higher means a slower cursor at low
+    and medium speed for the same peak. Example: 85 means 0.85.
+
+config PMW3610_ACCEL_POWER_MIN_MULT
+  int "Lowest multiplier of the power curve (x100)"
+  default 15
+  range 1 100
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Only used by PMW3610_ACCEL_CURVE_POWER. The formula goes to zero with the
+    speed, so it needs a floor. Example: 15 means 0.15x.
 
 config PMW3610_AUTOMOUSE_TIMEOUT_MS
   int "Amount of milliseconds the mouse layer will be active after using the trackball"

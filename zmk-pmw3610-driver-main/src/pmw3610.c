@@ -631,9 +631,23 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
     // speed in counts/ms
     float speed = sqrtf((float)(*x * *x + *y * *y)) * 1000.0f / (float)dt_us;
 
-    float low = CONFIG_PMW3610_ACCEL_LOW_SPEED / 100.0f;
     float high = CONFIG_PMW3610_ACCEL_HIGH_SPEED / 100.0f;
     float max_m = CONFIG_PMW3610_ACCEL_MAX_MULT / 100.0f;
+
+#if defined(CONFIG_PMW3610_ACCEL_CURVE_POWER)
+    /* Одна формула без зон: множитель растёт на любой скорости и равен max_m на
+     * HIGH. На малой скорости формула стремится к нулю, поэтому нужен пол.
+     * speed здесь больше нуля: функция вызывается только при ненулевой дельте.
+     */
+    float min_m = CONFIG_PMW3610_ACCEL_POWER_MIN_MULT / 100.0f;
+    float mult = max_m * powf(speed / high, CONFIG_PMW3610_ACCEL_POWER_EXP / 100.0f);
+    if (mult < min_m) {
+        mult = min_m;
+    } else if (mult > max_m) {
+        mult = max_m;
+    }
+#else
+    float low = CONFIG_PMW3610_ACCEL_LOW_SPEED / 100.0f;
     float mid_m = CONFIG_PMW3610_ACCEL_MID_MULT / 100.0f;
     float min_m = CONFIG_PMW3610_ACCEL_MIN_MULT / 100.0f;
     float slow = CONFIG_PMW3610_ACCEL_SLOW_SPEED / 100.0f;
@@ -681,6 +695,7 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
 #endif /* LINEAR — t без изменений */
         mult = mid_m + t * (max_m - mid_m);
     }
+#endif /* CONFIG_PMW3610_ACCEL_CURVE_POWER */
 
     // sub-pixel accumulation via fixed-point Q16.16
     int32_t fx = (int32_t)(*x * mult * 65536.0f) + data->accel_remainder_x;
