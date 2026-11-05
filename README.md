@@ -31,7 +31,7 @@ Quadratic keeps the multiplier near the middle value well past the low threshold
 
 Sub-pixel accumulation prevents precision loss on small deltas, and speed is calculated as counts/ms (delta / time between polls) for stable behavior regardless of polling rate.
 
-**Power curve.** `CONFIG_PMW3610_ACCEL_CURVE_POWER=y` uses `mult = max * (speed / high) ^ exp`, limited to a floor and `max`. It has no zones and no stable middle: the multiplier grows at every speed. This build currently has it switched on as an experiment (`POWER_EXP=85`, `POWER_MIN_MULT=15`). The zone values below stay in the config and take effect again with `CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC=y`.
+**Power curve.** `CONFIG_PMW3610_ACCEL_CURVE_POWER=y` uses `mult = max * (speed / high) ^ exp`, limited to a floor and `max`. It has no zones and no stable middle: the multiplier grows at every speed. This build uses it (`POWER_EXP=85`, `POWER_MIN_MULT=10`, `HIGH_SPEED=880`, `MAX_MULT=700`). `max` scales the whole power curve, so to change only the ceiling also recompute `high`. To go back to zones, set `CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC=y` and restore the two values shown below for `HIGH_SPEED` and `MAX_MULT`.
 
 **Zone curve settings** in [`charybdis_right.conf`](config/boards/shields/charybdis/charybdis_right.conf):
 
@@ -238,7 +238,7 @@ The four symbol combos need a short pause before them: they don't fire within 10
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with a slow zone and acceleration (750 effective CPI in the middle, ~90 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
+| **Normal** | default | Mouse cursor with a speed-dependent curve (about 60 effective CPI at a crawl, up to 4200 on a hard flick); raises the auto mouse layer |
 | **Snipe** | Move the ball, then hold `K` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
 | **Scroll** | Move the ball, then hold `L` | Ball controls the scroll wheel |
 | **Caret** | Hold left thumb 50 (NAV), then roll | **Ball moves the text cursor (arrow keys)**. The thumb is a layer-tap, so press it a moment before rolling |

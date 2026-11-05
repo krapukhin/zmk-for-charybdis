@@ -72,8 +72,8 @@ Parameters (all x100 because Kconfig doesn't support float):
 - `ACCEL_CRAWL_MULT` (50 = 0.5x) and `ACCEL_CRAWL_SPEED` (14 = 0.14 counts/ms, ~6 mm/s) — a separate interval for the very slowest motion: below CRAWL_SPEED the whole multiplier is scaled by CRAWL_MULT, and the factor fades out smoothly by 2 × CRAWL_SPEED. `100` turns it off. 0.14 sits just above one count per 8 ms poll (0.125), so single-count reports are in full effect. It is separate from MIN_MULT so that ordinary slow aiming above ~12 mm/s is not touched.
 - `ACCEL_SLOW_SPEED` (75 = 0.75 counts/ms, ~32 mm/s) — the multiplier reaches MID here. Must not exceed `ACCEL_LOW_SPEED`; `BUILD_ASSERT` also enforces MIN ≤ MID ≤ MAX and 2 × CRAWL_SPEED ≤ SLOW_SPEED.
 - `ACCEL_LOW_SPEED` (200 = 2.0 counts/ms, ~85 mm/s) — between SLOW and LOW, multiplier = exactly MID; acceleration starts above it
-- `ACCEL_HIGH_SPEED` (1000 = 10.0 counts/ms, ~423 mm/s) — above this, multiplier = max. The sensor is rated for 30 ips (~760 mm/s), so the ceiling is reachable.
-- `ACCEL_MAX_MULT` (780 = 7.8x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
+- `ACCEL_HIGH_SPEED` (zones: 1000 = 10.0 counts/ms, ~423 mm/s; power curve now: 880 = ~373 mm/s) — above this, multiplier = max. The sensor is rated for 30 ips (~760 mm/s), so the ceiling is reachable.
+- `ACCEL_MAX_MULT` (zones: 780 = 7.8x; power curve now: 700 = 7.0x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
 
 Measured by running the real `apply_acceleration()` on steady motion at CPI 600:
 
@@ -81,13 +81,13 @@ Measured by running the real `apply_acceleration()` on steady motion at CPI 600:
 |---|---|---|---|---|---|---|---|---|---|
 | multiplier | 0.16–0.18 | 0.50 | 0.96 | 1.25 | 1.49 | 2.01 | 3.90 | 6.93 | 7.8 |
 
-**Currently active: `PMW3610_ACCEL_CURVE_POWER`, an experiment since Nov 2026.** One formula, no zones: `mult = MAX × (speed / HIGH) ^ POWER_EXP`, limited to `POWER_MIN_MULT`…`MAX`. `POWER_EXP` = 85 and `POWER_MIN_MULT` = 15, fitted through the two points the user had already tuned (5 mm/s → 0.18, 423 mm/s → 7.8). The zone parameters stay in the config files but do nothing; **to go back, set `CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC=y` instead of `_POWER` in both `charybdis_right*.conf`**. It has no stable middle, so on the dongle set scroll and caret, which are compensated for a constant 1.25×, change with speed (about 1.6× more at 85 mm/s).
+**Currently active: `PMW3610_ACCEL_CURVE_POWER`, chosen over the zones after trying it on hardware (Nov 2026).** One formula, no zones: `mult = MAX × (speed / HIGH) ^ POWER_EXP`, limited to `POWER_MIN_MULT`…`MAX`. Current values: `POWER_EXP` 85, `POWER_MIN_MULT` 10, `MAX_MULT` 700, `HIGH_SPEED` 880 (~373 mm/s). **`MAX` scales the whole power curve, not just the ceiling:** to move only the ceiling, also set `HIGH_new = HIGH × (MAX_new / MAX) ^ (1 / EXP)`, which is how 7.8×/1000 became 7×/880 with the curve below it unchanged. The zone-only parameters stay in the config files and do nothing; **to go back, set `CONFIG_PMW3610_ACCEL_CURVE_QUADRATIC=y` instead of `_POWER` and `HIGH_SPEED=1000`, `MAX_MULT=780` in both `charybdis_right*.conf`**. It has no stable middle, so on the dongle set scroll and caret, which are compensated for a constant 1.25×, change with speed (about 1.6× more at 85 mm/s).
 
-| mm/s | 2–3 | 5 | 10 | 20 | 50 | 85 | 150 | 200 | 300 | 400 | 423+ |
+| mm/s | 2 | 3 | 5 | 10 | 20 | 50 | 85 | 150 | 200 | 300 | 373+ |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| power curve | 0.15 | 0.18 | 0.33 | 0.59 | 1.27 | 1.99 | 3.23 | 4.12 | 5.82 | 7.43 | 7.8 |
+| power curve | 0.10 | 0.12 | 0.18 | 0.33 | 0.59 | 1.27 | 1.99 | 3.23 | 4.13 | 5.82 | 7.0 |
 
-The table above that one is the zone curve. The slow zone (Nov 2026) always uses smoothstep regardless of the selected curve: it is flat at both ends, so a crawl has a stable multiplier and there is no kink entering the plateau. Multipliers below 1 rely on the Q16.16 remainder below — fractions carry over, so slow motion does not stick. Goal: make aiming finer without holding the snipe key; whether snipe can go away entirely is still to be judged by hand.
+The earlier table is the zone curve, measured with `HIGH_SPEED=1000`, `MAX_MULT=780`. The slow zone (Nov 2026) always uses smoothstep regardless of the selected curve: it is flat at both ends, so a crawl has a stable multiplier and there is no kink entering the plateau. Multipliers below 1 rely on the Q16.16 remainder below — fractions carry over, so slow motion does not stick. Goal: make aiming finer without holding the snipe key; whether snipe can go away entirely is still to be judged by hand.
 
 Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision loss on small deltas. Speed is delta/dt for stability across variable polling rates.
 
@@ -238,7 +238,7 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 **Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=600`, `CPI_DIVIDOR=1` → **750 effective** in the middle (CPI × `MID_MULT`), ~90 at a crawl, up to ~4680 on a hard flick
+- Normal: `CPI=600`, `CPI_DIVIDOR=1` → ~60 effective at a crawl, ~760 at 50 mm/s, up to 4200 on a hard flick (power curve)
 - Snipe: `SNIPE_CPI=200`, then halved by a layer-scoped `&zip_xy_scaler 1 2` → **100 effective**, no acceleration
 
 200 is the sensor's floor (the register is `cpi / 200`), so slowing snipe further is only possible with a scaler. It is attached as a child node of `trackball_listener` with `layers = <2>` so it applies to the snipe layer only — a global scaler would drag the normal mode down too. **That layer number is duplicated between the override and the driver's `snipe-layers` property; renumbering layers without updating both leaves snipe silently un-scaled, and the build still succeeds.**
@@ -309,7 +309,7 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 - **Open questions for layout v2:** middle click on N (kept) vs M (plan); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
 - **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
-- **Trackball tuning currently:** `CPI=600`, **power curve being tried** (EXP `85`, floor `15`, HIGH `1000`, MAX `780`). Zone curve kept in the configs for going back: CRAWL `50`/`14`, MIN `30`, MID `125`, SLOW/LOW/HIGH `75/200/1000`, MAX `780`, quadratic. Dongle scroll divisor `23`, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `75` (dongle processor).
+- **Trackball tuning currently:** `CPI=600`, **power curve** (EXP `85`, floor `10`, HIGH `880`, MAX `700`). Zone curve kept in the configs for going back: CRAWL `50`/`14`, MIN `30`, MID `125`, SLOW/LOW `75/200`, plus HIGH `1000` and MAX `780` to restore, quadratic. Dongle scroll divisor `23`, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `75` (dongle processor).
 - **Battery:** right half's reported charge is a constant ~24 % and not a measurement (see Battery Level Logging); only the left half's number is real.
 - **Working tree:** two old serial logs (`battery_charibdis.txt`, `battery log.txt`) are committed to the repo root and are cleanup candidates for `notes/`.
 - **Key files:** `build.yaml`, `config/charybdis.keymap`, `config/boards/shields/charybdis/charybdis_right.{overlay,conf}`, `config/boards/shields/charybdis_dongle/charybdis_dongle.{overlay,conf}`, `zmk-pmw3610-driver-main/src/{pmw3610.c,input_processor_caret.c,battery_log.c}`.
