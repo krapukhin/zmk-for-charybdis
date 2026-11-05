@@ -100,19 +100,19 @@ The accumulator works exactly like the scroll one: **the threshold is subtracted
 
 ### Auto Mouse Layer — layer index is load-bearing
 
-Trackball motion automatically raises layer 1 (`mouse_layer`: H = right click, J = left, N = middle; **hold K = snipe, hold L = scroll** via `&mo`), which drops again 800 ms after the ball stops. Implemented with ZMK's upstream `&zip_temp_layer` input processor, wired up in `charybdis_right.overlay`:
+Trackball motion automatically raises layer 1 (`mouse_layer`: H = right click, J = left, N = middle; **hold K = snipe, hold L = scroll** via `&mo`; **both Space keys = `&to 0`**, back to letters without typing a space), which drops again 800 ms after the ball stops. Implemented with ZMK's upstream `&zip_temp_layer` input processor, wired up in `charybdis_right.overlay`:
 
 ```dts
 &trackball_listener { input-processors = <&zip_temp_layer 1 800>; };
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <24 30 31 32 33 36 42 47 49 53>;
+    excluded-positions = <24 30 31 32 33 36 42 47 48 49 52 53>;
 };
 ```
 
 **Invariant — do not break this:** the auto mouse layer's index must stay **lower** than `snipe`/`scroll`/`caret`. The vendored driver picks the trackball mode from `zmk_keymap_highest_layer_active()` (`get_input_mode_for_current_layer()` in `pmw3610.c`) — *only* the topmost active layer. Give the mouse layer a higher index and holding `L` for scroll (or NAV for caret) leaves the mouse layer on top, so the driver never leaves MOVE mode and scroll/snipe/caret silently stop working while the ball is moving. Nothing fails at build time; it only shows up in the hand. The same trap applies to the driver's own `automouse-layer` property, which is deliberately left disabled (`-1`).
 
-`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks (30 H, 31 J, 42 N), the snipe/scroll holders (32 K, 33 L), both Shifts (36, 47) and Ctrl/Esc (24), Cmd (49), Alt (53) — so shift/cmd/ctrl/alt-click survive. **K and L must stay in the list:** otherwise pressing them dismisses the mouse layer before `&mo` resolves, and the key types a letter. The layer thumbs (50/54/55), Backspace/Hyper (51), Space and Enter deliberately dismiss it. The list is duplicated in `charybdis_dongle.overlay`; `check_keymap.py` compares the two.
+`excluded-positions` has **inverted semantics** — verified in ZMK's `app/src/pointing/input_processor_temp_layer.c`: listed positions do *not* dismiss the layer, everything else does, and an *empty* list means no key ever dismisses it (timeout only). The listed positions are the three clicks (30 H, 31 J, 42 N), the snipe/scroll holders (32 K, 33 L), both Shifts (36, 47) and Ctrl/Esc (24), Cmd (49), Alt (53) — so shift/cmd/ctrl/alt-click survive — plus Space (48, 52), so that its `&to 0` runs rather than a plain space from the base layer. `&to 0` is safe for the processor: it listens to `zmk_layer_state_changed`, clears its own state and cancels its timer when the layer goes away, and the next ball motion raises the layer again. **K and L must stay in the list:** otherwise pressing them dismisses the mouse layer before `&mo` resolves, and the key types a letter. The layer thumbs (50/54/55), Backspace/Hyper (51) and Enter deliberately dismiss it. The list is duplicated in `charybdis_dongle.overlay`; `check_keymap.py` compares the two.
 
 **Clicks are duplicated on SNIPE and SCROLL, deliberately.** The snipe override (and the dongle's scroll/caret overrides) has no `process-next`, so while it is active `&zip_temp_layer` does not run and its timer is not refreshed — after 0.8 s of aiming the mouse layer drops. Without its own H/J/N clicks, J under a held K would then type `j`. Do not "simplify" those layers to all-`&trans`.
 
@@ -186,7 +186,7 @@ Layout v2 (Oct 2026). Layer nodes are named `base_layer` … `fun_layer` with `d
 | Index | Name | Activation | Content |
 |-------|------|-----------|---------|
 | 0 | BASE | default | QWERTY, plain letters |
-| 1 | MOUSE | **automatic** — ball motion (`&zip_temp_layer 1 800`) | H/J/N clicks, `&mo 2` (SNIPE) on K, `&mo 3` (SCROLL) on L |
+| 1 | MOUSE | **automatic** — ball motion (`&zip_temp_layer 1 800`) | H/J/N clicks, `&mo 2` (SNIPE) on K, `&mo 3` (SCROLL) on L, `&to 0` on both Space keys |
 | 2 | SNIPE | hold K while MOUSE is up | slow cursor; only H/J/N clicks, rest `&trans` |
 | 3 | SCROLL | hold L while MOUSE is up | ball → wheel; only H/J/N clicks, rest `&trans` |
 | 4 | NAV | hold 50 (left thumb, tap = Tab) | **Ubuntu-native.** Right: arrows on HJKL, Home/PgDn/PgUp/End above, file start / word ← / word → / file end below, P/[ = delete word left/right, ; = Del. Left: Q next window of the app, W/E tab prev/next, A/G VS Code back/forward, S/D/F = Alt/Ctrl/Shift, Z/X/C window left / toggle maximize / right, V/B window to left/right monitor. **Ball = caret** |
@@ -275,6 +275,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 ## Architecture Decisions
 
 - 2026-11 Finer slow aiming comes from a **sub-1× slow zone in the driver's curve** rather than from the OS or a lower CPI: it behaves the same on both hosts behind the KVM, and OS acceleration stays flat so there is one curve to tune. (Pointer Acceleration section)
+- 2026-11 To type right after moving the ball, the mouse layer has a **`&to 0` on Space** instead of moving the clicks off the home row. The move was tried for a day (J is the frequent Russian «о») and reverted: the clicks belong under the home-row fingers. (Auto Mouse Layer section)
 - 2026-10 SYM layer dropped after a day of use — symbols are typed from their touch-typing positions (Shift + number row, NUM). Its thumb (51) became Backspace/**Hyper** for app-launch shortcuts; Hyper rather than Right Alt because Linux cannot tell left and right Alt apart. (Thumb Keys section)
 - 2026-10 Layout v2: **layer-taps moved off letters onto the thumbs**; snipe/scroll became `&mo` inside the auto mouse layer (hold K/L), caret moved to NAV. Typing never waits on a hold-tap decision anymore. Rollout was staged (combos/Caps Word → K/L on MOUSE → mods → layers) so each step could be got used to. (Layer Map / Thumb Keys sections)
 

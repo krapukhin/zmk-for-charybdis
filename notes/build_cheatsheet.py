@@ -53,6 +53,7 @@ LABELS = {
     "MOUSE": {
         "&mkp RCLK": ("ПКМ", "", "key"), "&mkp LCLK": ("ЛКМ", "", "key"), "&mkp MCLK": ("СКМ", "средняя", "key"),
         "&mo 2": ("Snipe", "держать", "dual:mouse"), "&mo 3": ("Scroll", "держать", "dual:mouse"),
+        "&to 0": ("Буквы", "возврат", "key"),
     },
     "NAV": {
         "&kp LC(GRAVE)": ("Окна", "Super+`", "key"),

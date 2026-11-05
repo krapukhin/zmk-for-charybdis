@@ -169,6 +169,7 @@
         // 1 MOUSE — авто-слой, поднимается движением шара (&zip_temp_layer в overlay'ях),
         // гаснет через 800 мс или от не-исключённой клавиши.
         // H = ПКМ, J = ЛКМ, N = средняя; удержание K = SNIPE, удержание L = SCROLL.
+        // Space (оба) = &to 0: сразу вернуться к буквам, пробел при этом не печатается.
         // ИНВАРИАНТ: индекс ниже SNIPE/SCROLL/NAV — драйвер смотрит только на верхний слой.
         // K/L обязаны быть в excluded-positions, иначе слой погаснет раньше &mo.
 
@@ -179,7 +180,7 @@
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans      &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mo 2  &mo 3  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans     &trans      &trans  &trans
-                        &trans  &trans  &trans    &trans     &trans
+                        &to 0   &trans  &trans    &trans     &to 0
                                 &trans  &trans    &trans
             >;
         };
