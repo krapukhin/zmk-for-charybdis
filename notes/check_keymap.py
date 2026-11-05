@@ -50,8 +50,8 @@ HOLDER_TARGETS = {
     ("BASE", 50): "NAV",
     ("BASE", 55): "NUM",
     ("BASE", 54): "FUN",
-    ("MOUSE", 44): "SNIPE",
-    ("MOUSE", 45): "SCROLL",
+    ("MOUSE", 32): "SNIPE",
+    ("MOUSE", 33): "SCROLL",
 }
 
 # Свойства драйвера в charybdis_right.overlay -> роль.
