@@ -225,6 +225,25 @@ config PMW3610_ACCEL_SLOW_SPEED
     Speed (in counts/ms * 100) where the multiplier reaches ACCEL_MID_MULT.
     Must not exceed ACCEL_LOW_SPEED. Example: 75 means 0.75 counts/ms.
 
+config PMW3610_ACCEL_CRAWL_MULT
+  int "Extra factor for the very slowest motion (x100)"
+  default 100
+  range 1 100
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    The whole multiplier is scaled by this factor below ACCEL_CRAWL_SPEED, rising
+    smoothly to no change at twice that speed. Faster motion is not affected.
+    100 turns it off. Example: 50 means half as fast.
+
+config PMW3610_ACCEL_CRAWL_SPEED
+  int "Speed below which the crawl factor applies in full (x100)"
+  default 14
+  range 1 2500
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Speed in counts/ms * 100. Twice this value must not exceed ACCEL_SLOW_SPEED.
+    Example: 14 means 0.14 counts/ms, just above one count per 8 ms poll.
+
 choice
   prompt "Pointer acceleration curve"
   default PMW3610_ACCEL_CURVE_QUADRATIC

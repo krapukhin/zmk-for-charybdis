@@ -609,6 +609,8 @@ BUILD_ASSERT(CONFIG_PMW3610_ACCEL_SLOW_SPEED <= CONFIG_PMW3610_ACCEL_LOW_SPEED,
 BUILD_ASSERT(CONFIG_PMW3610_ACCEL_MIN_MULT <= CONFIG_PMW3610_ACCEL_MID_MULT &&
                  CONFIG_PMW3610_ACCEL_MID_MULT <= CONFIG_PMW3610_ACCEL_MAX_MULT,
              "PMW3610 acceleration must keep MIN_MULT <= MID_MULT <= MAX_MULT");
+BUILD_ASSERT(2 * CONFIG_PMW3610_ACCEL_CRAWL_SPEED <= CONFIG_PMW3610_ACCEL_SLOW_SPEED,
+             "PMW3610_ACCEL_CRAWL_SPEED must be at most half of PMW3610_ACCEL_SLOW_SPEED");
 
 static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y) {
     /* Меряем в тиках системного таймера, а не в целых миллисекундах.
@@ -635,6 +637,8 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
     float mid_m = CONFIG_PMW3610_ACCEL_MID_MULT / 100.0f;
     float min_m = CONFIG_PMW3610_ACCEL_MIN_MULT / 100.0f;
     float slow = CONFIG_PMW3610_ACCEL_SLOW_SPEED / 100.0f;
+    float crawl_m = CONFIG_PMW3610_ACCEL_CRAWL_MULT / 100.0f;
+    float crawl = CONFIG_PMW3610_ACCEL_CRAWL_SPEED / 100.0f;
 
     float mult = mid_m;
     if (speed < slow) {
@@ -647,6 +651,20 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
         float t = speed / slow;
         t = t * t * (3.0f - 2.0f * t);
         mult = min_m + t * (mid_m - min_m);
+
+        /* Отдельный интервал для самого медленного хода: ниже CRAWL множитель
+         * дополнительно умножается на CRAWL_MULT, к 2*CRAWL поправка плавно
+         * исчезает. Отдельно от MIN_MULT, чтобы не задевать обычное наведение,
+         * у которого скорость выше.
+         */
+        if (speed < 2.0f * crawl) {
+            float c = (speed - crawl) / crawl;
+            if (c < 0.0f) {
+                c = 0.0f;
+            }
+            c = c * c * (3.0f - 2.0f * c);
+            mult *= crawl_m + c * (1.0f - crawl_m);
+        }
     } else if (speed > low) {
         float t = (speed - low) / (high - low);
         if (t > 1.0f) {

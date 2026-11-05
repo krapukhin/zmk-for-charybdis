@@ -8,9 +8,10 @@ ZMK firmware configuration for the **Charybdis 4x6** split ergonomic keyboard wi
 
 ## Pointer Acceleration
 
-Pointer curve for the trackball: a barely moving ball is slowed down for precise aiming, normal movement has a stable multiplier, and a fast roll is amplified up to a configurable maximum. The algorithm has four zones:
+Pointer curve for the trackball: a barely moving ball is slowed down for precise aiming, normal movement has a stable multiplier, and a fast roll is amplified up to a configurable maximum. The algorithm has these zones:
 
 ```
+speed < crawl       ->  the slow-zone multiplier is scaled further down, fading out by 2 x crawl
 speed < slow        ->  smooth rise from min to mid
 slow <= speed <= low ->  multiplier = mid  (stable middle)
 low < speed < high  ->  ramp from mid to max, shape selectable
@@ -36,6 +37,8 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 CONFIG_PMW3610_ACCEL_ENABLED=y
 CONFIG_PMW3610_ACCEL_MIN_MULT=30       # 0.3x for a barely moving ball
 CONFIG_PMW3610_ACCEL_MID_MULT=125      # 1.25x stable middle
+CONFIG_PMW3610_ACCEL_CRAWL_MULT=50     # the very slowest motion is half as fast again (100 = off)
+CONFIG_PMW3610_ACCEL_CRAWL_SPEED=14    # 0.14 counts/ms (~6 mm/s) — below this in full, gone by ~12 mm/s
 CONFIG_PMW3610_ACCEL_SLOW_SPEED=75     # 0.75 counts/ms (~32 mm/s) — multiplier reaches the middle here
 CONFIG_PMW3610_ACCEL_LOW_SPEED=200     # 2.0 counts/ms (~85 mm/s) — acceleration starts above this
 CONFIG_PMW3610_ACCEL_HIGH_SPEED=1000   # 10.0 counts/ms (~423 mm/s) — above this, max acceleration
@@ -48,6 +51,7 @@ CONFIG_PMW3610_ACCEL_MAX_MULT=780      # 7.8x max multiplier (do not exceed ~15x
 - Cursor accelerates too aggressively -> increase `ACCEL_HIGH_SPEED` or decrease `ACCEL_MAX_MULT`
 - Slow movements already feel accelerated -> increase `ACCEL_LOW_SPEED`
 - Slow aiming should be slower or faster -> change `ACCEL_MIN_MULT`
+- Only the very slowest motion should change -> change `ACCEL_CRAWL_MULT`
 - The cursor overall should be a bit faster or slower -> change `ACCEL_MID_MULT` (in the dongle build also rescale the scroll divisor and caret threshold in `charybdis_dongle.overlay`)
 - Turn the host's own pointer acceleration off first, otherwise two curves stack
 - Not enough difference between slow and fast -> increase `ACCEL_MAX_MULT`
@@ -232,7 +236,7 @@ The four symbol combos need a short pause before them: they don't fire within 10
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with a slow zone and acceleration (750 effective CPI in the middle, ~180 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
+| **Normal** | default | Mouse cursor with a slow zone and acceleration (750 effective CPI in the middle, ~90 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
 | **Snipe** | Move the ball, then hold `K` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
 | **Scroll** | Move the ball, then hold `L` | Ball controls the scroll wheel |
 | **Caret** | Hold left thumb 50 (NAV), then roll | **Ball moves the text cursor (arrow keys)**. The thumb is a layer-tap, so press it a moment before rolling |
