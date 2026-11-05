@@ -168,17 +168,18 @@
 
         // 1 MOUSE — авто-слой, поднимается движением шара (&zip_temp_layer в overlay'ях),
         // гаснет через 800 мс или от не-исключённой клавиши.
-        // H = ПКМ, J = ЛКМ, N = средняя; удержание K = SNIPE, удержание L = SCROLL.
+        // Всё на нижнем ряду, домашний остаётся буквами (J в русской раскладке — «о»):
+        // N = ПКМ, M = ЛКМ, / = средняя; удержание , = SNIPE, удержание . = SCROLL.
         // ИНВАРИАНТ: индекс ниже SNIPE/SCROLL/NAV — драйвер смотрит только на верхний слой.
-        // K/L обязаны быть в excluded-positions, иначе слой погаснет раньше &mo.
+        // , и . обязаны быть в excluded-positions, иначе слой погаснет раньше &mo.
 
         mouse_layer {
             display-name = "MOUSE";
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans      &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans     &trans      &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mo 2  &mo 3  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans     &trans      &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans     &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &mo 2   &mo 3   &mkp MCLK  &trans
                         &trans  &trans  &trans    &trans     &trans
                                 &trans  &trans    &trans
             >;
@@ -186,15 +187,15 @@
 
         // 2 SNIPE — медленный курсор (snipe-layers драйвера + scaler в overlay).
         // Клики продублированы: пока активен snipe, таймер слоя мыши не продлевается,
-        // и после 0.8 с прицеливания H/J/N без этого были бы буквами.
+        // и после 0.8 с прицеливания N/M// без этого были бы буквами.
 
         snipe_layer {
             display-name = "SNIPE";
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans     &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &mkp MCLK  &trans
                         &trans  &trans  &trans    &trans     &trans
                                 &trans  &trans    &trans
             >;
@@ -207,8 +208,8 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans    &mkp MCLK  &trans     &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &trans     &trans     &trans  &trans  &trans     &trans
+&trans  &trans  &trans  &trans  &trans  &trans    &mkp RCLK  &mkp LCLK  &trans  &trans  &mkp MCLK  &trans
                         &trans  &trans  &trans    &trans     &trans
                                 &trans  &trans    &trans
             >;

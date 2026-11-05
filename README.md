@@ -98,7 +98,7 @@ The caret mode logic is built into the vendored PMW3610 driver. To port:
 
 ## Auto Mouse Layer
 
-Moving the trackball automatically raises a mouse layer: `H` = right click, `J` = left click, `N` = middle click, **hold `K` = snipe, hold `L` = scroll**. It drops again 800 ms after the ball stops (or as soon as you press a letter), so the keys go back to being letters. Nothing is held to get there — you roll the ball, click, and keep typing. While the ball has not moved, `K` and `L` are plain letters with no delay.
+Moving the trackball automatically raises a mouse layer on the bottom row: `N` = right click, `M` = left click, `/` = middle click, **hold `,` = snipe, hold `.` = scroll**. It drops again 800 ms after the ball stops (or as soon as you press a letter), so the keys go back to being letters. Nothing is held to get there — you roll the ball, click, and keep typing. While the ball has not moved, these keys type normally with no delay.
 
 Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-processors/temp-layer) input processor, configured in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay) (and identically in the dongle overlay):
 
@@ -109,22 +109,22 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <24 30 31 32 33 36 42 47 49 53>;
+    excluded-positions = <24 36 42 43 44 45 46 47 49 53>;
 };
 ```
 
 **Tuning:**
 - Not enough time to click after aiming -> raise the `800` timeout to 1200–1500
-- `H`/`J`/`K`/`L` stay mouse keys too long when you resume typing -> lower it to 400–600
+- The bottom-row keys stay mouse keys too long when you resume typing -> lower it to 400–600
 - Layer pops up while touch-typing -> raise `require-prior-idle-ms` to 300
 
 ### Traps worth knowing
 
-**1. The layer index is load-bearing.** The auto mouse layer must sit at a *lower* index than the snipe / scroll / NAV (caret) layers. The PMW3610 driver selects the trackball mode from `zmk_keymap_highest_layer_active()` — only the topmost active layer. Put the mouse layer above them and holding `L` for scroll leaves the mouse layer on top, so the driver never leaves cursor mode and scroll / snipe / caret quietly stop working while the ball is moving. Nothing fails at build time. That is why the mouse layer is index 1.
+**1. The layer index is load-bearing.** The auto mouse layer must sit at a *lower* index than the snipe / scroll / NAV (caret) layers. The PMW3610 driver selects the trackball mode from `zmk_keymap_highest_layer_active()` — only the topmost active layer. Put the mouse layer above them and holding `.` for scroll leaves the mouse layer on top, so the driver never leaves cursor mode and scroll / snipe / caret quietly stop working while the ball is moving. Nothing fails at build time. That is why the mouse layer is index 1.
 
-**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger), the snipe/scroll holders `K`/`L`, both Shifts and Ctrl / Cmd / Alt (so modifier-clicks survive). `K` and `L` *must* be listed — otherwise pressing them dismisses the layer before `&mo` resolves and you get a letter. Space, Enter and the layer thumbs are deliberately left out: pressing space means you're back to typing.
+**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger), the snipe/scroll holders `,`/`.`, both Shifts and Ctrl / Cmd / Alt (so modifier-clicks survive). `,` and `.` *must* be listed — otherwise pressing them dismisses the layer before `&mo` resolves and you get a letter. Space, Enter and the layer thumbs are deliberately left out: pressing space means you're back to typing.
 
-**3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and its timer isn't refreshed — after 0.8 s of careful aiming the mouse layer is gone. If the snipe layer were all-transparent, `J` under a held `K` would then type `j`. So snipe and scroll carry their own `H`/`J`/`N` clicks.
+**3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and its timer isn't refreshed — after 0.8 s of careful aiming the mouse layer is gone. If the snipe layer were all-transparent, `M` under a held `,` would then type `m`. So snipe and scroll carry their own `N`/`M`/`/` clicks.
 
 **4. No `require-prior-idle-ms` on the thumb layer-taps.** It is great for layer-taps on letters, but on a thumb it means "if a letter was typed just before, resolve as tap": hold NUM right after a letter and you get an Enter instead of the number layer. (The Backspace/Hyper thumb is the deliberate exception — there, resolving as Backspace right after typing is exactly what you want.)
 
@@ -164,7 +164,7 @@ If you see errors about `ZMK_SPLIT_ROLE_CENTRAL` or missing `keymap.c` symbols a
 - **Hyper key** on the right thumb (hold Backspace) for app-launch shortcuts
 - **Pointer acceleration** — plateau-style acceleration in the PMW3610 driver
 - **4 trackball modes** — normal cursor, scroll wheel, precision snipe, and text caret
-- **Auto mouse layer** — moving the ball raises a click layer automatically; hold `K`/`L` on it for snipe/scroll
+- **Auto mouse layer** — moving the ball raises a click layer automatically; hold `,`/`.` on it for snipe/scroll
 - **Vendored PMW3610 driver** — works with the 3-wire SDIO hardware wiring found on this keyboard
 - **Combos** for `-` `=` `]` `\`, guarded against firing while typing, and a ZMK Studio unlock
 - **ZMK Studio** support for live keymap editing over USB
@@ -225,9 +225,9 @@ The four symbol combos need a short pause before them: they don't fire within 10
 | # | Name | How to activate | Description |
 |---|------|----------------|-------------|
 | 0 | BASE | — | QWERTY, plain letters |
-| 1 | **MOUSE** | **Automatic** — moving the trackball | Clicks on `H`/`J`/`N`, hold `K` = snipe, hold `L` = scroll; drops 800 ms after the ball stops |
-| 2 | SNIPE | Hold `K` while the mouse layer is up | Precision cursor; clicks stay on `H`/`J`/`N` |
-| 3 | SCROLL | Hold `L` while the mouse layer is up | Ball → scroll wheel; clicks stay on `H`/`J`/`N` |
+| 1 | **MOUSE** | **Automatic** — moving the trackball | Clicks on `N`/`M`/`/`, hold `,` = snipe, hold `.` = scroll; drops 800 ms after the ball stops |
+| 2 | SNIPE | Hold `,` while the mouse layer is up | Precision cursor; clicks stay on `N`/`M`/`/` |
+| 3 | SCROLL | Hold `.` while the mouse layer is up | Ball → scroll wheel; clicks stay on `N`/`M`/`/` |
 | 4 | **NAV** | Hold left thumb 50 (tap = Tab) | Arrows on HJKL, Home/End/PgUp/PgDn, word jumps, tabs, window tiling, VS Code back/forward; **ball moves the text cursor** |
 | 5 | NUM | Hold right thumb 55 (tap = Enter) | Numpad on the left hand, modifiers on the right |
 | 6 | FUN | Hold left thumb 54 (tap = language) | F1–F12, Bluetooth, media, brightness, Print Screen, bootloader |
@@ -237,19 +237,17 @@ The four symbol combos need a short pause before them: they don't fire within 10
 | Mode | Activate | Behavior |
 |------|----------|----------|
 | **Normal** | default | Mouse cursor with a slow zone and acceleration (750 effective CPI in the middle, ~90 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
-| **Snipe** | Move the ball, then hold `K` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
-| **Scroll** | Move the ball, then hold `L` | Ball controls the scroll wheel |
+| **Snipe** | Move the ball, then hold `,` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
+| **Scroll** | Move the ball, then hold `.` | Ball controls the scroll wheel |
 | **Caret** | Hold left thumb 50 (NAV), then roll | **Ball moves the text cursor (arrow keys)**. The thumb is a layer-tap, so press it a moment before rolling |
 
 ### Mouse Layer (automatic)
 
 ```
-┌────┬────┬────┬────┬────┬────┐  ┌─────┬─────┬─────┬─────┬────┬────┐
-│    │    │    │    │    │    │  │RClk │LClk │SNIPE│SCROL│    │    │   ← H J K L (hold K / L)
-├────┼────┼────┼────┼────┼────┤  ├─────┼─────┼─────┼─────┼────┼────┤
-│    │    │    │    │    │    │  │MClk │     │     │     │    │    │   ← N
-└────┴────┴────┴────┴────┴────┘  └─────┴─────┴─────┴─────┴────┴────┘
-                         (home row and bottom row only; everything else types normally)
+┌────┬────┬────┬────┬────┬────┐  ┌─────┬─────┬─────┬─────┬─────┬────┐
+│    │    │    │    │    │    │  │RClk │LClk │SNIPE│SCROL│MClk │    │   ← N M , . /  (hold , / .)
+└────┴────┴────┴────┴────┴────┘  └─────┴─────┴─────┴─────┴─────┴────┘
+                         (bottom row only; everything else types normally)
 ```
 
 ### NAV Layer (hold left thumb 50)
