@@ -604,6 +604,9 @@ static enum pixart_input_mode get_input_mode_for_current_layer(const struct devi
 #ifdef CONFIG_PMW3610_ACCEL_ENABLED
 #include <math.h>
 
+BUILD_ASSERT(CONFIG_PMW3610_ACCEL_SLOW_SPEED <= CONFIG_PMW3610_ACCEL_LOW_SPEED,
+             "PMW3610_ACCEL_SLOW_SPEED must not exceed PMW3610_ACCEL_LOW_SPEED");
+
 static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y) {
     /* Меряем в тиках системного таймера, а не в целых миллисекундах.
      * Опрос идёт раз в ~8 мс, поэтому миллисекундный квант давал ошибку
@@ -626,9 +629,21 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
     float low = CONFIG_PMW3610_ACCEL_LOW_SPEED / 100.0f;
     float high = CONFIG_PMW3610_ACCEL_HIGH_SPEED / 100.0f;
     float max_m = CONFIG_PMW3610_ACCEL_MAX_MULT / 100.0f;
+    float min_m = CONFIG_PMW3610_ACCEL_MIN_MULT / 100.0f;
+    float slow = CONFIG_PMW3610_ACCEL_SLOW_SPEED / 100.0f;
 
     float mult = 1.0f;
-    if (speed > low) {
+    if (speed < slow) {
+        /* Медленная зона: при еле движущемся шаре множитель меньше 1, к SLOW
+         * плавно растёт до 1.0. Smoothstep здесь всегда, независимо от формы
+         * разгона: он плоский на обоих концах, поэтому у самого медленного
+         * движения стабильный множитель и нет излома на входе в середину.
+         * Дробная часть не теряется — её копит накопитель ниже.
+         */
+        float t = speed / slow;
+        t = t * t * (3.0f - 2.0f * t);
+        mult = min_m + t * (1.0f - min_m);
+    } else if (speed > low) {
         float t = (speed - low) / (high - low);
         if (t > 1.0f) {
             t = 1.0f;

@@ -8,21 +8,23 @@ ZMK firmware configuration for the **Charybdis 4x6** split ergonomic keyboard wi
 
 ## Pointer Acceleration
 
-Plateau-style pointer acceleration for the trackball: slow movements stay precise, fast movements are amplified up to a configurable multiplier. The algorithm has three zones:
+Pointer curve for the trackball: a barely moving ball is slowed down for precise aiming, normal movement is exactly 1:1, and a fast roll is amplified up to a configurable multiplier. The algorithm has four zones:
 
 ```
-speed <= low   ->  multiplier = 1.0x  (no acceleration)
-low < speed < high ->  ramp from 1.0x to max, shape selectable
-speed >= high  ->  multiplier = max   (plateau)
+speed < slow        ->  smooth rise from min (below 1.0x) to 1.0x
+slow <= speed <= low ->  multiplier = 1.0x  (stable middle)
+low < speed < high  ->  ramp from 1.0x to max, shape selectable
+speed >= high       ->  multiplier = max
 ```
 
 The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothstep:
 
-| speed, counts/ms | 3 | 5 | 8 | 12 | 20 | 30 |
-|---|---|---|---|---|---|---|
-| linear | 1.85 | 2.60 | 3.74 | 5.25 | 6.00 | 6.00 |
-| **quadratic** | 1.14 | 1.51 | 2.50 | 4.60 | 6.00 | 6.00 |
-| smoothstep | 1.38 | 2.21 | 3.85 | 5.69 | 6.00 | 6.00 |
+| speed, counts/ms | 3 | 5 | 8 | 10 |
+|---|---|---|---|---|
+| at 600 CPI, mm/s | 127 | 212 | 339 | 423 |
+| linear | 1.63 | 2.88 | 4.75 | 6.00 |
+| **quadratic** | 1.08 | 1.70 | 3.81 | 6.00 |
+| smoothstep | 1.21 | 2.58 | 5.22 | 6.00 |
 
 Quadratic keeps the multiplier near 1.0 well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
@@ -32,8 +34,10 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y
-CONFIG_PMW3610_ACCEL_LOW_SPEED=75      # 0.75 counts/ms — below this, no acceleration
-CONFIG_PMW3610_ACCEL_HIGH_SPEED=1400   # 14.0 counts/ms — above this, max acceleration
+CONFIG_PMW3610_ACCEL_MIN_MULT=60       # 0.6x for a barely moving ball (100 = slow zone off)
+CONFIG_PMW3610_ACCEL_SLOW_SPEED=75     # 0.75 counts/ms (~32 mm/s) — multiplier reaches 1.0 here
+CONFIG_PMW3610_ACCEL_LOW_SPEED=200     # 2.0 counts/ms (~85 mm/s) — acceleration starts above this
+CONFIG_PMW3610_ACCEL_HIGH_SPEED=1000   # 10.0 counts/ms (~423 mm/s) — above this, max acceleration
 CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier (do not exceed ~15x, see CLAUDE.md)
 ```
 
@@ -42,9 +46,11 @@ CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier (do not exceed ~15x
 **Tuning tips:**
 - Cursor accelerates too aggressively -> increase `ACCEL_HIGH_SPEED` or decrease `ACCEL_MAX_MULT`
 - Slow movements already feel accelerated -> increase `ACCEL_LOW_SPEED`
+- Slow aiming should be slower or faster -> change `ACCEL_MIN_MULT`
+- Turn the host's own pointer acceleration off first, otherwise two curves stack
 - Not enough difference between slow and fast -> increase `ACCEL_MAX_MULT`
 
-Acceleration only applies to MOVE mode — Snipe, Scroll, and Caret modes are unaffected.
+In the direct-BLE build the curve only applies to MOVE mode — Snipe, Scroll, and Caret are unaffected. In the dongle build it shapes them too, because the half that runs the curve doesn't know the active layer.
 
 ### How to add acceleration to your own ZMK trackball build
 
@@ -357,7 +363,7 @@ Both firmware sets are built from every push, but they are **mutually exclusive*
 
 Keys, layers, combos, cursor movement, pointer acceleration, the auto mouse layer and caret mode all work.
 
-One nuance specific to dongle caret: acceleration is applied on the peripheral and cannot be switched off per layer there, so caret movement is accelerated — unlike variant 1, where caret runs in a non-accelerated mode. In practice the quadratic curve stays flat at the speeds caret is actually used at (1.01x at 50 mm/s, 1.07x at 100 mm/s), so it is barely noticeable.
+One nuance specific to dongle caret: acceleration is applied on the peripheral and cannot be switched off per layer there, so caret movement is accelerated — unlike variant 1, where caret runs in a non-accelerated mode. In practice the curve stays at 1:1 at the speeds caret is usually used at (1.00x at 50 mm/s, 1.01x at 100 mm/s), so it is barely noticeable; below ~32 mm/s caret gets up to 40 % less sensitive because of the slow zone.
 
 ### Flashing the dongle set
 

@@ -57,21 +57,29 @@ cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
 
 ### Pointer Acceleration
 
-Plateau-style acceleration is implemented in the vendored PMW3610 driver. The code is guarded by `CONFIG_PMW3610_ACCEL_ENABLED` and only applies to MOVE mode (not Snipe/Scroll/Caret).
+A double-incline curve with a plateau is implemented in the vendored PMW3610 driver: slower than 1:1 for a barely moving ball, exactly 1:1 in the middle, then a steep rise. The code is guarded by `CONFIG_PMW3610_ACCEL_ENABLED` and applies to the driver's MOVE mode. In the direct-BLE set that excludes Snipe/Scroll/Caret; **in the dongle set the half is always in MOVE, so the whole curve also shapes snipe, scroll and caret**, which are built on the dongle from the already-accelerated deltas.
 
 Key locations:
 - `zmk-pmw3610-driver-main/Kconfig` — `PMW3610_ACCEL_*` config options
 - `zmk-pmw3610-driver-main/src/pixart.h` — `accel_remainder_x/y`, `last_move_time` in `struct pixart_data`
 - `zmk-pmw3610-driver-main/src/pmw3610.c` — `apply_acceleration()` function, called before HID report in `pmw3610_report_data()`
 
-The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give 1.0x at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — at 5/12/20 counts/ms it gives 1.09/1.78/3.44 versus linear's 1.66/2.98/4.49. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
+The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give 1.0x at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — at 3/5/8 counts/ms it gives 1.08/1.70/3.81 versus linear's 1.63/2.88/4.75. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
 
 Parameters (all x100 because Kconfig doesn't support float):
-- `ACCEL_LOW_SPEED` (75 = 0.75 counts/ms) — below this, multiplier = 1.0
-- `ACCEL_HIGH_SPEED` (1400 = 14.0 counts/ms) — above this, multiplier = max
+- `ACCEL_MIN_MULT` (60 = 0.6x) — multiplier for a barely moving ball. `100` turns the slow zone off. Range 1–100.
+- `ACCEL_SLOW_SPEED` (75 = 0.75 counts/ms, ~32 mm/s) — the multiplier reaches 1.0 here. Must not exceed `ACCEL_LOW_SPEED` (`BUILD_ASSERT`).
+- `ACCEL_LOW_SPEED` (200 = 2.0 counts/ms, ~85 mm/s) — between SLOW and LOW, multiplier = exactly 1.0; acceleration starts above it
+- `ACCEL_HIGH_SPEED` (1000 = 10.0 counts/ms, ~423 mm/s) — above this, multiplier = max. The sensor is rated for 30 ips (~760 mm/s), so the ceiling is reachable.
 - `ACCEL_MAX_MULT` (600 = 6.0x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
 
-The thresholds were widened deliberately (Aug 2026): acceleration starts on smaller movements and no longer caps out at 20 counts/ms, so a hard flick keeps gaining. Lowering LOW is cheap specifically because the curve is quadratic — `t²` is flat near the lower threshold, so precise pointing barely notices.
+Measured by running the real `apply_acceleration()` on steady motion at CPI 600:
+
+| mm/s | 5 | 10 | 20 | 32–100 | 150 | 200 | 300 | 400 | 423+ |
+|---|---|---|---|---|---|---|---|---|---|
+| multiplier | 0.63 | 0.70 | 0.88 | 1.0 | 1.19 | 1.58 | 3.02 | 5.34 | 6.0 |
+
+The slow zone (Nov 2026) always uses smoothstep regardless of the selected curve: it is flat at both ends, so a crawl has a stable multiplier and there is no kink entering the plateau. Multipliers below 1 rely on the Q16.16 remainder below — fractions carry over, so slow motion does not stick. Goal: make aiming finer without holding the snipe key; whether snipe can go away entirely is still to be judged by hand.
 
 Uses sub-pixel accumulation (Q16.16 fixed-point remainders) to avoid precision loss on small deltas. Speed is delta/dt for stability across variable polling rates.
 
@@ -215,7 +223,7 @@ outer column: 12 Tab, 24 Ctrl/Esc (&mt), 36/47 Shift (tap-dance); 23 = [, 35 = '
 
 Also note `SNIPE_CPI` cannot go below 200 — that is the sensor's floor. Halving snipe is only possible via the scaler.
 
-**Since Oct 2026 the keyboard goes through a plain KVM, not DeskHop — so the OS pointer settings apply again.** DeskHop handed the host absolute coordinates, which bypassed the OS speed/acceleration; the current CPI and acceleration were tuned in that setup. Now Ubuntu sees an ordinary relative mouse, and GNOME's own acceleration (`org.gnome.desktop.peripherals.mouse accel-profile`, `'default'` = adaptive at the time of the switch) stacks on top of the firmware curve. **Check the OS acceleration before tuning anything here** — set it to flat (Settings → Mouse → Mouse Acceleration off) so the firmware is the only acceleration stage. The same lesson was learnt once with DeskHop's own acceleration: CPI got dragged 1200 → 600 and a scaler was added to cancel out a second stage that had nothing to do with the keyboard.
+**Since Oct 2026 the keyboard goes through a plain KVM, not DeskHop — so the OS pointer settings apply again.** DeskHop handed the host absolute coordinates, which bypassed the OS speed/acceleration. Now Ubuntu sees an ordinary relative mouse, and GNOME's adaptive profile would stack on top of the firmware curve. **Check the OS acceleration before tuning anything here** — it must be flat (Settings → Mouse → Mouse Acceleration off) so the firmware is the only acceleration stage. As of Nov 2026 it is flat, with the speed slider still at +1.0. Read the real values with `xinput list-props "ZMK Project Charybdis DGL Mouse"`; `gsettings` in this shell has reported values that do not match. Flat is one constant factor, so the slider scales the whole curve without changing its shape; at +1.0 it also makes every firmware count a coarser cursor step, so if a crawl looks steppy the fix is slider to 0 plus a higher CPI (with the thresholds, scroll and caret values rescaled). The same lesson was learnt once with DeskHop's own acceleration: CPI got dragged 1200 → 600 and a scaler was added to cancel out a second stage that had nothing to do with the keyboard.
 
 Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sensor register is `cpi / 200`, so **CPI is quantised to multiples of 200** — a value like 1100 silently becomes 1000.
 
@@ -228,7 +236,7 @@ Current settings in `charybdis_right.conf`:
 200 is the sensor's floor (the register is `cpi / 200`), so slowing snipe further is only possible with a scaler. It is attached as a child node of `trackball_listener` with `layers = <2>` so it applies to the snipe layer only — a global scaler would drag the normal mode down too. **That layer number is duplicated between the override and the driver's `snipe-layers` property; renumbering layers without updating both leaves snipe silently un-scaled, and the build still succeeds.**
 - Snipe: `SNIPE_CPI=200` (low speed for precision, no acceleration) — 200 is both the range minimum and the real value the old `250` resolved to
 - Scroll tick: `18` (~0.76 mm of ball travel per wheel tick at 600 CPI), Caret tick: `20`
-- **`ACCEL_LOW_SPEED`/`ACCEL_HIGH_SPEED` are in counts/ms, a sensor unit — so lowering CPI silently moves the acceleration curve in *physical* terms.** At 1200 CPI a 600 mm/s roll hit the 6x ceiling; at 600 CPI the same roll only reaches 2.1x, and the ceiling now needs ~1185 mm/s (11 ball revolutions/s), which is not reachable by hand. The thresholds have deliberately not been rescaled — the goal was a slower pointer overall. To restore the previous *feel* at a lower CPI, scale both thresholds by the same ratio as the CPI change.
+- **`ACCEL_SLOW_SPEED`/`ACCEL_LOW_SPEED`/`ACCEL_HIGH_SPEED` are in counts/ms, a sensor unit — so changing CPI silently moves the acceleration curve in *physical* terms.** To keep the *feel* after a CPI change, scale all three thresholds by the same ratio.
 - Scroll mode runs at `CONFIG_PMW3610_CPI`, **not** `SNIPE_CPI` — so changing the normal-mode CPI silently rescales scrolling too. Adjust `SCROLL_TICK` proportionally to keep the scroll feel unchanged. Caret mode uses `SNIPE_CPI` and is unaffected.
 - `ORIENTATION_90=y`, `INVERT_X=y`
 
@@ -264,6 +272,7 @@ Set against this: latency 0 keeps the right half's radio awake every 11.25 ms, s
 
 ## Architecture Decisions
 
+- 2026-11 Finer slow aiming comes from a **sub-1× slow zone in the driver's curve** rather than from the OS or a lower CPI: it behaves the same on both hosts behind the KVM, and OS acceleration stays flat so there is one curve to tune. (Pointer Acceleration section)
 - 2026-10 SYM layer dropped after a day of use — symbols are typed from their touch-typing positions (Shift + number row, NUM). Its thumb (51) became Backspace/**Hyper** for app-launch shortcuts; Hyper rather than Right Alt because Linux cannot tell left and right Alt apart. (Thumb Keys section)
 - 2026-10 Layout v2: **layer-taps moved off letters onto the thumbs**; snipe/scroll became `&mo` inside the auto mouse layer (hold K/L), caret moved to NAV. Typing never waits on a hold-tap decision anymore. Rollout was staged (combos/Caps Word → K/L on MOUSE → mods → layers) so each step could be got used to. (Layer Map / Thumb Keys sections)
 
@@ -288,10 +297,10 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 
 - **Layout v2 is merged into `Charybdis_4x6`** (Oct 2026) and in use on the dongle set; plan in `notes/LAYOUT_V2_PLAN.md`, what moved where in `notes/LAYOUT_V2_CHANGELOG.md`. Rollback point = `6fe26fa` (last commit before v2). Follow-up: SYM layer removed, 51 = Backspace/Hyper (7 layers now).
 - **Host side (Ubuntu):** Hyper+letter app shortcuts live in the GNOME extension **Run or raise** (`~/.config/run-or-raise/shortcuts.conf`; reload = disable/enable the extension): V VS Code, C Claude desktop, F Files (Nautilus), J Chrome, W WezTerm, D DBeaver, L LOOP, T Telegram. The extension's default example bindings (Super+F/R/Y/E…) were removed; the original file is `shortcuts.conf.bak`.
-- **Open questions for layout v2:** middle click on N (kept) vs M (plan); GNOME pointer acceleration is still `'default'` (adaptive) — to be switched to flat now that DeskHop is gone; F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
+- **Open questions for layout v2:** middle click on N (kept) vs M (plan); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
 - **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
-- **Trackball tuning currently:** `CPI=600`, accel `75/1400/600` quadratic, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `60` (dongle processor).
+- **Trackball tuning currently:** `CPI=600`, accel MIN `60`, SLOW/LOW/HIGH `75/200/1000`, MAX `600`, quadratic, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `60` (dongle processor).
 - **Battery:** right half's reported charge is a constant ~24 % and not a measurement (see Battery Level Logging); only the left half's number is real.
 - **Working tree:** two old serial logs (`battery_charibdis.txt`, `battery log.txt`) are committed to the repo root and are cleanup candidates for `notes/`.
 - **Key files:** `build.yaml`, `config/charybdis.keymap`, `config/boards/shields/charybdis/charybdis_right.{overlay,conf}`, `config/boards/shields/charybdis_dongle/charybdis_dongle.{overlay,conf}`, `zmk-pmw3610-driver-main/src/{pmw3610.c,input_processor_caret.c,battery_log.c}`.
