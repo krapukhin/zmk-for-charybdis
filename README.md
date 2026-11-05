@@ -8,12 +8,12 @@ ZMK firmware configuration for the **Charybdis 4x6** split ergonomic keyboard wi
 
 ## Pointer Acceleration
 
-Pointer curve for the trackball: a barely moving ball is slowed down for precise aiming, normal movement is exactly 1:1, and a fast roll is amplified up to a configurable multiplier. The algorithm has four zones:
+Pointer curve for the trackball: a barely moving ball is slowed down for precise aiming, normal movement has a stable multiplier, and a fast roll is amplified up to a configurable maximum. The algorithm has four zones:
 
 ```
-speed < slow        ->  smooth rise from min (below 1.0x) to 1.0x
-slow <= speed <= low ->  multiplier = 1.0x  (stable middle)
-low < speed < high  ->  ramp from 1.0x to max, shape selectable
+speed < slow        ->  smooth rise from min to mid
+slow <= speed <= low ->  multiplier = mid  (stable middle)
+low < speed < high  ->  ramp from mid to max, shape selectable
 speed >= high       ->  multiplier = max
 ```
 
@@ -22,11 +22,11 @@ The ramp shape is a Kconfig choice — linear, quadratic (default), or smoothste
 | speed, counts/ms | 3 | 5 | 8 | 10 |
 |---|---|---|---|---|
 | at 600 CPI, mm/s | 127 | 212 | 339 | 423 |
-| linear | 1.63 | 2.88 | 4.75 | 6.00 |
-| **quadratic** | 1.08 | 1.70 | 3.81 | 6.00 |
-| smoothstep | 1.21 | 2.58 | 5.22 | 6.00 |
+| linear | 1.98 | 3.64 | 6.14 | 7.80 |
+| **quadratic** | 1.25 | 2.09 | 4.89 | 7.80 |
+| smoothstep | 1.44 | 3.25 | 6.76 | 7.80 |
 
-Quadratic keeps the multiplier near 1.0 well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
+Quadratic keeps the multiplier near the middle value well past the low threshold, so slow and medium movements stay honest and only a genuinely fast roll gets the big gain. Smoothstep sits close to linear in the middle but has no kink at either threshold. Set `CONFIG_PMW3610_ACCEL_CURVE_LINEAR=y` / `_QUADRATIC=y` / `_SMOOTHSTEP=y` — exactly one.
 
 Sub-pixel accumulation prevents precision loss on small deltas, and speed is calculated as counts/ms (delta / time between polls) for stable behavior regardless of polling rate.
 
@@ -34,11 +34,12 @@ Sub-pixel accumulation prevents precision loss on small deltas, and speed is cal
 
 ```conf
 CONFIG_PMW3610_ACCEL_ENABLED=y
-CONFIG_PMW3610_ACCEL_MIN_MULT=60       # 0.6x for a barely moving ball (100 = slow zone off)
-CONFIG_PMW3610_ACCEL_SLOW_SPEED=75     # 0.75 counts/ms (~32 mm/s) — multiplier reaches 1.0 here
+CONFIG_PMW3610_ACCEL_MIN_MULT=40       # 0.4x for a barely moving ball
+CONFIG_PMW3610_ACCEL_MID_MULT=115      # 1.15x stable middle
+CONFIG_PMW3610_ACCEL_SLOW_SPEED=75     # 0.75 counts/ms (~32 mm/s) — multiplier reaches the middle here
 CONFIG_PMW3610_ACCEL_LOW_SPEED=200     # 2.0 counts/ms (~85 mm/s) — acceleration starts above this
 CONFIG_PMW3610_ACCEL_HIGH_SPEED=1000   # 10.0 counts/ms (~423 mm/s) — above this, max acceleration
-CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier (do not exceed ~15x, see CLAUDE.md)
+CONFIG_PMW3610_ACCEL_MAX_MULT=780      # 7.8x max multiplier (do not exceed ~15x, see CLAUDE.md)
 ```
 
 (Values are x100 because Kconfig doesn't support floats.)
@@ -47,6 +48,7 @@ CONFIG_PMW3610_ACCEL_MAX_MULT=600      # 6.0x max multiplier (do not exceed ~15x
 - Cursor accelerates too aggressively -> increase `ACCEL_HIGH_SPEED` or decrease `ACCEL_MAX_MULT`
 - Slow movements already feel accelerated -> increase `ACCEL_LOW_SPEED`
 - Slow aiming should be slower or faster -> change `ACCEL_MIN_MULT`
+- The cursor overall should be a bit faster or slower -> change `ACCEL_MID_MULT` (in the dongle build also rescale the scroll divisor and caret threshold in `charybdis_dongle.overlay`)
 - Turn the host's own pointer acceleration off first, otherwise two curves stack
 - Not enough difference between slow and fast -> increase `ACCEL_MAX_MULT`
 
@@ -230,7 +232,7 @@ The four symbol combos need a short pause before them: they don't fire within 10
 
 | Mode | Activate | Behavior |
 |------|----------|----------|
-| **Normal** | default | Mouse cursor with acceleration (600 CPI, up to 3600 on a fast roll); raises the auto mouse layer |
+| **Normal** | default | Mouse cursor with a slow zone and acceleration (690 effective CPI in the middle, ~240 at a crawl, up to ~4680 on a hard flick); raises the auto mouse layer |
 | **Snipe** | Move the ball, then hold `K` | Low-speed precision (200 CPI halved to 100 effective), no acceleration |
 | **Scroll** | Move the ball, then hold `L` | Ball controls the scroll wheel |
 | **Caret** | Hold left thumb 50 (NAV), then roll | **Ball moves the text cursor (arrow keys)**. The thumb is a layer-tap, so press it a moment before rolling |
@@ -355,7 +357,7 @@ Both firmware sets are built from every push, but they are **mutually exclusive*
 
 ### What you lose in dongle mode
 
-- ~~Caret mode~~ — **recovered.** It is not the driver's caret (that one only runs on a central), but a custom input processor, `zmk,input-processor-caret`, living in the vendored module. Processors run on whichever device holds the keymap, so on the dongle it works. Same logic as the driver's version, including the threshold-subtraction and axis-lock fixes. Threshold is `60` rather than `20`, because events arrive at 600 CPI here instead of the driver's 200 CPI snipe rate.
+- ~~Caret mode~~ — **recovered.** It is not the driver's caret (that one only runs on a central), but a custom input processor, `zmk,input-processor-caret`, living in the vendored module. Processors run on whichever device holds the keymap, so on the dongle it works. Same logic as the driver's version, including the threshold-subtraction and axis-lock fixes. Threshold is `69` rather than `20`, because events arrive at 600 CPI here instead of the driver's 200 CPI snipe rate, already multiplied by the middle of the acceleration curve (60 × 1.15).
 - **Switching between 5 BT devices.** Inherent to a dongle: you are wired to one host. The Bluetooth keys on the FUN layer become pointless.
 - **ZMK Studio moves to the dongle**, since that is now the central. The right half no longer exposes it.
 - **Snipe becomes software scaling** rather than a hardware CPI change — the sensor's CPI cannot be set from the dongle. Speed has to be re-tuned.
@@ -363,7 +365,7 @@ Both firmware sets are built from every push, but they are **mutually exclusive*
 
 Keys, layers, combos, cursor movement, pointer acceleration, the auto mouse layer and caret mode all work.
 
-One nuance specific to dongle caret: acceleration is applied on the peripheral and cannot be switched off per layer there, so caret movement is accelerated — unlike variant 1, where caret runs in a non-accelerated mode. In practice the curve stays at 1:1 at the speeds caret is usually used at (1.00x at 50 mm/s, 1.01x at 100 mm/s), so it is barely noticeable; below ~32 mm/s caret gets up to 40 % less sensitive because of the slow zone.
+One nuance specific to dongle caret: acceleration is applied on the peripheral and cannot be switched off per layer there, so caret movement is accelerated — unlike variant 1, where caret runs in a non-accelerated mode. In practice the multiplier is constant at the speeds caret is usually used at, and the threshold accounts for it, so it is barely noticeable; below ~32 mm/s caret gets less sensitive because of the slow zone.
 
 ### Flashing the dongle set
 

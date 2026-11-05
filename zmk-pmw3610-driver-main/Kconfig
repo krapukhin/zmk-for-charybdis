@@ -178,7 +178,7 @@ config PMW3610_ACCEL_LOW_SPEED
   depends on PMW3610_ACCEL_ENABLED
   help
     Speeds between ACCEL_SLOW_SPEED and this value (in counts/ms * 100) get
-    multiplier 1.0; acceleration starts above it.
+    ACCEL_MID_MULT; acceleration starts above it.
     Example: 300 means 3.00 counts/ms.
 
 config PMW3610_ACCEL_HIGH_SPEED
@@ -197,15 +197,24 @@ config PMW3610_ACCEL_MAX_MULT
     Maximum multiplier applied at high speed.
     Example: 400 means 4.0x.
 
+config PMW3610_ACCEL_MID_MULT
+  int "Multiplier for the stable middle of the curve (x100)"
+  default 100
+  range 1 1500
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Multiplier between ACCEL_SLOW_SPEED and ACCEL_LOW_SPEED. Gives finer steps
+    than CPI, which only moves in jumps of 200. Example: 115 means 1.15x.
+
 config PMW3610_ACCEL_MIN_MULT
   int "Multiplier for a barely moving ball (x100)"
   default 100
   range 1 100
   depends on PMW3610_ACCEL_ENABLED
   help
-    Multiplier at very low speed. It rises smoothly to 1.0 at ACCEL_SLOW_SPEED,
-    which makes slow aiming finer without a separate snipe key.
-    100 turns the slow zone off. Example: 60 means 0.6x.
+    Multiplier at very low speed. It rises smoothly to ACCEL_MID_MULT at
+    ACCEL_SLOW_SPEED, which makes slow aiming finer without a separate snipe key.
+    Set it equal to ACCEL_MID_MULT to turn the slow zone off. Example: 60 means 0.6x.
 
 config PMW3610_ACCEL_SLOW_SPEED
   int "Speed at which the slow zone ends (x100)"
@@ -213,7 +222,7 @@ config PMW3610_ACCEL_SLOW_SPEED
   range 1 5000
   depends on PMW3610_ACCEL_ENABLED
   help
-    Speed (in counts/ms * 100) where the multiplier reaches 1.0.
+    Speed (in counts/ms * 100) where the multiplier reaches ACCEL_MID_MULT.
     Must not exceed ACCEL_LOW_SPEED. Example: 75 means 0.75 counts/ms.
 
 choice

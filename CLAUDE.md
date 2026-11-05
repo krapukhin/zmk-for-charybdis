@@ -57,27 +57,28 @@ cmake-args: -DZMK_EXTRA_MODULES=${GITHUB_WORKSPACE}/zmk-pmw3610-driver-main
 
 ### Pointer Acceleration
 
-A double-incline curve with a plateau is implemented in the vendored PMW3610 driver: slower than 1:1 for a barely moving ball, exactly 1:1 in the middle, then a steep rise. The code is guarded by `CONFIG_PMW3610_ACCEL_ENABLED` and applies to the driver's MOVE mode. In the direct-BLE set that excludes Snipe/Scroll/Caret; **in the dongle set the half is always in MOVE, so the whole curve also shapes snipe, scroll and caret**, which are built on the dongle from the already-accelerated deltas.
+A double-incline curve with a plateau is implemented in the vendored PMW3610 driver: much slower for a barely moving ball, a stable middle, then a steep rise. The code is guarded by `CONFIG_PMW3610_ACCEL_ENABLED` and applies to the driver's MOVE mode. In the direct-BLE set that excludes Snipe/Scroll/Caret; **in the dongle set the half is always in MOVE, so the whole curve also shapes snipe, scroll and caret**, which are built on the dongle from the already-accelerated deltas. **So changing `ACCEL_MID_MULT` means rescaling the dongle's scroll divisor (18 × MID, now 21) and caret threshold (60 × MID, now 69) in `charybdis_dongle.overlay`**, otherwise they move with the cursor.
 
 Key locations:
 - `zmk-pmw3610-driver-main/Kconfig` — `PMW3610_ACCEL_*` config options
 - `zmk-pmw3610-driver-main/src/pixart.h` — `accel_remainder_x/y`, `last_move_time` in `struct pixart_data`
 - `zmk-pmw3610-driver-main/src/pmw3610.c` — `apply_acceleration()` function, called before HID report in `pmw3610_report_data()`
 
-The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give 1.0x at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — at 3/5/8 counts/ms it gives 1.08/1.70/3.81 versus linear's 1.63/2.88/4.75. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
+The ramp shape between LOW and HIGH is selectable via a Kconfig `choice` — `PMW3610_ACCEL_CURVE_LINEAR` / `_QUADRATIC` / `_SMOOTHSTEP`, applied to `t` in `apply_acceleration()`. All three give MID_MULT at LOW and MAX_MULT at HIGH; they differ in between. **Default is quadratic** (`t²`), chosen for a wider honest zone — at 3/5/8 counts/ms it gives 1.25/2.09/4.89 versus linear's 1.98/3.64/6.14. Switch it with one line in `charybdis_right.conf`; the options are listed in a comment there.
 
 Parameters (all x100 because Kconfig doesn't support float):
-- `ACCEL_MIN_MULT` (60 = 0.6x) — multiplier for a barely moving ball. `100` turns the slow zone off. Range 1–100.
-- `ACCEL_SLOW_SPEED` (75 = 0.75 counts/ms, ~32 mm/s) — the multiplier reaches 1.0 here. Must not exceed `ACCEL_LOW_SPEED` (`BUILD_ASSERT`).
-- `ACCEL_LOW_SPEED` (200 = 2.0 counts/ms, ~85 mm/s) — between SLOW and LOW, multiplier = exactly 1.0; acceleration starts above it
+- `ACCEL_MIN_MULT` (40 = 0.4x) — multiplier for a barely moving ball. Equal to MID turns the slow zone off. Range 1–100.
+- `ACCEL_MID_MULT` (115 = 1.15x) — the stable middle. Finer than CPI, which only moves in jumps of 200.
+- `ACCEL_SLOW_SPEED` (75 = 0.75 counts/ms, ~32 mm/s) — the multiplier reaches MID here. Must not exceed `ACCEL_LOW_SPEED`; `BUILD_ASSERT` also enforces MIN ≤ MID ≤ MAX.
+- `ACCEL_LOW_SPEED` (200 = 2.0 counts/ms, ~85 mm/s) — between SLOW and LOW, multiplier = exactly MID; acceleration starts above it
 - `ACCEL_HIGH_SPEED` (1000 = 10.0 counts/ms, ~423 mm/s) — above this, multiplier = max. The sensor is rated for 30 ips (~760 mm/s), so the ceiling is reachable.
-- `ACCEL_MAX_MULT` (600 = 6.0x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
+- `ACCEL_MAX_MULT` (780 = 7.8x) — maximum multiplier at high speed. Do not exceed ~15x: `apply_acceleration()` stores the result in an `int16_t` and the sensor delta is 12-bit (max 2047), so 16x overflows.
 
 Measured by running the real `apply_acceleration()` on steady motion at CPI 600:
 
 | mm/s | 5 | 10 | 20 | 32–100 | 150 | 200 | 300 | 400 | 423+ |
 |---|---|---|---|---|---|---|---|---|---|
-| multiplier | 0.63 | 0.70 | 0.88 | 1.0 | 1.19 | 1.58 | 3.02 | 5.34 | 6.0 |
+| multiplier | 0.45 | 0.59 | 0.92 | 1.15 | 1.40 | 1.92 | 3.84 | 6.92 | 7.8 |
 
 The slow zone (Nov 2026) always uses smoothstep regardless of the selected curve: it is flat at both ends, so a crawl has a stable multiplier and there is no kink entering the plateau. Multipliers below 1 rely on the Q16.16 remainder below — fractions carry over, so slow motion does not stick. Goal: make aiming finer without holding the snipe key; whether snipe can go away entirely is still to be judged by hand.
 
@@ -155,7 +156,7 @@ In the dongle set, snipe / scroll / auto-mouse are re-implemented on the central
 
 There are now **two caret implementations**: the driver's (used by variant 1, gated to central-only) and the processor's (used by the dongle). They are meant to behave identically; if you fix one, fix the other. The processor could eventually replace the driver's caret in both variants — clearing `caret-layers` and adding `&zip_caret` to variant 1's listener would collapse them into one — but that has not been done, since variant 1 works as is.
 
-Threshold differs between the two by design: the driver uses `CARET_TICK=20` at `SNIPE_CPI=200`, the processor uses `60` at the normal 600 CPI. Both land near 2.5 mm of ball travel per arrow.
+Threshold differs between the two by design: the driver uses `CARET_TICK=20` at `SNIPE_CPI=200`, the processor uses `69` at the normal 600 CPI (60 sensor counts × `ACCEL_MID_MULT` 1.15, because it receives already-multiplied deltas). Both land near 2.5 mm of ball travel per arrow.
 
 ### Battery Level Logging on the Dongle
 
@@ -230,7 +231,7 @@ Effective cursor speed = `CPI / CPI_DIVIDOR`. CPI range: 200–3200, and the sen
 **Keep `CPI_DIVIDOR` at 1 and set resolution via CPI.** The divisor is an integer division applied to the raw delta *before* `apply_acceleration()` and its Q16.16 remainder accumulator, so the fractional part is discarded rather than carried. With a divisor of 2 a slow roll producing `raw=1` per poll yields `1/2 = 0` — sensitivity drops the slower you move, which is the opposite of what the acceleration curve is for. This was the case until Aug 2026 (`CPI=2200`, `CPI_DIVIDOR=2`).
 
 Current settings in `charybdis_right.conf`:
-- Normal: `CPI=600`, `CPI_DIVIDOR=1` → **600 effective**, up to 3600 with acceleration
+- Normal: `CPI=600`, `CPI_DIVIDOR=1` → **690 effective** in the middle (CPI × `MID_MULT`), ~240 at a crawl, up to ~4680 on a hard flick
 - Snipe: `SNIPE_CPI=200`, then halved by a layer-scoped `&zip_xy_scaler 1 2` → **100 effective**, no acceleration
 
 200 is the sensor's floor (the register is `cpi / 200`), so slowing snipe further is only possible with a scaler. It is attached as a child node of `trackball_listener` with `layers = <2>` so it applies to the snipe layer only — a global scaler would drag the normal mode down too. **That layer number is duplicated between the override and the driver's `snipe-layers` property; renumbering layers without updating both leaves snipe silently un-scaled, and the build still succeeds.**
@@ -300,7 +301,7 @@ Most gotchas are documented where they bite, in the topical sections above. The 
 - **Open questions for layout v2:** middle click on N (kept) vs M (plan); F1 sits on the `` ` `` key (plan's layer spec and the old snipe layer) although the plan's checklist says "54 + 1 = F1".
 - **Previously completed:** dongle variant (XIAO nRF52840) fully working — keys, layers, combos, cursor, acceleration, snipe, scroll, auto-mouse and caret all confirmed on hardware; battery logging of both halves visible over USB serial.
 - **Both firmware sets build from one push**; the user flashes one set at a time. Direct-BLE set is unchanged in behaviour since the dongle work began.
-- **Trackball tuning currently:** `CPI=600`, accel MIN `60`, SLOW/LOW/HIGH `75/200/1000`, MAX `600`, quadratic, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `60` (dongle processor).
+- **Trackball tuning currently:** `CPI=600`, accel MIN `40`, MID `115`, SLOW/LOW/HIGH `75/200/1000`, MAX `780`, quadratic, dongle scroll divisor `21`, `SCROLL_TICK=18`, snipe `200` halved to 100 by scaler, caret tick `20` (driver) / `69` (dongle processor).
 - **Battery:** right half's reported charge is a constant ~24 % and not a measurement (see Battery Level Logging); only the left half's number is real.
 - **Working tree:** two old serial logs (`battery_charibdis.txt`, `battery log.txt`) are committed to the repo root and are cleanup candidates for `notes/`.
 - **Key files:** `build.yaml`, `config/charybdis.keymap`, `config/boards/shields/charybdis/charybdis_right.{overlay,conf}`, `config/boards/shields/charybdis_dongle/charybdis_dongle.{overlay,conf}`, `zmk-pmw3610-driver-main/src/{pmw3610.c,input_processor_caret.c,battery_log.c}`.
