@@ -1,0 +1,23 @@
+# Рисует раскладку в keymap-drawer/charybdis.svg (и .yaml) и коммитит результат
+# отдельным коммитом "keymap-drawer render". Подписи: keymap_drawer.config.yaml.
+name: Draw keymap
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - config/charybdis.keymap
+      - config/charybdis.json
+      - keymap_drawer.config.yaml
+      - .github/workflows/draw-keymaps.yml
+
+jobs:
+  draw:
+    uses: caksoylar/keymap-drawer/.github/workflows/draw-zmk.yml@main
+    permissions:
+      contents: write
+    with:
+      # Только основной файл: charybdis_*_dongle.keymap — это include того же самого.
+      keymap_patterns: config/charybdis.keymap
+      # В раскладке нет ничего из west-модулей, скачивать их незачем.
+      west_config_path: ""

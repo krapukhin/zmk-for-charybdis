@@ -167,8 +167,9 @@
         compatible = "zmk,input-listener";
         device = <&trackball_split>;
 
-        // Auto mouse layer — как в основном варианте.
-        input-processors = <&zip_temp_layer 1 800>;
+        // Auto mouse layer — как в основном варианте: второй параметр 0 = таймера нет,
+        // слой гаснет только от Space (&to 0) или клавиши не из excluded-positions.
+        input-processors = <&zip_temp_layer 1 0>;
 
         // Snipe: программное деление вместо аппаратной смены CPI сенсора
         // (с донгла CPI не поменять). Подбирать заново — это не то же самое,

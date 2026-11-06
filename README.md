@@ -100,13 +100,13 @@ The caret mode logic is built into the vendored PMW3610 driver. To port:
 
 ## Auto Mouse Layer
 
-Moving the trackball automatically raises a mouse layer: `H` = right click, `J` = left click, `N` = middle click, **hold `K` = snipe, hold `L` = scroll**, either Space = back to letters right away (no space is typed). It drops again 800 ms after the ball stops (or as soon as you press a letter), so the keys go back to being letters. Nothing is held to get there — you roll the ball, click, and keep typing. While the ball has not moved, `K` and `L` are plain letters with no delay.
+Moving the trackball automatically raises a mouse layer: `H` = right click, `J` = left click, `N` = middle click, **hold `K` = snipe, hold `L` = scroll**, either Space = back to letters right away (no space is typed). There is no timeout: the layer stays up until you press Space or a key outside the list below (any other letter, Enter, a layer thumb), so you always know which mode you are in. Nothing is held to get there — you roll the ball, click, press Space, and keep typing. While the ball has not moved, `K` and `L` are plain letters with no delay.
 
 Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-processors/temp-layer) input processor, configured in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay) (and identically in the dongle overlay):
 
 ```dts
 &trackball_listener {
-    input-processors = <&zip_temp_layer 1 800>;   // layer 1, 800 ms after the ball stops
+    input-processors = <&zip_temp_layer 1 0>;   // layer 1, 0 = no timeout
 };
 
 &zip_temp_layer {
@@ -116,8 +116,7 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 ```
 
 **Tuning:**
-- Not enough time to click after aiming -> raise the `800` timeout to 1200–1500
-- `H`/`J`/`K`/`L` stay mouse keys too long when you resume typing -> lower it to 400–600
+- Prefer a layer that drops by itself -> replace the `0` with a timeout in ms after the ball stops, e.g. `800`
 - Layer pops up while touch-typing -> raise `require-prior-idle-ms` to 300
 
 ### Traps worth knowing
@@ -126,14 +125,14 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 
 **2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger), the snipe/scroll holders `K`/`L`, both Shifts and Ctrl / Cmd / Alt (so modifier-clicks survive). `K` and `L` *must* be listed — otherwise pressing them dismisses the layer before `&mo` resolves and you get a letter. Space is listed too, so that its `&to 0` on the mouse layer runs instead of a plain space. Enter and the layer thumbs are deliberately left out: pressing them means you're back to typing.
 
-**3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and its timer isn't refreshed — after 0.8 s of careful aiming the mouse layer is gone. If the snipe layer were all-transparent, `J` under a held `K` would then type `j`. So snipe and scroll carry their own `H`/`J`/`N` clicks.
+**3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and a timeout, if one is set, isn't refreshed — the mouse layer can disappear during careful aiming. If the snipe layer were all-transparent, `J` under a held `K` would then type `j`. So snipe and scroll carry their own `H`/`J`/`N` clicks; with no timeout they are only a safeguard.
 
 **4. No `require-prior-idle-ms` on the thumb layer-taps.** It is great for layer-taps on letters, but on a thumb it means "if a letter was typed just before, resolve as tap": hold NUM right after a letter and you get an Enter instead of the number layer. (The Backspace/Hyper thumb is the deliberate exception — there, resolving as Backspace right after typing is exactly what you want.)
 
 ### How to add this to your own ZMK trackball build
 
 1. Add a mouse layer to your keymap at an index **below** your trackball-mode layers — everything on it `&trans` except the click keys (and `&mo` into your mode layers, if you want them here)
-2. Point the processor at it: `input-processors = <&zip_temp_layer N 800>;` on your input listener
+2. Point the processor at it: `input-processors = <&zip_temp_layer N 800>;` on your input listener (`800` = drop 800 ms after the ball stops, `0` = no timeout)
 3. Set `excluded-positions` to your click keys, any `&mo` keys on that layer and your modifiers, and `require-prior-idle-ms` to ~200
 4. Make sure `#include <input/processors.dtsi>` is in your overlay
 
@@ -227,7 +226,7 @@ The four symbol combos need a short pause before them: they don't fire within 10
 | # | Name | How to activate | Description |
 |---|------|----------------|-------------|
 | 0 | BASE | — | QWERTY, plain letters |
-| 1 | **MOUSE** | **Automatic** — moving the trackball | Clicks on `H`/`J`/`N`, hold `K` = snipe, hold `L` = scroll, Space = back to letters; drops 800 ms after the ball stops |
+| 1 | **MOUSE** | **Automatic** — moving the trackball | Clicks on `H`/`J`/`N`, hold `K` = snipe, hold `L` = scroll, Space = back to letters; no timeout, stays up until Space or another letter |
 | 2 | SNIPE | Hold `K` while the mouse layer is up | Precision cursor; clicks stay on `H`/`J`/`N` |
 | 3 | SCROLL | Hold `L` while the mouse layer is up | Ball → scroll wheel; clicks stay on `H`/`J`/`N` |
 | 4 | **NAV** | Hold left thumb 50 (tap = Tab) | Arrows on HJKL, Home/End/PgUp/PgDn, word jumps, tabs, window tiling, VS Code back/forward; **ball moves the text cursor** |

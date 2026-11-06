@@ -1,0 +1,21 @@
+# Подписи для keymap-drawer (.github/workflows/draw-keymaps.yml).
+# Только там, где подпись по умолчанию сырая или вводит в заблуждение.
+# Клавиши здесь названы по прошивке: LGUI на Ubuntu работает как Ctrl (см. CLAUDE.md).
+parse_config:
+  raw_binding_map:
+    "&mkp LCLK": LMB
+    "&mkp RCLK": RMB
+    "&mkp MCLK": MMB
+    "&td_shift_l": Shift
+    "&td_shift_r": Shift
+    "&bootloader": Boot
+    "&studio_unlock": Studio
+    # По умолчанию было бы BASE / toggle, но это возврат на BASE, а не переключатель.
+    "&to 0": {t: BASE, h: back}
+    # Половинки hold-tap на 51 и 54. Сами &lt и &hyper_bspc не трогаем,
+    # иначе на FUN пропадёт отметка удерживаемой клавиши.
+    "&kp LS(LA(LC(LGUI)))": Hyper
+    "&kp LC(SPACE)": Lang
+  zmk_combos:
+    # Позиции 0 и 11: иначе линия этого комбо идёт через весь верхний ряд BASE.
+    combo_studio_unlock: {draw_separate: true}
