@@ -91,7 +91,7 @@ LABELS = {
 APP_NAMES = {
     "code": "VS Code", "google-chrome": "Chrome", "wezterm": "WezTerm", "dbeaver-ce": "DBeaver",
     "claude-desktop": "Claude", "/opt/LOOP/loop-desktop": "LOOP", "/snap/bin/telegram-desktop": "Telegram",
-    "nautilus": "Files",
+    "nautilus": "Files", "/snap/bin/spotify": "Spotify",
 }
 HYPER_PREFIX = "<Shift><Ctrl><Alt><Super>"
 

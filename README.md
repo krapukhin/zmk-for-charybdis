@@ -4,6 +4,8 @@ ZMK firmware configuration for the **Charybdis 4x6** split ergonomic keyboard wi
 
 **Tested with ZMK main (March 2026) / Zephyr 4.1**
 
+**Layout cheatsheet (in Russian):** https://krapukhin.github.io/zmk-for-charybdis/
+
 ---
 
 ## Pointer Acceleration
