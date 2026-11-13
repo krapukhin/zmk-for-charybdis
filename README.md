@@ -102,7 +102,7 @@ The caret mode logic is built into the vendored PMW3610 driver. To port:
 
 ## Auto Mouse Layer
 
-Moving the trackball automatically raises a mouse layer: `H` = right click, `J` = left click, `N` = middle click, **hold `K` = snipe, hold `L` = scroll**, either Space = back to letters right away (no space is typed). There is no timeout: the layer stays up until you press Space or a key outside the list below (any other letter, Enter, a layer thumb), so you always know which mode you are in. Nothing is held to get there — you roll the ball, click, press Space, and keep typing. While the ball has not moved, `K` and `L` are plain letters with no delay.
+Moving the trackball automatically raises a mouse layer: `H` = right click, `J` = left click, `N` = middle click, **hold `K` = snipe, hold `L` = scroll**, either Space = back to letters right away (no space is typed). There is no timeout: the layer stays up until you press Space or a key outside the list below (any other letter, Shift, Enter, a layer thumb), so you always know which mode you are in. Nothing is held to get there — you roll the ball, click, press Space, and keep typing. While the ball has not moved, `K` and `L` are plain letters with no delay.
 
 Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-processors/temp-layer) input processor, configured in [`charybdis_right.overlay`](config/boards/shields/charybdis/charybdis_right.overlay) (and identically in the dongle overlay):
 
@@ -113,7 +113,7 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
-    excluded-positions = <24 30 31 32 33 36 42 47 48 49 52 53>;
+    excluded-positions = <24 30 31 32 33 42 48 49 52 53>;
 };
 ```
 
@@ -125,7 +125,7 @@ Built on ZMK's upstream [`&zip_temp_layer`](https://zmk.dev/docs/keymaps/input-p
 
 **1. The layer index is load-bearing.** The auto mouse layer must sit at a *lower* index than the snipe / scroll / NAV (caret) layers. The PMW3610 driver selects the trackball mode from `zmk_keymap_highest_layer_active()` — only the topmost active layer. Put the mouse layer above them and holding `L` for scroll leaves the mouse layer on top, so the driver never leaves cursor mode and scroll / snipe / caret quietly stop working while the ball is moving. Nothing fails at build time. That is why the mouse layer is index 1.
 
-**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger), the snipe/scroll holders `K`/`L`, both Shifts and Ctrl / Cmd / Alt (so modifier-clicks survive). `K` and `L` *must* be listed — otherwise pressing them dismisses the layer before `&mo` resolves and you get a letter. Space is listed too, so that its `&to 0` on the mouse layer runs instead of a plain space. Enter and the layer thumbs are deliberately left out: pressing them means you're back to typing.
+**2. `excluded-positions` is inverted.** Listed positions do **not** dismiss the layer; every other key does. And if the list is *empty*, no key dismisses the layer at all — only the timeout. The list here holds the three click keys (so clicking doesn't dismiss the layer under your own finger), the snipe/scroll holders `K`/`L`, and Ctrl / Cmd / Alt (so those modifier-clicks survive). `K` and `L` *must* be listed — otherwise pressing them dismisses the layer before `&mo` resolves and you get a letter. Space is listed too, so that its `&to 0` on the mouse layer runs instead of a plain space. Shift, Enter and the layer thumbs are deliberately left out: pressing them means you're back to typing. Shift then works as Shift, so a capital right after the mouse comes out right; the price is that shift-click needs Shift held *before* touching the ball.
 
 **3. Clicks are duplicated on the snipe and scroll layers.** The snipe override on the listener has no `process-next`, so while snipe is active `&zip_temp_layer` doesn't run and a timeout, if one is set, isn't refreshed — the mouse layer can disappear during careful aiming. If the snipe layer were all-transparent, `J` under a held `K` would then type `j`. So snipe and scroll carry their own `H`/`J`/`N` clicks; with no timeout they are only a safeguard.
 

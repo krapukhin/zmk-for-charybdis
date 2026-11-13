@@ -302,6 +302,19 @@ config PMW3610_ACCEL_POWER_MIN_MULT
     Only used by PMW3610_ACCEL_CURVE_POWER. The formula goes to zero with the
     speed, so it needs a floor. Example: 15 means 0.15x.
 
+config PMW3610_ACCEL_REST_DT_MS
+  int "Assumed duration of the first report after a pause (ms)"
+  default 8
+  range 1 100
+  depends on PMW3610_ACCEL_ENABLED
+  help
+    Speed is the delta divided by the time since the previous report. After a
+    pause longer than 100 ms that time says nothing about the movement, so the
+    first report is treated as if it took this long. 8 is one poll at 125 Hz.
+    A larger value makes a nudge of the ball from rest slower. With the power
+    curve the multiplier of that report scales by (8 / value) ^ EXP, so 18
+    halves it at EXP 85.
+
 config PMW3610_AUTOMOUSE_TIMEOUT_MS
   int "Amount of milliseconds the mouse layer will be active after using the trackball"
   default 400

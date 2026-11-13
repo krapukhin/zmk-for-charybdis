@@ -623,9 +623,13 @@ static void apply_acceleration(struct pixart_data *data, int16_t *x, int16_t *y)
     int64_t dt_us = k_ticks_to_us_floor64(now - data->last_move_ticks);
     data->last_move_ticks = now;
 
-    /* Первый отсчёт или пауза в движении — считаем как один период опроса. */
+    /* Первый отсчёт или пауза в движении: сколько на самом деле длилось движение,
+     * неизвестно, поэтому считаем, что ACCEL_REST_DT_MS. 8 — один опрос на 125 Гц;
+     * больше — медленнее толчок шара из покоя (и первый опрос любого движения
+     * после паузы).
+     */
     if (dt_us <= 0 || dt_us > 100000) {
-        dt_us = 8000; // fallback ~125Hz
+        dt_us = CONFIG_PMW3610_ACCEL_REST_DT_MS * 1000;
     }
 
     // speed in counts/ms
